@@ -39,6 +39,9 @@ void loop() {
     Serial.println("BUTTON_2_INT");
     waterManager->manualMainOn();
   }
+  if (sleepManager->isInterruptAndReset(BUTTON_3_INT)) {
+    Serial.println("BUTTON_3_INT");
+  }
   boolean finished = waterManager->update();
 //  finished = false;
   if (finished) {
@@ -56,6 +59,9 @@ void loop() {
       case BUTTON_2_INT:
         Serial.println("BUTTON_2_INT");
         waterManager->manualMainOn();
+        break;
+      case BUTTON_3_INT:
+        Serial.println("BUTTON_3_INT");
         break;
       default:
         Serial.println("unknown int");

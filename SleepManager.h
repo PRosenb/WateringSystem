@@ -11,10 +11,11 @@
 #define RTC_INT_PIN 8
 #define BUTTON_1_INT_PIN 9
 #define BUTTON_2_INT_PIN 10
+#define BUTTON_3_INT_PIN 11
 
 #define AWAKE_LED_PIN 13
 
-enum CausingInterrupt { BUTTON_1_INT, BUTTON_2_INT, RTC_ALARM_1_INT, RTC_ALARM_2_INT, UNKNOWN_INT };
+enum CausingInterrupt { BUTTON_1_INT, BUTTON_2_INT, BUTTON_3_INT, RTC_ALARM_1_INT, RTC_ALARM_2_INT, UNKNOWN_INT };
 
 class SleepManager {
   public:
@@ -25,10 +26,12 @@ class SleepManager {
     static void isrRtc();
     static void isrButton1();
     static void isrButton2();
+    static void isrButton3();
     void sleepNow();
     LED awakeLed = LED(AWAKE_LED_PIN);
     static volatile boolean button1Triggered;
     static volatile boolean button2Triggered;
+    static volatile boolean button3Triggered;
 };
 
 #endif

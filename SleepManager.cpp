@@ -8,6 +8,7 @@
 
 volatile boolean SleepManager::button1Triggered;
 volatile boolean SleepManager::button2Triggered;
+volatile boolean SleepManager::button3Triggered;
 
 SleepManager::SleepManager() {
   attachPinChangeInterrupt(RTC_INT_PIN, SleepManager::isrRtc, FALLING);
@@ -15,14 +16,17 @@ SleepManager::SleepManager() {
 
   button1Triggered = false;
   button2Triggered = false;
+  button3Triggered = false;
   awakeLed.on();
 
   pinMode(BUTTON_1_INT_PIN, INPUT_PULLUP);
   pinMode(BUTTON_2_INT_PIN, INPUT_PULLUP);
+  pinMode(BUTTON_3_INT_PIN, INPUT_PULLUP);
   pinMode(RTC_INT_PIN, INPUT_PULLUP);
 
   attachPinChangeInterrupt(BUTTON_1_INT_PIN, SleepManager::isrButton1, FALLING);
   attachPinChangeInterrupt(BUTTON_2_INT_PIN, SleepManager::isrButton2, FALLING);
+  attachPinChangeInterrupt(BUTTON_3_INT_PIN, SleepManager::isrButton3, FALLING);
 }
 
 CausingInterrupt SleepManager::sleep() {
@@ -33,7 +37,7 @@ CausingInterrupt SleepManager::sleep() {
     sleepNow();
     rtcAlarm1Triggered = RTC.alarm(ALARM_1);
     rtcAlarm2Triggered = RTC.alarm(ALARM_2);
-  } while (!button1Triggered && !button2Triggered && !rtcAlarm1Triggered && !rtcAlarm2Triggered);
+  } while (!button1Triggered && !button2Triggered && !button3Triggered && !rtcAlarm1Triggered && !rtcAlarm2Triggered);
 
   // set the provider and do as sync now
   setSyncProvider(RTC.get);
@@ -43,6 +47,8 @@ CausingInterrupt SleepManager::sleep() {
     causingInterrupt = BUTTON_1_INT;
   } else if (button2Triggered) {
     causingInterrupt = BUTTON_2_INT;
+  } else if (button3Triggered) {
+    causingInterrupt = BUTTON_3_INT;
   } else if (rtcAlarm1Triggered) {
     causingInterrupt = RTC_ALARM_1_INT;
   } else if (rtcAlarm2Triggered) {
@@ -50,6 +56,7 @@ CausingInterrupt SleepManager::sleep() {
   }
   button1Triggered = false;
   button2Triggered = false;
+  button3Triggered = false;
   return causingInterrupt;
 }
 
@@ -64,6 +71,10 @@ boolean SleepManager::isInterruptAndReset(CausingInterrupt causingInterrupt) {
       didInterrupt = button2Triggered;
       button2Triggered = false;
       break;
+    case BUTTON_3_INT:
+      didInterrupt = button3Triggered;
+      button3Triggered = false;
+      break;
   }
   return didInterrupt;
 }
@@ -77,6 +88,9 @@ void SleepManager::isrButton1() {
 }
 void SleepManager::isrButton2() {
   button2Triggered = true;
+}
+void SleepManager::isrButton3() {
+  button3Triggered = true;
 }
 
 // sleep: 19.5mA, on 54.2mA
