@@ -29,7 +29,7 @@ SleepManager::SleepManager() {
   attachPinChangeInterrupt(BUTTON_3_INT_PIN, SleepManager::isrButton3, FALLING);
 }
 
-CausingInterrupt SleepManager::sleep() {
+Interrupts SleepManager::sleep() {
   boolean rtcAlarm1Triggered;
   boolean rtcAlarm2Triggered;
   delay(100); // allow time for serial write
@@ -42,41 +42,28 @@ CausingInterrupt SleepManager::sleep() {
   // set the provider and do as sync now
   setSyncProvider(RTC.get);
 
-  CausingInterrupt causingInterrupt = UNKNOWN_INT;
-  if (button1Triggered) {
-    causingInterrupt = BUTTON_1_INT;
-  } else if (button2Triggered) {
-    causingInterrupt = BUTTON_2_INT;
-  } else if (button3Triggered) {
-    causingInterrupt = BUTTON_3_INT;
-  } else if (rtcAlarm1Triggered) {
-    causingInterrupt = RTC_ALARM_1_INT;
-  } else if (rtcAlarm2Triggered) {
-    causingInterrupt = RTC_ALARM_2_INT;
+  Interrupts interrupts = getSeenInterruptsAndClear();
+  if (rtcAlarm1Triggered) {
+    interrupts.rtcAlarm1 = true;
   }
+  if (rtcAlarm2Triggered) {
+    interrupts.rtcAlarm2 = true;
+  }
+
+  return interrupts;
+}
+
+Interrupts SleepManager::getSeenInterruptsAndClear() {
+  Interrupts interrupts;
+  interrupts.button1 = button1Triggered;
+  interrupts.button2 = button2Triggered;
+  interrupts.button3 = button3Triggered;
+
   button1Triggered = false;
   button2Triggered = false;
   button3Triggered = false;
-  return causingInterrupt;
-}
 
-boolean SleepManager::isInterruptAndReset(CausingInterrupt causingInterrupt) {
-  boolean didInterrupt = false;
-  switch (causingInterrupt) {
-    case BUTTON_1_INT:
-      didInterrupt = button1Triggered;
-      button1Triggered = false;
-      break;
-    case BUTTON_2_INT:
-      didInterrupt = button2Triggered;
-      button2Triggered = false;
-      break;
-    case BUTTON_3_INT:
-      didInterrupt = button3Triggered;
-      button3Triggered = false;
-      break;
-  }
-  return didInterrupt;
+  return interrupts;
 }
 
 void SleepManager::isrRtc() {

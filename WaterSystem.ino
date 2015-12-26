@@ -31,43 +31,31 @@ void loop() {
   Serial.print(':');
   Serial.println(second(), DEC);
 
-  if (sleepManager->isInterruptAndReset(BUTTON_1_INT)) {
+  Interrupts interrupts;
+  boolean finished = waterManager->update();
+  //  finished = false;
+  if (finished) {
+    interrupts = sleepManager->sleep();
+  } else {
+    interrupts = sleepManager->getSeenInterruptsAndClear();
+  }
+
+  if (interrupts.rtcAlarm1 || interrupts.rtcAlarm2) {
+    Serial.println("RTC_INT");
+    rtcTriggered();
+  }
+  if (interrupts.button1) {
     Serial.println("BUTTON_1_INT");
     waterManager->stopAll();
   }
-  if (sleepManager->isInterruptAndReset(BUTTON_2_INT)) {
+  if (interrupts.button2) {
     Serial.println("BUTTON_2_INT");
     waterManager->manualMainOn();
   }
-  if (sleepManager->isInterruptAndReset(BUTTON_3_INT)) {
+  if (interrupts.button3) {
     Serial.println("BUTTON_3_INT");
   }
-  boolean finished = waterManager->update();
-//  finished = false;
-  if (finished) {
-    const CausingInterrupt causingInterrupt = sleepManager->sleep();
-    switch (causingInterrupt) {
-      case RTC_ALARM_1_INT:
-      case RTC_ALARM_2_INT:
-        Serial.println("RTC_INT");
-        rtcTriggered();
-        break;
-      case BUTTON_1_INT:
-        Serial.println("BUTTON_1_INT");
-        waterManager->stopAll();
-        break;
-      case BUTTON_2_INT:
-        Serial.println("BUTTON_2_INT");
-        waterManager->manualMainOn();
-        break;
-      case BUTTON_3_INT:
-        Serial.println("BUTTON_3_INT");
-        break;
-      default:
-        Serial.println("unknown int");
-    }
-    Serial.println("after sleep");
-  }
+
   // allows also to sync time after wakeup
   delay(1000); // every second
 }

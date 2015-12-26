@@ -15,13 +15,16 @@
 
 #define AWAKE_LED_PIN 13
 
-enum CausingInterrupt { BUTTON_1_INT, BUTTON_2_INT, BUTTON_3_INT, RTC_ALARM_1_INT, RTC_ALARM_2_INT, UNKNOWN_INT };
+class Interrupts {
+  public:
+    boolean button1, button2, button3, rtcAlarm1, rtcAlarm2;
+};
 
 class SleepManager {
   public:
     SleepManager();
-    CausingInterrupt sleep();
-    boolean isInterruptAndReset(CausingInterrupt causingInterrupt);
+    Interrupts sleep();
+    Interrupts getSeenInterruptsAndClear();
   private:
     static void isrRtc();
     static void isrButton1();
