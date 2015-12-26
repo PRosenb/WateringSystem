@@ -75,7 +75,6 @@ Interrupts SleepManager::getSeenInterruptsAndClear() {
 void SleepManager::isrRtc() {
   // for the case when the interrupt executes directly before sleep starts
   sleep_disable();
-  digitalWrite(7, HIGH);
 }
 void SleepManager::isrButton1() {
   // for the case when the interrupt executes directly before sleep starts

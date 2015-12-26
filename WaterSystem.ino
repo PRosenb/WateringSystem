@@ -66,6 +66,6 @@ void rtcTriggered() {
   float celsius = t / 4.0;
   Serial.print("temp:");
   Serial.println(celsius, DEC);
-  waterManager->startAutomatic();
+  waterManager->startAutomaticWithWarn();
 }
 

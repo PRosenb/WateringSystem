@@ -7,10 +7,14 @@ WaterManager::WaterManager() {
   superStateMainOn = new ValveState(&valveMain, 0, "mainOn");
 
   stateIdle = new DurationState(0, "areasIdle", superStateMainIdle);
+  stateWarn = new ValveState(&valveArea1, 1000, "warn", superStateMainOn);
+  stateWaitBefore = new DurationState(10000, "areasIdle", superStateMainIdle);
   stateAutomatic1 = new ValveState(&valveArea1, 10000, "area1", superStateMainOn);
   stateAutomatic2 = new ValveState(&valveArea2, 10000, "area2", superStateMainOn);
   stateManual = new DurationState(10000, "manual", superStateMainOn);
 
+  stateWarn->nextState = stateWaitBefore;
+  stateWaitBefore->nextState = stateAutomatic1;
   stateAutomatic1->nextState = stateAutomatic2;
   stateAutomatic2->nextState = stateIdle;
   stateManual->nextState = stateIdle;
@@ -38,11 +42,15 @@ void WaterManager::stopAll() {
   allValvesOff();
 }
 
-void WaterManager::startAutomatic() {
+void WaterManager::startAutomaticWithWarn() {
   // ignore if on manual
   if (!fsm->isInState(*stateManual)) {
-    fsm->changeState(*stateAutomatic1);
+    fsm->changeState(*stateWarn);
   }
+}
+
+void WaterManager::startAutomatic() {
+  fsm->changeState(*stateAutomatic1);
 }
 
 boolean WaterManager::update() {
@@ -62,7 +70,7 @@ boolean WaterManager::updateWithoutAllValvesOff() {
   if (!fsm->isInState(*stateIdle)) {
     fsm->changeToNextStateIfElapsed();
   }
-  
+
   return fsm->isInState(*stateIdle);
 }
 

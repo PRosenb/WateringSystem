@@ -57,6 +57,7 @@ class WaterManager {
     WaterManager();
     ~WaterManager();
     void manualMainOn();
+    void startAutomaticWithWarn();
     void startAutomatic();
     void stopAll();
     boolean update();
@@ -72,7 +73,10 @@ class WaterManager {
     DurationFsm *fsm;
     DurationState *superStateMainIdle;
     DurationState *superStateMainOn;
+
     DurationState *stateIdle;
+    DurationState *stateWarn;
+    DurationState *stateWaitBefore;
     DurationState *stateAutomatic1;
     DurationState *stateAutomatic2;
     DurationState *stateManual;
