@@ -31,6 +31,9 @@ SleepManager::SleepManager() {
 Interrupts SleepManager::sleep() {
   delay(100); // allow time for serial write
 
+  // do sleep_enable()/sleep_disable() before/after the checks to prevent race condition with
+  // sleep_disable() in the isr methods
+  sleep_enable();          // enables the sleep bit, a safety pin
   boolean rtcAlarm1Triggered = RTC.alarm(ALARM_1);
   boolean rtcAlarm2Triggered = RTC.alarm(ALARM_2);
   while (!button1Triggered && !button2Triggered && !button3Triggered && !rtcAlarm1Triggered && !rtcAlarm2Triggered) {
@@ -38,6 +41,7 @@ Interrupts SleepManager::sleep() {
     rtcAlarm1Triggered = RTC.alarm(ALARM_1);
     rtcAlarm2Triggered = RTC.alarm(ALARM_2);
   }
+  sleep_disable();
 
   // set the provider and do as sync now
   setSyncProvider(RTC.get);
@@ -69,16 +73,23 @@ Interrupts SleepManager::getSeenInterruptsAndClear() {
 }
 
 void SleepManager::isrRtc() {
+  // for the case when the interrupt executes directly before sleep starts
+  sleep_disable();
   digitalWrite(7, HIGH);
-  // wake up only, check rtc if it has alarm
 }
 void SleepManager::isrButton1() {
+  // for the case when the interrupt executes directly before sleep starts
+  sleep_disable();
   button1Triggered = true;
 }
 void SleepManager::isrButton2() {
+  // for the case when the interrupt executes directly before sleep starts
+  sleep_disable();
   button2Triggered = true;
 }
 void SleepManager::isrButton3() {
+  // for the case when the interrupt executes directly before sleep starts
+  sleep_disable();
   button3Triggered = true;
 }
 
@@ -93,11 +104,10 @@ void SleepManager::sleepNow() {
   // SLEEP_MODE_STANDBY
   // SLEEP_MODE_PWR_DOWN     - the most power savings
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-  sleep_enable();          // enables the sleep bit, just a safety pin
   power_all_disable();
+  // sleep is only be done if sleep_enable() is executed before
   sleep_mode();            // here the device is actually put to sleep!!
   // THE PROGRAM CONTINUES FROM HERE AFTER WAKING UP
-  sleep_disable();         // first thing after waking from sleep: disable sleep...
   power_all_enable();
   awakeLed.on();
   //  detachPinChangeInterrupt(RTC_INT_PIN);

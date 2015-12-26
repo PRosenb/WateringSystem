@@ -9,7 +9,7 @@ WaterManager *waterManager;
 
 void setup() {
   Serial.begin(9600);
-  delay(100); // every second
+  delay(100); // wait for serial to init
   sleepManager = new SleepManager();
   waterManager = new WaterManager();
 
@@ -57,7 +57,7 @@ void loop() {
   }
 
   // allows also to sync time after wakeup
-  delay(1000); // every second
+  delay(1000); // repeat every second
 }
 
 void rtcTriggered() {
