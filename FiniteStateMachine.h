@@ -7,11 +7,15 @@
 //define the functionality of the states
 class State {
   public:
-    State(String name): name(name) {
+    State(String name): name(name), superState(0) {
+    }
+    // supports one level of super states. Super states of super states are ignored.
+    State(String name, State *const superState): name(name), superState(superState) {
     }
     virtual void enter() {}
     virtual void exit() {}
     const String name;
+    State * const superState;
 };
 
 //define the finite state machine functionality

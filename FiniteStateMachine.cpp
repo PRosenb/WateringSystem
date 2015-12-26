@@ -14,10 +14,22 @@ FiniteStateMachine& FiniteStateMachine::changeState(State& state) {
     Serial.print(" changeState ");
     Serial.print(currentState->name);
     Serial.print(" -> ");
-    Serial.println(state.name);
+    Serial.print(state.name);
 
     currentState->exit();
+    boolean differentSuperStates = currentState->superState != state.superState;
+    if (differentSuperStates && currentState->superState != 0) {
+      Serial.print(" : super ");
+      Serial.print(currentState->superState->name);
+      Serial.print(" -> ");
+      currentState->superState->exit();
+    }
     currentState = &state;
+    if (differentSuperStates && currentState->superState != 0) {
+      Serial.print(currentState->superState->name);
+      currentState->superState->enter();
+    }
+    Serial.println();
     currentState->enter();
     stateChangeTime = millis();
   }
