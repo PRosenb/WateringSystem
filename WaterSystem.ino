@@ -33,7 +33,7 @@ void loop() {
 
   Interrupts interrupts;
   boolean finished = waterManager->update();
-  //  finished = false;
+//    finished = false;
   if (finished) {
     interrupts = sleepManager->sleep();
   } else {
@@ -66,5 +66,6 @@ void rtcTriggered() {
   float celsius = t / 4.0;
   Serial.print("temp:");
   Serial.println(celsius, DEC);
+  waterManager->startAutomatic();
 }
 

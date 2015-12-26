@@ -3,39 +3,46 @@
 #include <Time.h>         //http://www.arduino.cc/playground/Code/Time
 
 WaterManager::WaterManager() {
-  stateMainIdle = new State("mainIdle");
-  stateMainAutomatic = new ValveState(&valveMain, "mainAutomatic");
-  stateMainManual = new ValveState(&valveMain, "mainManual");
-  mainFsm = new FiniteStateMachine(*stateMainIdle, "Main");
+  superStateMainIdle = new DurationState(0, "mainIdle");
+  superStateMainOn = new ValveState(&valveMain, 0, "mainOn");
 
-  stateAreasIdle = new State("areasIdle");
-  stateAreasAutomatic1 = new ValveState(&valveArea1, "area1");
-  stateAreasAutomatic2 = new ValveState(&valveArea2, "area2");
-  areasFsm = new FiniteStateMachine(*stateAreasIdle, "Areas");
+  stateIdle = new DurationState(0, "areasIdle", superStateMainIdle);
+  stateAutomatic1 = new ValveState(&valveArea1, 10000, "area1", superStateMainOn);
+  stateAutomatic2 = new ValveState(&valveArea2, 10000, "area2", superStateMainOn);
+  stateManual = new DurationState(10000, "manual", superStateMainOn);
+
+  stateAutomatic1->nextState = stateAutomatic2;
+  stateAutomatic2->nextState = stateIdle;
+  stateManual->nextState = stateIdle;
+
+  fsm = new DurationFsm(*stateIdle, "FSM");
 }
 
 WaterManager::~WaterManager() {
-  delete stateMainIdle;
-  delete stateMainAutomatic;
-  delete stateMainManual;
-  delete mainFsm;
-
-  delete stateAreasIdle;
-  delete stateAreasAutomatic1;
-  delete stateAreasAutomatic2;
-  delete areasFsm;
+  delete superStateMainIdle;
+  delete superStateMainOn;
+  delete stateIdle;
+  delete stateAutomatic1;
+  delete stateAutomatic2;
+  delete stateManual;
+  delete fsm;
 }
 
 void WaterManager::manualMainOn() {
-  mainFsm->changeState(*stateMainManual);
-  areasFsm->changeState(*stateAreasIdle);
+  fsm->changeState(*stateManual);
 }
 
 void WaterManager::stopAll() {
   stopAllRequested = true;
-  mainFsm->changeState(*stateMainIdle);
-  areasFsm->changeState(*stateAreasIdle);
+  fsm->changeState(*stateIdle);
   allValvesOff();
+}
+
+void WaterManager::startAutomatic() {
+  // ignore if on manual
+  if (!fsm->isInState(*stateManual)) {
+    fsm->changeState(*stateAutomatic1);
+  }
 }
 
 boolean WaterManager::update() {
@@ -52,33 +59,11 @@ boolean WaterManager::updateWithoutAllValvesOff() {
     return true;
   }
 
-  boolean finished = false;
-  if (mainFsm->isInState(*stateMainManual)) {
-    // manual
-    if (mainFsm->timeInCurrentState() > MANUAL_ACTIVATION_TIME_SEC * 1000) {
-      mainFsm->changeState(*stateMainIdle);
-      finished = true;
-    }
-  } else {
-    // automatic
-    byte sec = second();
-    if (sec >= 0 && sec < 10) {
-      mainFsm->changeState(*stateMainAutomatic);
-      areasFsm->changeState(*stateAreasAutomatic1);
-    } else if (sec >= 10 && sec < 20) {
-      mainFsm->changeState(*stateMainAutomatic);
-      areasFsm->changeState(*stateAreasAutomatic2);
-    } else if (sec >= 20 && sec < 30) {
-      mainFsm->changeState(*stateMainAutomatic);
-      areasFsm->changeState(*stateAreasIdle);
-    } else {
-      mainFsm->changeState(*stateMainIdle);
-      areasFsm->changeState(*stateAreasIdle);
-      finished = true;
-    }
+  if (!fsm->isInState(*stateIdle)) {
+    fsm->changeToNextStateIfElapsed();
   }
-
-  return finished;
+  
+  return fsm->isInState(*stateIdle);
 }
 
 void WaterManager::allValvesOff() {

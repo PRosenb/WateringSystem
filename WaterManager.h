@@ -3,7 +3,7 @@
 #define WATER_MANAGER_H
 
 #include "Arduino.h"
-#include "FiniteStateMachine.h"
+#include "DurationFsm.h"
 
 #define VALVE1_PIN 4
 #define VALVE2_PIN 5
@@ -19,22 +19,25 @@ class Valve {
       pinMode(pin, OUTPUT);
     }
     void on() {
-//      Serial.print("on ");
-//      Serial.println(pin);
+      //      Serial.print("on ");
+      //      Serial.println(pin);
       digitalWrite(pin, HIGH);
     }
     void off() {
-//      Serial.print("off ");
-//      Serial.println(pin);
+      //      Serial.print("off ");
+      //      Serial.println(pin);
       digitalWrite(pin, LOW);
     }
   private:
     byte pin;
 };
 
-class ValveState: public State {
+class ValveState: public DurationState {
   public:
-    ValveState(Valve *valve, String name): State(name) {
+    ValveState(Valve *valve, unsigned int durationMs, String name): DurationState(durationMs, name) {
+      ValveState::valve = valve;
+    }
+    ValveState(Valve *valve, unsigned int durationMs, String name, DurationState * const superState): DurationState(durationMs, name, superState) {
       ValveState::valve = valve;
     }
     virtual void enter() {
@@ -54,26 +57,25 @@ class WaterManager {
     WaterManager();
     ~WaterManager();
     void manualMainOn();
+    void startAutomatic();
     void stopAll();
     boolean update();
     void allValvesOff();
   private:
     boolean updateWithoutAllValvesOff();
-  
+
     Valve valveMain = Valve(VALVE1_PIN);
     Valve valveArea1 = Valve(VALVE2_PIN);
     Valve valveArea2 = Valve(VALVE3_PIN);
     Valve valveArea3 = Valve(VALVE4_PIN);
 
-    FiniteStateMachine *areasFsm;
-    State *stateAreasIdle;
-    State *stateAreasAutomatic1;
-    State *stateAreasAutomatic2;
-
-    FiniteStateMachine *mainFsm;
-    State *stateMainIdle;
-    State *stateMainAutomatic;
-    State *stateMainManual;
+    DurationFsm *fsm;
+    DurationState *superStateMainIdle;
+    DurationState *superStateMainOn;
+    DurationState *stateIdle;
+    DurationState *stateAutomatic1;
+    DurationState *stateAutomatic2;
+    DurationState *stateManual;
 
     boolean stopAllRequested;
 };
