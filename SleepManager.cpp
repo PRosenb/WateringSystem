@@ -11,33 +11,33 @@ volatile boolean SleepManager::button2Triggered;
 volatile boolean SleepManager::button3Triggered;
 
 SleepManager::SleepManager() {
-  attachPinChangeInterrupt(RTC_INT_PIN, SleepManager::isrRtc, FALLING);
-  setSyncProvider(RTC.get);
-
   button1Triggered = false;
   button2Triggered = false;
   button3Triggered = false;
-  awakeLed.on();
 
   pinMode(BUTTON_1_INT_PIN, INPUT_PULLUP);
   pinMode(BUTTON_2_INT_PIN, INPUT_PULLUP);
   pinMode(BUTTON_3_INT_PIN, INPUT_PULLUP);
   pinMode(RTC_INT_PIN, INPUT_PULLUP);
-
+  attachPinChangeInterrupt(RTC_INT_PIN, SleepManager::isrRtc, FALLING);
   attachPinChangeInterrupt(BUTTON_1_INT_PIN, SleepManager::isrButton1, FALLING);
   attachPinChangeInterrupt(BUTTON_2_INT_PIN, SleepManager::isrButton2, FALLING);
   attachPinChangeInterrupt(BUTTON_3_INT_PIN, SleepManager::isrButton3, FALLING);
+
+  setSyncProvider(RTC.get);
+  awakeLed.on();
 }
 
 Interrupts SleepManager::sleep() {
-  boolean rtcAlarm1Triggered;
-  boolean rtcAlarm2Triggered;
   delay(100); // allow time for serial write
-  do {
+
+  boolean rtcAlarm1Triggered = RTC.alarm(ALARM_1);
+  boolean rtcAlarm2Triggered = RTC.alarm(ALARM_2);
+  while (!button1Triggered && !button2Triggered && !button3Triggered && !rtcAlarm1Triggered && !rtcAlarm2Triggered) {
     sleepNow();
     rtcAlarm1Triggered = RTC.alarm(ALARM_1);
     rtcAlarm2Triggered = RTC.alarm(ALARM_2);
-  } while (!button1Triggered && !button2Triggered && !button3Triggered && !rtcAlarm1Triggered && !rtcAlarm2Triggered);
+  }
 
   // set the provider and do as sync now
   setSyncProvider(RTC.get);
@@ -58,6 +58,8 @@ Interrupts SleepManager::getSeenInterruptsAndClear() {
   interrupts.button1 = button1Triggered;
   interrupts.button2 = button2Triggered;
   interrupts.button3 = button3Triggered;
+  interrupts.rtcAlarm1 = RTC.alarm(ALARM_1);
+  interrupts.rtcAlarm2 = RTC.alarm(ALARM_2);
 
   button1Triggered = false;
   button2Triggered = false;
