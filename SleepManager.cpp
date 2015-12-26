@@ -6,23 +6,23 @@
 #include <avr/sleep.h>
 #include <avr/power.h>
 
-volatile boolean SleepManager::button1Triggered;
-volatile boolean SleepManager::button2Triggered;
-volatile boolean SleepManager::button3Triggered;
+volatile unsigned int SleepManager::wakeupInterrupt1Count;
+volatile unsigned int SleepManager::wakeupInterrupt2Count;
+volatile unsigned int SleepManager::wakeupInterrupt3Count;
 
 SleepManager::SleepManager() {
-  button1Triggered = false;
-  button2Triggered = false;
-  button3Triggered = false;
+  wakeupInterrupt1Count = 0;
+  wakeupInterrupt2Count = 0;
+  wakeupInterrupt3Count = 0;
 
-  pinMode(BUTTON_1_INT_PIN, INPUT_PULLUP);
-  pinMode(BUTTON_2_INT_PIN, INPUT_PULLUP);
-  pinMode(BUTTON_3_INT_PIN, INPUT_PULLUP);
   pinMode(RTC_INT_PIN, INPUT_PULLUP);
+  pinMode(WAKEUP_INTERRUPT_1_PIN, INPUT_PULLUP);
+  pinMode(WAKEUP_INTERRUPT_2_PIN, INPUT_PULLUP);
+  pinMode(WAKEUP_INTERRUPT_3_PIN, INPUT_PULLUP);
   attachPinChangeInterrupt(RTC_INT_PIN, SleepManager::isrRtc, FALLING);
-  attachPinChangeInterrupt(BUTTON_1_INT_PIN, SleepManager::isrButton1, FALLING);
-  attachPinChangeInterrupt(BUTTON_2_INT_PIN, SleepManager::isrButton2, FALLING);
-  attachPinChangeInterrupt(BUTTON_3_INT_PIN, SleepManager::isrButton3, FALLING);
+  attachPinChangeInterrupt(WAKEUP_INTERRUPT_1_PIN, SleepManager::isrWakeupInterrupt1, FALLING);
+  attachPinChangeInterrupt(WAKEUP_INTERRUPT_2_PIN, SleepManager::isrWakeupInterrupt2, FALLING);
+  attachPinChangeInterrupt(WAKEUP_INTERRUPT_3_PIN, SleepManager::isrWakeupInterrupt3, FALLING);
 
   setSyncProvider(RTC.get);
   awakeLed.on();
@@ -34,12 +34,26 @@ Interrupts SleepManager::sleep() {
   // do sleep_enable()/sleep_disable() before/after the checks to prevent race condition with
   // sleep_disable() in the isr methods
   sleep_enable();          // enables the sleep bit, a safety pin
-  boolean rtcAlarm1Triggered = RTC.alarm(ALARM_1);
-  boolean rtcAlarm2Triggered = RTC.alarm(ALARM_2);
-  while (!button1Triggered && !button2Triggered && !button3Triggered && !rtcAlarm1Triggered && !rtcAlarm2Triggered) {
+  unsigned int rtcAlarm1Count = RTC.alarm(ALARM_1) ? 1 : 0;
+  unsigned int rtcAlarm2Count = RTC.alarm(ALARM_2) ? 1 : 0;
+
+  noInterrupts();
+  unsigned int wakeupInterrupt1CountLocal = wakeupInterrupt1Count;
+  unsigned int wakeupInterrupt2CountLocal = wakeupInterrupt2Count;
+  unsigned int wakeupInterrupt3CountLocal = wakeupInterrupt3Count;
+  interrupts();
+
+  while (wakeupInterrupt1CountLocal == 0 && wakeupInterrupt2CountLocal == 0 && wakeupInterrupt3CountLocal == 0
+         && rtcAlarm1Count == 0 && rtcAlarm2Count == 0) {
     sleepNow();
-    rtcAlarm1Triggered = RTC.alarm(ALARM_1);
-    rtcAlarm2Triggered = RTC.alarm(ALARM_2);
+    if (RTC.alarm(ALARM_1)) rtcAlarm1Count++;
+    if (RTC.alarm(ALARM_2)) rtcAlarm2Count++;
+
+    noInterrupts();
+    wakeupInterrupt1CountLocal = wakeupInterrupt1Count;
+    wakeupInterrupt2CountLocal = wakeupInterrupt2Count;
+    wakeupInterrupt3CountLocal = wakeupInterrupt3Count;
+    interrupts();
   }
   sleep_disable();
 
@@ -47,27 +61,25 @@ Interrupts SleepManager::sleep() {
   setSyncProvider(RTC.get);
 
   Interrupts interrupts = getSeenInterruptsAndClear();
-  if (rtcAlarm1Triggered) {
-    interrupts.rtcAlarm1 = true;
-  }
-  if (rtcAlarm2Triggered) {
-    interrupts.rtcAlarm2 = true;
-  }
+  interrupts.rtcAlarm1 += rtcAlarm1Count;
+  interrupts.rtcAlarm2 += rtcAlarm2Count;
 
   return interrupts;
 }
 
 Interrupts SleepManager::getSeenInterruptsAndClear() {
   Interrupts interrupts;
-  interrupts.button1 = button1Triggered;
-  interrupts.button2 = button2Triggered;
-  interrupts.button3 = button3Triggered;
   interrupts.rtcAlarm1 = RTC.alarm(ALARM_1);
   interrupts.rtcAlarm2 = RTC.alarm(ALARM_2);
 
-  button1Triggered = false;
-  button2Triggered = false;
-  button3Triggered = false;
+  noInterrupts();
+  interrupts.wakeupInterrupt1 = wakeupInterrupt1Count;
+  interrupts.wakeupInterrupt2 = wakeupInterrupt2Count;
+  interrupts.wakeupInterrupt3 = wakeupInterrupt3Count;
+  wakeupInterrupt1Count = 0;
+  wakeupInterrupt2Count = 0;
+  wakeupInterrupt3Count = 0;
+  interrupts();
 
   return interrupts;
 }
@@ -76,20 +88,20 @@ void SleepManager::isrRtc() {
   // for the case when the interrupt executes directly before sleep starts
   sleep_disable();
 }
-void SleepManager::isrButton1() {
+void SleepManager::isrWakeupInterrupt1() {
   // for the case when the interrupt executes directly before sleep starts
   sleep_disable();
-  button1Triggered = true;
+  wakeupInterrupt1Count++;
 }
-void SleepManager::isrButton2() {
+void SleepManager::isrWakeupInterrupt2() {
   // for the case when the interrupt executes directly before sleep starts
   sleep_disable();
-  button2Triggered = true;
+  wakeupInterrupt2Count++;
 }
-void SleepManager::isrButton3() {
+void SleepManager::isrWakeupInterrupt3() {
   // for the case when the interrupt executes directly before sleep starts
   sleep_disable();
-  button3Triggered = true;
+  wakeupInterrupt3Count++;
 }
 
 // sleep: 19.5mA, on 54.2mA

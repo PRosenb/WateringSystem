@@ -46,20 +46,23 @@ void loop() {
     interrupts = sleepManager->getSeenInterruptsAndClear();
   }
 
-  if (interrupts.rtcAlarm1 || interrupts.rtcAlarm2) {
+  if (interrupts.rtcAlarm1 > 0 || interrupts.rtcAlarm2 > 0) {
     Serial.println("RTC_INT");
     rtcTriggered();
   }
-  if (interrupts.button1) {
-    Serial.println("BUTTON_1_INT");
+  if (interrupts.wakeupInterrupt1 > 0) {
+    Serial.print("WAKEUP_INTERRUPT_1: ");
+    Serial.println(interrupts.wakeupInterrupt1, DEC);
     waterManager->manualMainOn();
   }
-  if (interrupts.button2) {
-    Serial.println("BUTTON_2_INT");
+  if (interrupts.wakeupInterrupt2 > 0) {
+    Serial.print("WAKEUP_INTERRUPT_2: ");
+    Serial.println(interrupts.wakeupInterrupt2, DEC);
     waterManager->startAutomatic();
   }
-  if (interrupts.button3) {
-    Serial.println("BUTTON_3_INT");
+  if (interrupts.wakeupInterrupt3 > 0) {
+    Serial.print("WAKEUP_INTERRUPT_3: ");
+    Serial.println(interrupts.wakeupInterrupt3, DEC);
   }
   if (stopAllTriggered) {
     stopAllTriggered = false;
