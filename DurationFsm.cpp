@@ -13,6 +13,7 @@ DurationFsm& DurationFsm::changeToNextStateIfElapsed() {
   if (FiniteStateMachine::timeInCurrentState() >= getCurrentState().durationMs) {
     changeState(*getCurrentState().nextState);
   }
+  return *this;
 }
 
 DurationState& DurationFsm::getCurrentState() {
