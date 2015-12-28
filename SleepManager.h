@@ -23,6 +23,7 @@ class Interrupts {
 class SleepManager {
   public:
     SleepManager();
+    virtual ~SleepManager();
     Interrupts sleep();
     Interrupts getSeenInterruptsAndClear();
   private:
@@ -31,7 +32,7 @@ class SleepManager {
     static void isrWakeupInterrupt2();
     static void isrWakeupInterrupt3();
     void sleepNow();
-    LED awakeLed = LED(AWAKE_LED_PIN);
+    LED *awakeLed;
     static volatile unsigned int wakeupInterrupt1Count;
     static volatile unsigned int wakeupInterrupt2Count;
     static volatile unsigned int wakeupInterrupt3Count;

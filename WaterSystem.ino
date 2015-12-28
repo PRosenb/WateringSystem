@@ -6,6 +6,9 @@
 
 #define STOP_ALL_INT_PIN 0
 
+void rtcTriggered();
+void isrStopAll();
+
 SleepManager *sleepManager;
 WaterManager *waterManager;
 volatile boolean stopAllTriggered = false;
@@ -39,7 +42,7 @@ void loop() {
 
   Interrupts interrupts;
   boolean finished = waterManager->update();
-//    finished = false;
+  //    finished = false;
   if (finished) {
     interrupts = sleepManager->sleep();
   } else {
@@ -66,7 +69,7 @@ void loop() {
   }
   if (stopAllTriggered) {
     stopAllTriggered = false;
-    waterManager->stopAll();    
+    waterManager->stopAll();
   }
 
   // allows also to sync time after wakeup

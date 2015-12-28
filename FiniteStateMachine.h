@@ -12,6 +12,7 @@ class State {
     // supports one level of super states. Super states of super states are ignored.
     State(String name, State *const superState): name(name), superState(superState) {
     }
+    virtual ~State() {}
     virtual void enter() {}
     virtual void exit() {}
     const String name;

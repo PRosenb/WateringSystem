@@ -14,6 +14,7 @@ SleepManager::SleepManager() {
   wakeupInterrupt1Count = 0;
   wakeupInterrupt2Count = 0;
   wakeupInterrupt3Count = 0;
+  awakeLed = new LED(AWAKE_LED_PIN);
 
   pinMode(RTC_INT_PIN, INPUT_PULLUP);
   pinMode(WAKEUP_INTERRUPT_1_PIN, INPUT_PULLUP);
@@ -25,7 +26,11 @@ SleepManager::SleepManager() {
   attachPinChangeInterrupt(WAKEUP_INTERRUPT_3_PIN, SleepManager::isrWakeupInterrupt3, FALLING);
 
   setSyncProvider(RTC.get);
-  awakeLed.on();
+  awakeLed->on();
+}
+
+SleepManager::~SleepManager() {
+  delete awakeLed;
 }
 
 Interrupts SleepManager::sleep() {
@@ -108,7 +113,7 @@ void SleepManager::isrWakeupInterrupt3() {
 void SleepManager::sleepNow() {
   Serial.end();
   //  attachPinChangeInterrupt(RTC_INT_PIN, SleepManager::isrRtc, FALLING);
-  awakeLed.off();
+  awakeLed->off();
   // SLEEP_MODE_IDLE         - the least power savings
   // SLEEP_MODE_ADC
   // SLEEP_MODE_PWR_SAVE
@@ -120,7 +125,7 @@ void SleepManager::sleepNow() {
   sleep_mode();            // here the device is actually put to sleep!!
   // THE PROGRAM CONTINUES FROM HERE AFTER WAKING UP
   power_all_enable();
-  awakeLed.on();
+  awakeLed->on();
   //  detachPinChangeInterrupt(RTC_INT_PIN);
   Serial.begin(9600);
 }

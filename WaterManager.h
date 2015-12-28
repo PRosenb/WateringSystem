@@ -65,10 +65,10 @@ class WaterManager {
   private:
     boolean updateWithoutAllValvesOff();
 
-    Valve valveMain = Valve(VALVE1_PIN);
-    Valve valveArea1 = Valve(VALVE2_PIN);
-    Valve valveArea2 = Valve(VALVE3_PIN);
-    Valve valveArea3 = Valve(VALVE4_PIN);
+    Valve *valveMain;
+    Valve *valveArea1;
+    Valve *valveArea2;
+    Valve *valveArea3;
 
     DurationFsm *fsm;
     DurationState *superStateMainIdle;

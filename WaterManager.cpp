@@ -3,14 +3,20 @@
 #include <Time.h>         //http://www.arduino.cc/playground/Code/Time
 
 WaterManager::WaterManager() {
+  valveMain = new Valve(VALVE1_PIN);
+  valveArea1 = new Valve(VALVE2_PIN);
+  valveArea2 = new Valve(VALVE3_PIN);
+  valveArea3 = new Valve(VALVE4_PIN);
+  stopAllRequested = false;
+
   superStateMainIdle = new DurationState(0, "mainIdle");
-  superStateMainOn = new ValveState(&valveMain, 0, "mainOn");
+  superStateMainOn = new ValveState(valveMain, 0, "mainOn");
 
   stateIdle = new DurationState(0, "areasIdle", superStateMainIdle);
-  stateWarn = new ValveState(&valveArea1, 1000, "warn", superStateMainOn);
+  stateWarn = new ValveState(valveArea1, 1000, "warn", superStateMainOn);
   stateWaitBefore = new DurationState(10000, "areasIdle", superStateMainIdle);
-  stateAutomatic1 = new ValveState(&valveArea1, 10000, "area1", superStateMainOn);
-  stateAutomatic2 = new ValveState(&valveArea2, 10000, "area2", superStateMainOn);
+  stateAutomatic1 = new ValveState(valveArea1, 10000, "area1", superStateMainOn);
+  stateAutomatic2 = new ValveState(valveArea2, 10000, "area2", superStateMainOn);
   stateManual = new DurationState(10000, "manual", superStateMainOn);
 
   stateWarn->nextState = stateWaitBefore;
@@ -23,6 +29,11 @@ WaterManager::WaterManager() {
 }
 
 WaterManager::~WaterManager() {
+  delete valveMain;
+  delete valveArea1;
+  delete valveArea2;
+  delete valveArea3;
+
   delete superStateMainIdle;
   delete superStateMainOn;
   delete stateIdle;
@@ -75,9 +86,9 @@ boolean WaterManager::updateWithoutAllValvesOff() {
 }
 
 void WaterManager::allValvesOff() {
-  valveMain.off();
-  valveArea1.off();
-  valveArea2.off();
-  valveArea3.off();
+  valveMain->off();
+  valveArea1->off();
+  valveArea2->off();
+  valveArea3->off();
 }
 
