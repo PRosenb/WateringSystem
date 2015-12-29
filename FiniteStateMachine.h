@@ -7,7 +7,7 @@
 //define the functionality of the states
 class State {
   public:
-    State(String name): name(name), superState(0) {
+    State(String name): name(name), superState(NULL) {
     }
     // supports one level of super states. Super states of super states are ignored.
     State(String name, State *const superState): name(name), superState(superState) {

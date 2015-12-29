@@ -18,14 +18,14 @@ FiniteStateMachine& FiniteStateMachine::changeState(State& state) {
 
     currentState->exit();
     boolean differentSuperStates = currentState->superState != state.superState;
-    if (differentSuperStates && currentState->superState != 0) {
+    if (differentSuperStates && currentState->superState != NULL) {
       Serial.print(" : super ");
       Serial.print(currentState->superState->name);
       Serial.print(" -> ");
       currentState->superState->exit();
     }
     currentState = &state;
-    if (differentSuperStates && currentState->superState != 0) {
+    if (differentSuperStates && currentState->superState != NULL) {
       Serial.print(currentState->superState->name);
       currentState->superState->enter();
     }

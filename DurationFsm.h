@@ -8,9 +8,9 @@
 //define the functionality of the states
 class DurationState: public State {
   public:
-    DurationState(const unsigned int durationMs, String name): State(name), durationMs(durationMs), nextState(0) {
+    DurationState(const unsigned int durationMs, String name): State(name), durationMs(durationMs), nextState(NULL) {
     }
-    DurationState(const unsigned int durationMs, String name, State * const superState): State(name, superState), durationMs(durationMs), nextState(0) {
+    DurationState(const unsigned int durationMs, String name, State * const superState): State(name, superState), durationMs(durationMs), nextState(NULL) {
     }
     const unsigned int durationMs;
     DurationState *nextState;
