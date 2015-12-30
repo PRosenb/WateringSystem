@@ -16,6 +16,15 @@ SleepManager::SleepManager() {
   wakeupInterrupt3Count = 0;
   awakeLed = new LED(AWAKE_LED_PIN);
 
+  // http://www.atmel.com/webdoc/AVRLibcReferenceManual/group__avr__power.html
+  //  power_timer0_disable();
+  power_timer1_disable();
+  power_timer2_disable();
+  //  power_twi_disable();
+  power_usart0_disable();
+  power_adc_enable();
+  power_spi_disable();
+
   pinMode(RTC_INT_PIN, INPUT_PULLUP);
   pinMode(WAKEUP_INTERRUPT_1_PIN, INPUT_PULLUP);
   pinMode(WAKEUP_INTERRUPT_2_PIN, INPUT_PULLUP);
@@ -30,6 +39,7 @@ SleepManager::SleepManager() {
 }
 
 SleepManager::~SleepManager() {
+  awakeLed->off();
   delete awakeLed;
 }
 
@@ -51,6 +61,7 @@ Interrupts SleepManager::sleep() {
   while (wakeupInterrupt1CountLocal == 0 && wakeupInterrupt2CountLocal == 0 && wakeupInterrupt3CountLocal == 0
          && rtcAlarm1Count == 0 && rtcAlarm2Count == 0) {
     sleepNow();
+
     if (RTC.alarm(ALARM_1)) rtcAlarm1Count++;
     if (RTC.alarm(ALARM_2)) rtcAlarm2Count++;
 
@@ -109,24 +120,32 @@ void SleepManager::isrWakeupInterrupt3() {
   wakeupInterrupt3Count++;
 }
 
-// sleep: 19.5mA, on 54.2mA
+// with DS3231 and MOSFET4 connected, no MOSFET on
+// power supply not connected: 1.40W
+// SLEEP_MODE_PWR_DOWN: 18.5mA, 1.8W
+// ON: 54.2mA
+// ON but timer1/2, usart, adc, spi OFF: 50.5mA, 2.45W
+// SLEEP_MODE_IDLE with timer0/1/2, usart, adc, spi, twi OFF: 38.5mA
+// SLEEP_MODE_IDLE with timer0/2, usart, adc, spi, twi OFF: 41.0mA, 2.25W
 void SleepManager::sleepNow() {
   Serial.end();
-  //  attachPinChangeInterrupt(RTC_INT_PIN, SleepManager::isrRtc, FALLING);
   awakeLed->off();
+  
+  power_timer0_disable();
+  power_twi_disable();
   // SLEEP_MODE_IDLE         - the least power savings
   // SLEEP_MODE_ADC
   // SLEEP_MODE_PWR_SAVE
   // SLEEP_MODE_STANDBY
   // SLEEP_MODE_PWR_DOWN     - the most power savings
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-  power_all_disable();
   // sleep is only be done if sleep_enable() is executed before
   sleep_mode();            // here the device is actually put to sleep!!
   // THE PROGRAM CONTINUES FROM HERE AFTER WAKING UP
-  power_all_enable();
+  power_timer0_enable();
+  power_twi_enable();
+  
   awakeLed->on();
-  //  detachPinChangeInterrupt(RTC_INT_PIN);
   Serial.begin(9600);
 }
 
