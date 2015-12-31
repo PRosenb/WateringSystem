@@ -43,7 +43,8 @@ void loop() {
   Interrupts interrupts;
   boolean finished = waterManager->update();
   //    finished = false;
-  if (finished) {
+  // do not sleep when Serial is connected and within the first 30 sec
+  if (finished && !Serial && millis() > 30000) {
     interrupts = sleepManager->sleep();
   } else {
     interrupts = sleepManager->getSeenInterruptsAndClear();
