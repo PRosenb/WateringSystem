@@ -15,6 +15,7 @@ SleepManager::SleepManager() {
   wakeupInterrupt2Count = 0;
   wakeupInterrupt3Count = 0;
   awakeLed = new LED(AWAKE_LED_PIN);
+  sleepMode = SLEEP_MODE_PWR_DOWN;
 
   // http://www.atmel.com/webdoc/AVRLibcReferenceManual/group__avr__power.html
   //  power_timer0_disable();
@@ -41,6 +42,10 @@ SleepManager::SleepManager() {
 SleepManager::~SleepManager() {
   awakeLed->off();
   delete awakeLed;
+}
+
+void SleepManager::setSleepMode(byte sleepMode) {
+  SleepManager::sleepMode = sleepMode;
 }
 
 Interrupts SleepManager::sleep() {
@@ -133,12 +138,7 @@ void SleepManager::sleepNow() {
   
   power_timer0_disable();
   power_twi_disable();
-  // SLEEP_MODE_IDLE         - the least power savings
-  // SLEEP_MODE_ADC
-  // SLEEP_MODE_PWR_SAVE
-  // SLEEP_MODE_STANDBY
-  // SLEEP_MODE_PWR_DOWN     - the most power savings
-  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+  set_sleep_mode(sleepMode);
   // sleep is only be done if sleep_enable() is executed before
   sleep_mode();            // here the device is actually put to sleep!!
   // THE PROGRAM CONTINUES FROM HERE AFTER WAKING UP

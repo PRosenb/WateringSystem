@@ -24,6 +24,12 @@ class SleepManager {
   public:
     SleepManager();
     virtual ~SleepManager();
+    // SLEEP_MODE_IDLE         - the least power savings, modules on
+    // SLEEP_MODE_ADC
+    // SLEEP_MODE_PWR_SAVE
+    // SLEEP_MODE_STANDBY
+    // SLEEP_MODE_PWR_DOWN     - the most power savings
+    void setSleepMode(byte sleepMode);
     Interrupts sleep();
     Interrupts getSeenInterruptsAndClear();
   private:
@@ -32,6 +38,7 @@ class SleepManager {
     static void isrWakeupInterrupt2();
     static void isrWakeupInterrupt3();
     void sleepNow();
+    byte sleepMode;
     LED *awakeLed;
     static volatile unsigned int wakeupInterrupt1Count;
     static volatile unsigned int wakeupInterrupt2Count;
