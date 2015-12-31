@@ -26,14 +26,22 @@ SleepManager::SleepManager() {
   power_adc_enable();
   power_spi_disable();
 
+#if RTC_INT_PIN != UNUSED
   pinMode(RTC_INT_PIN, INPUT_PULLUP);
-  pinMode(WAKEUP_INTERRUPT_1_PIN, INPUT_PULLUP);
-  pinMode(WAKEUP_INTERRUPT_2_PIN, INPUT_PULLUP);
-  pinMode(WAKEUP_INTERRUPT_3_PIN, INPUT_PULLUP);
   attachPinChangeInterrupt(RTC_INT_PIN, SleepManager::isrRtc, FALLING);
+#endif
+#if WAKEUP_INTERRUPT_1_PIN != UNUSED
+  pinMode(WAKEUP_INTERRUPT_1_PIN, INPUT_PULLUP);
   attachPinChangeInterrupt(WAKEUP_INTERRUPT_1_PIN, SleepManager::isrWakeupInterrupt1, FALLING);
+#endif
+#if WAKEUP_INTERRUPT_2_PIN != UNUSED
+  pinMode(WAKEUP_INTERRUPT_2_PIN, INPUT_PULLUP);
   attachPinChangeInterrupt(WAKEUP_INTERRUPT_2_PIN, SleepManager::isrWakeupInterrupt2, FALLING);
+#endif
+#if WAKEUP_INTERRUPT_3_PIN != UNUSED
+  pinMode(WAKEUP_INTERRUPT_3_PIN, INPUT_PULLUP);
   attachPinChangeInterrupt(WAKEUP_INTERRUPT_3_PIN, SleepManager::isrWakeupInterrupt3, FALLING);
+#endif
 
   setSyncProvider(RTC.get);
   awakeLed->on();

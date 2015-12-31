@@ -7,6 +7,8 @@
 // http://arduino-info.wikispaces.com/HAL-LibrariesUpdates
 #include <LED.h>
 
+#define UNUSED 255
+
 // potential PinChangePins on Leonardo: 8, 9, 10, 11
 #define RTC_INT_PIN 8
 #define WAKEUP_INTERRUPT_1_PIN 9
