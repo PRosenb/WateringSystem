@@ -10,8 +10,13 @@ DurationFsm& DurationFsm::changeState(DurationState& state) {
 }
 
 DurationFsm& DurationFsm::changeToNextStateIfElapsed() {
-  if (FiniteStateMachine::timeInCurrentState() >= getCurrentState().durationMs) {
-    changeState(*getCurrentState().nextState);
+  DurationState currentState = getCurrentState();
+  if (currentState.nextState != NULL && FiniteStateMachine::timeInCurrentState() >= currentState.durationMs) {
+    DurationState *nextState = currentState.nextState;
+    while (nextState->nextState != NULL && nextState->durationMs == 0) {
+      nextState = nextState->nextState;
+    }
+    changeState(*nextState);
   }
   return *this;
 }

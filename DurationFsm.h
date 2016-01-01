@@ -13,6 +13,7 @@ class DurationState: public State {
     DurationState(const unsigned int durationMs, String name, State * const superState): State(name, superState), durationMs(durationMs), nextState(NULL) {
     }
     const unsigned int durationMs;
+    // nextState as NULL marks a state that is not changed when calling changeToNextStateIfElapsed(). durationMs is ignored in that case.
     DurationState *nextState;
 };
 
