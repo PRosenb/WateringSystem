@@ -13,11 +13,11 @@ WaterManager::WaterManager() {
   superStateMainOn = new ValveState(valveMain, 0, "mainOn");
 
   stateIdle = new DurationState(0, "areasIdle", superStateMainIdle);
-  stateWarn = new ValveState(valveArea1, 1000, "warn", superStateMainOn);
-  stateWaitBefore = new DurationState(10000, "areasIdle", superStateMainIdle);
-  stateAutomatic1 = new ValveState(valveArea1, 10000, "area1", superStateMainOn);
-  stateAutomatic2 = new ValveState(valveArea2, 10000, "area2", superStateMainOn);
-  stateManual = new DurationState(10000, "manual", superStateMainOn);
+  stateWarn = new ValveState(valveArea1, DURATION_WARN_SEC * 1000, "warn", superStateMainOn);
+  stateWaitBefore = new DurationState(DURATION_WAIT_BEFORE_SEC * 1000, "areasIdle", superStateMainIdle);
+  stateAutomatic1 = new ValveState(valveArea1, DURATION_AUTOMATIC1_SEC * 1000, "area1", superStateMainOn);
+  stateAutomatic2 = new ValveState(valveArea2, DURATION_AUTOMATIC2_SEC * 1000, "area2", superStateMainOn);
+  stateManual = new DurationState(DURATION_MANUAL_SEC * 1000, "manual", superStateMainOn);
 
   stateWarn->nextState = stateWaitBefore;
   stateWaitBefore->nextState = stateAutomatic1;
