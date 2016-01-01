@@ -5,6 +5,7 @@
 #include "WaterManager.h"
 
 #define STOP_ALL_INT_PIN 0
+#define SERIAL_SLEEP_TIMEOUT_MS 30000
 
 void rtcTriggered();
 void isrStopAll();
@@ -12,6 +13,7 @@ void isrStopAll();
 SleepManager *sleepManager;
 WaterManager *waterManager;
 volatile boolean stopAllTriggered = false;
+unsigned long serialLastActiveMillis = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -45,11 +47,14 @@ void loop() {
     handleSerialInput();
   }
 
-  Interrupts interrupts;
   boolean finished = waterManager->update();
   //    finished = false;
-  // do not sleep when Serial is connected and within the first 30 sec
-  if (finished && !Serial && millis() > 30000) {
+  // do not sleep until Serial is disconnected for SERIAL_SLEEP_TIMEOUT_MS
+  if (Serial) {
+    serialLastActiveMillis = millis();
+  }
+  Interrupts interrupts;
+  if (finished && !Serial && millis() - serialLastActiveMillis > SERIAL_SLEEP_TIMEOUT_MS) {
     interrupts = sleepManager->sleep();
   } else {
     interrupts = sleepManager->getSeenInterruptsAndClear();
@@ -107,7 +112,7 @@ void handleSetAlarmTime() {
   if (colon == ':' && hours >= 0 && hours <= 24 && minutes >= 0 && minutes <= 60) {
     //setAlarm(ALARM_TYPES_t alarmType, byte seconds, byte minutes, byte hours, byte daydate);
     RTC.setAlarm(ALM1_MATCH_HOURS, 0, minutes, hours, 0);
-    
+
     Serial.print("set start time to ");
     Serial.print(hours);
     Serial.print(":");
