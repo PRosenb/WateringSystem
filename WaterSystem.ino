@@ -25,8 +25,8 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(STOP_ALL_INT_PIN), isrStopAll, FALLING);
 
   //  RTC.setAlarm(ALM1_MATCH_SECONDS, 0, 0, 0, 0);
-  //  RTC.alarmInterrupt(ALARM_1, true);
-  //  RTC.alarmInterrupt(ALARM_2, false);
+  RTC.alarmInterrupt(ALARM_1, true);
+  RTC.alarmInterrupt(ALARM_2, false);
 
   //this example first sets the system time (maintained by the Time library) to
   //a hard-coded date and time, and then sets the RTC from the system time.
