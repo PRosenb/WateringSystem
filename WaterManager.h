@@ -84,6 +84,7 @@ class WaterManager {
     DurationState *stateWaitBefore;
     DurationState *stateAutomatic1;
     DurationState *stateAutomatic2;
+    DurationState *stateAutomatic3;
     DurationState *stateManual;
 
     boolean stopAllRequested;

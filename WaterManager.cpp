@@ -17,12 +17,14 @@ WaterManager::WaterManager() {
   stateWaitBefore = new DurationState(DURATION_WAIT_BEFORE_SEC * 1000, "areasIdle", superStateMainIdle);
   stateAutomatic1 = new ValveState(valveArea1, DURATION_AUTOMATIC1_SEC * 1000, "area1", superStateMainOn);
   stateAutomatic2 = new ValveState(valveArea2, DURATION_AUTOMATIC2_SEC * 1000, "area2", superStateMainOn);
+  stateAutomatic3 = new ValveState(valveArea3, DURATION_AUTOMATIC3_SEC * 1000, "area3", superStateMainOn);
   stateManual = new DurationState(DURATION_MANUAL_SEC * 1000, "manual", superStateMainOn);
 
   stateWarn->nextState = stateWaitBefore;
   stateWaitBefore->nextState = stateAutomatic1;
   stateAutomatic1->nextState = stateAutomatic2;
-  stateAutomatic2->nextState = stateIdle;
+  stateAutomatic2->nextState = stateAutomatic3;
+  stateAutomatic3->nextState = stateIdle;
   stateManual->nextState = stateIdle;
 
   fsm = new DurationFsm(*stateIdle, "FSM");
@@ -39,6 +41,7 @@ WaterManager::~WaterManager() {
   delete stateIdle;
   delete stateAutomatic1;
   delete stateAutomatic2;
+  delete stateAutomatic3;
   delete stateManual;
   delete fsm;
 }
