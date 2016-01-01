@@ -62,6 +62,7 @@ Interrupts SleepManager::sleep() {
   // do sleep_enable()/sleep_disable() before/after the checks to prevent race condition with
   // sleep_disable() in the isr methods
   sleep_enable();          // enables the sleep bit, a safety pin
+  // RTC.alarm() also returns true if alarm interrupt disabled
   unsigned int rtcAlarm1Count = RTC.alarm(ALARM_1) ? 1 : 0;
   unsigned int rtcAlarm2Count = RTC.alarm(ALARM_2) ? 1 : 0;
 

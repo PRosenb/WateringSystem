@@ -24,6 +24,7 @@ void setup() {
 
   //  RTC.setAlarm(ALM1_MATCH_SECONDS, 0, 0, 0, 0);
   //  RTC.alarmInterrupt(ALARM_1, true);
+  //  RTC.alarmInterrupt(ALARM_2, false);
 
   //this example first sets the system time (maintained by the Time library) to
   //a hard-coded date and time, and then sets the RTC from the system time.
@@ -54,9 +55,12 @@ void loop() {
     interrupts = sleepManager->getSeenInterruptsAndClear();
   }
 
-  if (interrupts.rtcAlarm1 > 0 || interrupts.rtcAlarm2 > 0) {
-    Serial.println("RTC_INT");
+  if (interrupts.rtcAlarm1 > 0) {
+    Serial.println("RTC1_INT");
     rtcTriggered();
+  }
+  if (interrupts.rtcAlarm2 > 0) {
+    Serial.println("RTC2_INT");
   }
   if (interrupts.wakeupInterrupt1 > 0) {
     Serial.print("WAKEUP_INTERRUPT_1: ");
