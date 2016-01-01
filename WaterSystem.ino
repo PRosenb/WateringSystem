@@ -100,19 +100,34 @@ int serialReadInt(int length) {
   return atoi(inData);
 }
 
+void handleSetAlarmTime() {
+  int hours = serialReadInt(2);
+  char colon = Serial.available() ? Serial.read() : 0;
+  int minutes = serialReadInt(2);
+  if (colon == ':' && hours >= 0 && hours <= 24 && minutes >= 0 && minutes <= 60) {
+    //setAlarm(ALARM_TYPES_t alarmType, byte seconds, byte minutes, byte hours, byte daydate);
+    RTC.setAlarm(ALM1_MATCH_HOURS, 0, minutes, hours, 0);
+    
+    Serial.print("set start time to ");
+    Serial.print(hours);
+    Serial.print(":");
+    Serial.println(minutes);
+  } else {
+    Serial.println("set start time failed, wrong format, expect s<hh>:<mm>, e.g. s14:45");
+  }
+}
+
 void handleSerialInput() {
-  switch (Serial.read()) {
+  char command = Serial.read();
+  switch (command) {
     case 's':
-      int hours = serialReadInt(2);
-      int minutes = serialReadInt(2);
-      //setAlarm(ALARM_TYPES_t alarmType, byte seconds, byte minutes, byte hours, byte daydate);
-      RTC.setAlarm(ALM1_MATCH_HOURS, 0, minutes, hours, 0);
-      
-      Serial.print("set start time to ");
-      Serial.print(hours);
-      Serial.print(":");
-      Serial.println(minutes);
+      handleSetAlarmTime();
       break;
+    default:
+      Serial.print("Unknown command: ");
+      Serial.println(command);
+      Serial.println("supported commands:");
+      Serial.println("s<hh>:<mm>: set alarm time");
   }
 }
 
