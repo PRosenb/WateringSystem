@@ -5,6 +5,8 @@
 #include "Arduino.h"
 #include "DurationFsm.h"
 
+#define UNUSED 255
+
 #define VALVE1_PIN 4
 #define VALVE2_PIN 5
 #define VALVE3_PIN 6
@@ -21,17 +23,19 @@ class Valve {
   public:
     Valve(byte pin) {
       Valve::pin = pin;
-      pinMode(pin, OUTPUT);
+      if (pin != UNUSED) {
+        pinMode(pin, OUTPUT);
+      }
     }
     void on() {
-      //      Serial.print("on ");
-      //      Serial.println(pin);
-      digitalWrite(pin, HIGH);
+      if (pin != UNUSED) {
+        digitalWrite(pin, HIGH);
+      }
     }
     void off() {
-      //      Serial.print("off ");
-      //      Serial.println(pin);
-      digitalWrite(pin, LOW);
+      if (pin != UNUSED) {
+        digitalWrite(pin, LOW);
+      }
     }
   private:
     byte pin;
@@ -65,6 +69,7 @@ class WaterManager {
     void startAutomaticWithWarn();
     void startAutomatic();
     void stopAll();
+    // return true if finished
     boolean update();
     void allValvesOff();
   private:
