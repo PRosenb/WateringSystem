@@ -11,9 +11,9 @@ DurationFsm& DurationFsm::changeState(DurationState& state) {
 
 DurationFsm& DurationFsm::changeToNextStateIfElapsed() {
   DurationState currentState = getCurrentState();
-  if (currentState.nextState != NULL && FiniteStateMachine::timeInCurrentState() >= currentState.durationMs) {
+  if (currentState.nextState != NULL && FiniteStateMachine::timeInCurrentState() >= currentState.minDurationMs) {
     DurationState *nextState = currentState.nextState;
-    while (nextState->nextState != NULL && nextState->durationMs == 0) {
+    while (nextState->nextState != NULL && nextState->minDurationMs == 0) {
       nextState = nextState->nextState;
     }
     changeState(*nextState);

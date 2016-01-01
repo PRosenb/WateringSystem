@@ -8,12 +8,12 @@
 //define the functionality of the states
 class DurationState: public State {
   public:
-    DurationState(const unsigned int durationMs, String name): State(name), durationMs(durationMs), nextState(NULL) {
+    DurationState(const unsigned int minDurationMs, String name): State(name), minDurationMs(minDurationMs), nextState(NULL) {
     }
-    DurationState(const unsigned int durationMs, String name, State * const superState): State(name, superState), durationMs(durationMs), nextState(NULL) {
+    DurationState(const unsigned int minDurationMs, String name, State * const superState): State(name, superState), minDurationMs(minDurationMs), nextState(NULL) {
     }
-    const unsigned int durationMs;
-    // nextState as NULL marks a state that is not changed when calling changeToNextStateIfElapsed(). durationMs is ignored in that case.
+    const unsigned int minDurationMs;
+    // nextState as NULL marks a state that is not changed when calling changeToNextStateIfElapsed(). minDurationMs is ignored in that case.
     DurationState *nextState;
 };
 
