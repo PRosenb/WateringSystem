@@ -19,7 +19,7 @@
 
 class Interrupts {
   public:
-    unsigned int wakeupInterrupt1, wakeupInterrupt2, wakeupInterrupt3, rtcAlarm1, rtcAlarm2;
+    unsigned int wakeupInterrupt1=0, wakeupInterrupt2=0, wakeupInterrupt3=0, rtcAlarm1=0, rtcAlarm2=0;
 };
 
 class SleepManager {
@@ -42,6 +42,7 @@ class SleepManager {
     void sleepNow();
     byte sleepMode;
     LED *awakeLed;
+    static volatile boolean wakeupInterruptRtc;
     static volatile unsigned int wakeupInterrupt1Count;
     static volatile unsigned int wakeupInterrupt2Count;
     static volatile unsigned int wakeupInterrupt3Count;

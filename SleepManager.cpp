@@ -6,6 +6,7 @@
 #include <avr/sleep.h>
 #include <avr/power.h>
 
+volatile boolean SleepManager::wakeupInterruptRtc;
 volatile unsigned int SleepManager::wakeupInterrupt1Count;
 volatile unsigned int SleepManager::wakeupInterrupt2Count;
 volatile unsigned int SleepManager::wakeupInterrupt3Count;
@@ -62,61 +63,47 @@ Interrupts SleepManager::sleep() {
   // do sleep_enable()/sleep_disable() before/after the checks to prevent race condition with
   // sleep_disable() in the isr methods
   sleep_enable();          // enables the sleep bit, a safety pin
-  // RTC.alarm() also returns true if alarm interrupt disabled
-  unsigned int rtcAlarm1Count = RTC.alarm(ALARM_1) ? 1 : 0;
-  unsigned int rtcAlarm2Count = RTC.alarm(ALARM_2) ? 1 : 0;
-
-  noInterrupts();
-  unsigned int wakeupInterrupt1CountLocal = wakeupInterrupt1Count;
-  unsigned int wakeupInterrupt2CountLocal = wakeupInterrupt2Count;
-  unsigned int wakeupInterrupt3CountLocal = wakeupInterrupt3Count;
-  interrupts();
-
-  while (wakeupInterrupt1CountLocal == 0 && wakeupInterrupt2CountLocal == 0 && wakeupInterrupt3CountLocal == 0
-         && rtcAlarm1Count == 0 && rtcAlarm2Count == 0) {
+  Interrupts interrupts = getSeenInterruptsAndClear();
+  
+  while (interrupts.wakeupInterrupt1 == 0 && interrupts.wakeupInterrupt2 == 0 && interrupts.wakeupInterrupt3 == 0
+         && interrupts.rtcAlarm1 == 0 && interrupts.rtcAlarm2 == 0) {
     sleepNow();
 
-    if (RTC.alarm(ALARM_1)) rtcAlarm1Count++;
-    if (RTC.alarm(ALARM_2)) rtcAlarm2Count++;
-
-    noInterrupts();
-    wakeupInterrupt1CountLocal = wakeupInterrupt1Count;
-    wakeupInterrupt2CountLocal = wakeupInterrupt2Count;
-    wakeupInterrupt3CountLocal = wakeupInterrupt3Count;
-    interrupts();
+    interrupts = getSeenInterruptsAndClear();
   }
   sleep_disable();
 
   // set the provider and do as sync now
   setSyncProvider(RTC.get);
-
-  Interrupts interrupts = getSeenInterruptsAndClear();
-  interrupts.rtcAlarm1 += rtcAlarm1Count;
-  interrupts.rtcAlarm2 += rtcAlarm2Count;
-
   return interrupts;
 }
 
 Interrupts SleepManager::getSeenInterruptsAndClear() {
   Interrupts interrupts;
-  interrupts.rtcAlarm1 = RTC.alarm(ALARM_1);
-  interrupts.rtcAlarm2 = RTC.alarm(ALARM_2);
 
   noInterrupts();
+  boolean wakeupInterruptRtcLocal = wakeupInterruptRtc;
   interrupts.wakeupInterrupt1 = wakeupInterrupt1Count;
   interrupts.wakeupInterrupt2 = wakeupInterrupt2Count;
   interrupts.wakeupInterrupt3 = wakeupInterrupt3Count;
+  wakeupInterruptRtc = false;
   wakeupInterrupt1Count = 0;
   wakeupInterrupt2Count = 0;
   wakeupInterrupt3Count = 0;
   interrupts();
 
+  // only consider rtc alarms if rtc interrupt occured
+  if (wakeupInterruptRtcLocal) {
+    if (RTC.alarm(ALARM_1)) interrupts.rtcAlarm1++;
+    if (RTC.alarm(ALARM_2)) interrupts.rtcAlarm2++;
+  }
   return interrupts;
 }
 
 void SleepManager::isrRtc() {
   // for the case when the interrupt executes directly before sleep starts
   sleep_disable();
+  wakeupInterruptRtc = true;
 }
 void SleepManager::isrWakeupInterrupt1() {
   // for the case when the interrupt executes directly before sleep starts
@@ -144,7 +131,7 @@ void SleepManager::isrWakeupInterrupt3() {
 void SleepManager::sleepNow() {
   Serial.end();
   awakeLed->off();
-  
+
   power_timer0_disable();
   power_twi_disable();
   set_sleep_mode(sleepMode);
@@ -153,7 +140,7 @@ void SleepManager::sleepNow() {
   // THE PROGRAM CONTINUES FROM HERE AFTER WAKING UP
   power_timer0_enable();
   power_twi_enable();
-  
+
   awakeLed->on();
   Serial.begin(9600);
 }
