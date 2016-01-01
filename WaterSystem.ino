@@ -22,7 +22,7 @@ void setup() {
   pinMode(STOP_ALL_INT_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(STOP_ALL_INT_PIN), isrStopAll, FALLING);
 
-  //  RTC.setAlarm(ALM1_MATCH_SECONDS, 0, 0, 0, 1);
+  //  RTC.setAlarm(ALM1_MATCH_SECONDS, 0, 0, 0, 0);
   //  RTC.alarmInterrupt(ALARM_1, true);
 
   //this example first sets the system time (maintained by the Time library) to
@@ -39,6 +39,10 @@ void loop() {
   Serial.print(minute(), DEC);
   Serial.print(':');
   Serial.println(second(), DEC);
+
+  if (Serial.available() > 0) {
+    handleSerialInput();
+  }
 
   Interrupts interrupts;
   boolean finished = waterManager->update();
@@ -75,6 +79,37 @@ void loop() {
 
   // allows also to sync time after wakeup
   delay(1000); // repeat every second
+}
+
+void readSerial(char inData[], int inDataLength) {
+  byte index = 0;
+  // index + 1 to allow one space for the Null termination
+  for (; Serial.available() > 0 && index + 1 < inDataLength; index++) {
+    inData[index] = Serial.read();
+  }
+  inData[index] = '\0'; // Null terminate the string
+}
+
+int serialReadInt(int length) {
+  char inData[length + 1];
+  readSerial(inData, length + 1);
+  return atoi(inData);
+}
+
+void handleSerialInput() {
+  switch (Serial.read()) {
+    case 's':
+      int hours = serialReadInt(2);
+      int minutes = serialReadInt(2);
+      //setAlarm(ALARM_TYPES_t alarmType, byte seconds, byte minutes, byte hours, byte daydate);
+      RTC.setAlarm(ALM1_MATCH_HOURS, 0, minutes, hours, 0);
+      
+      Serial.print("set start time to ");
+      Serial.print(hours);
+      Serial.print(":");
+      Serial.println(minutes);
+      break;
+  }
 }
 
 void rtcTriggered() {
