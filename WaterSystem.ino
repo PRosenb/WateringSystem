@@ -122,17 +122,78 @@ void handleSetAlarmTime() {
   }
 }
 
+void handleGetAlarmTime(byte alarmNumber) {
+  if (alarmNumber == 0) {
+    alarmNumber = 1;
+  }
+  Serial.print("Alarm");
+  Serial.print(alarmNumber);
+  Serial.print(": ");
+  tmElements_t tm;
+  ALARM_TYPES_t alarmType = RTC.readAlarm(alarmNumber, tm);
+  Serial.print(tm.Hour);
+  Serial.print(":");
+  Serial.print(tm.Minute);
+  Serial.print(":");
+  Serial.print(tm.Second);
+  Serial.print(", day: ");
+  Serial.print(tm.Day);
+  Serial.print(", wday: ");
+  Serial.print(tm.Wday);
+  Serial.print(", alarmType: ");
+  switch (alarmType) {
+    case ALM1_EVERY_SECOND:
+      Serial.print("ALM1_EVERY_SECOND");
+      break;
+    case ALM1_MATCH_SECONDS:
+      Serial.print("ALM1_MATCH_SECONDS");
+      break;
+    case ALM1_MATCH_MINUTES:
+      Serial.print("ALM1_MATCH_MINUTES");
+      break;
+    case ALM1_MATCH_HOURS:
+      Serial.print("ALM1_MATCH_HOURS");
+      break;
+    case ALM1_MATCH_DATE:
+      Serial.print("ALM1_MATCH_DATE");
+      break;
+    case ALM1_MATCH_DAY:
+      Serial.print("ALM1_MATCH_DAY");
+      break;
+    case ALM2_EVERY_MINUTE:
+      Serial.print("ALM2_EVERY_MINUTE");
+      break;
+    case ALM2_MATCH_MINUTES:
+      Serial.print("ALM2_MATCH_MINUTES");
+      break;
+    case ALM2_MATCH_HOURS:
+      Serial.print("ALM2_MATCH_HOURS");
+      break;
+    case ALM2_MATCH_DATE:
+      Serial.print("ALM2_MATCH_DATE");
+      break;
+    case ALM2_MATCH_DAY:
+      Serial.print("ALM2_MATCH_DAY");
+      break;
+  }
+  Serial.println();
+}
+
 void handleSerialInput() {
   char command = Serial.read();
   switch (command) {
     case 's':
       handleSetAlarmTime();
       break;
+    case 'g':
+      handleGetAlarmTime(serialReadInt(1));
+      break;
     default:
       Serial.print("Unknown command: ");
       Serial.println(command);
       Serial.println("supported commands:");
       Serial.println("s<hh>:<mm>: set alarm time");
+      Serial.println("g<alarmNumber>: get alarm time");
   }
 }
 
