@@ -28,12 +28,6 @@ void setup() {
   RTC.alarmInterrupt(ALARM_1, true);
   RTC.alarmInterrupt(ALARM_2, false);
 
-  //this example first sets the system time (maintained by the Time library) to
-  //a hard-coded date and time, and then sets the RTC from the system time.
-  //the setTime() function is part of the Time library.
-  //setTime(hr,min,sec,day,month,yr)
-  //  setTime(22, 23, 0, 16, 1, 2015);   //set the system time
-  //  RTC.set(now());                     //set the RTC from the system time
 }
 
 void loop() {
@@ -103,6 +97,49 @@ int serialReadInt(int length) {
   char inData[length + 1];
   readSerial(inData, length + 1);
   return atoi(inData);
+}
+
+// sets the system and RTC time.
+// used format: 2016-01-03T16:43
+void handleSetDateTime() {
+  int yearValue = serialReadInt(4);
+  char dash1 = Serial.available() ? Serial.read() : 0;
+  int monthValue = serialReadInt(2);
+  char dash2 = Serial.available() ? Serial.read() : 0;
+  int dayValue = serialReadInt(2);
+  char tsign = Serial.available() ? Serial.read() : 0;
+  int hours = serialReadInt(2);
+  char colon = Serial.available() ? Serial.read() : 0;
+  int minutes = serialReadInt(2);
+  if (colon == ':' && dash1 == '-' && dash2 == '-' && tsign == 'T'
+      && monthValue >= 1 && monthValue <= 12
+      && dayValue >= 1 && dayValue <= 31
+      && hours >= 0 && hours <= 24
+      && minutes >= 0 && minutes <= 60) {
+
+    //set the system time (Time lib)
+    // setTime(hr,min,sec,day,month,yr)
+    setTime(hours, minutes, 0, dayValue, monthValue, yearValue);
+    //set the RTC from the system time
+    RTC.set(now());
+
+    tmElements_t tm;
+    RTC.read(tm);
+    Serial.print("RTC values: ");
+    Serial.print(tm.Year + 1970, DEC);
+    Serial.print('-');
+    Serial.print(tm.Month);
+    Serial.print('-');
+    Serial.print(tm.Day);
+    Serial.print(' ');
+    Serial.print(tm.Hour);
+    Serial.print(':');
+    Serial.print(tm.Minute);
+    Serial.print(':');
+    Serial.println(tm.Second);
+  } else {
+    Serial.println("Wrong format, e.g. use d2016-01-03T16:43");
+  }
 }
 
 void handleSetAlarmTime() {
@@ -182,6 +219,9 @@ void handleGetAlarmTime(byte alarmNumber) {
 void handleSerialInput() {
   char command = Serial.read();
   switch (command) {
+    case 'd':
+      handleSetDateTime();
+      break;
     case 's':
       handleSetAlarmTime();
       break;
@@ -191,9 +231,10 @@ void handleSerialInput() {
     default:
       Serial.print("Unknown command: ");
       Serial.println(command);
-      Serial.println("supported commands:");
+      Serial.println("Supported commands:");
       Serial.println("s<hh>:<mm>: set alarm time");
       Serial.println("g<alarmNumber>: get alarm time");
+      Serial.println("d<YYYY>-<MM>-<DD>T<hh>:<mm>: set date/time");
   }
 }
 
