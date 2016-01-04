@@ -222,7 +222,7 @@ void handleSerialInput() {
     case 'd':
       handleSetDateTime();
       break;
-    case 's':
+    case 'a':
       handleSetAlarmTime();
       break;
     case 'g':
@@ -232,7 +232,7 @@ void handleSerialInput() {
       Serial.print("Unknown command: ");
       Serial.println(command);
       Serial.println("Supported commands:");
-      Serial.println("s<hh>:<mm>: set alarm time");
+      Serial.println("a<hh>:<mm>: set alarm time");
       Serial.println("g<alarmNumber>: get alarm time");
       Serial.println("d<YYYY>-<MM>-<DD>T<hh>:<mm>: set date/time");
   }
