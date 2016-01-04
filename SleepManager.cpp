@@ -64,7 +64,7 @@ Interrupts SleepManager::sleep() {
   // sleep_disable() in the isr methods
   sleep_enable();          // enables the sleep bit, a safety pin
   Interrupts interrupts = getSeenInterruptsAndClear();
-  
+
   while (interrupts.wakeupInterrupt1 == 0 && interrupts.wakeupInterrupt2 == 0 && interrupts.wakeupInterrupt3 == 0
          && interrupts.rtcAlarm1 == 0 && interrupts.rtcAlarm2 == 0) {
     sleepNow();
@@ -92,10 +92,17 @@ Interrupts SleepManager::getSeenInterruptsAndClear() {
   wakeupInterrupt3Count = 0;
   interrupts();
 
-  // only consider rtc alarms if rtc interrupt occured
-  if (wakeupInterruptRtcLocal) {
-    if (RTC.alarm(ALARM_1)) interrupts.rtcAlarm1++;
-    if (RTC.alarm(ALARM_2)) interrupts.rtcAlarm2++;
+  // call RTC.alarm in any case to reset alarms but
+  // consider rtc alarms only if rtc interrupt occured
+  if (RTC.alarm(ALARM_1)) {
+    if (wakeupInterruptRtcLocal) {
+      interrupts.rtcAlarm1++;
+    }
+  }
+  if (RTC.alarm(ALARM_2)) {
+    if (wakeupInterruptRtcLocal) {
+      interrupts.rtcAlarm2++;
+    }
   }
   return interrupts;
 }
