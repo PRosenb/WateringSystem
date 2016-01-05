@@ -1,6 +1,6 @@
 
 #include "WaterManager.h"
-#include <Time.h>         //http://www.arduino.cc/playground/Code/Time
+#include <Time.h>         // http://www.arduino.cc/playground/Code/Time
 
 WaterManager::WaterManager() {
   valveMain = new Valve(VALVE1_PIN);

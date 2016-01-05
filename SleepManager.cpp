@@ -1,7 +1,7 @@
 
 #include "SleepManager.h"
-#include <PinChangeInt.h>
-#include <DS3232RTC.h>    //http://github.com/JChristensen/DS3232RTC
+#include <PinChangeInt.h> // https://github.com/GreyGnome/PinChangeInt
+#include <DS3232RTC.h>    // http://github.com/JChristensen/DS3232RTC
 
 #include <avr/sleep.h>
 #include <avr/power.h>
