@@ -1,5 +1,5 @@
 
-#include <DS3232RTC.h>    //http://github.com/JChristensen/DS3232RTC
+#include <DS3232RTC.h>    // http://github.com/JChristensen/DS3232RTC
 
 #include "SleepManager.h"
 #include "WaterManager.h"
@@ -44,11 +44,11 @@ void loop() {
   boolean finished = waterManager->update();
   //    finished = false;
   // do not sleep until Serial is disconnected for SERIAL_SLEEP_TIMEOUT_MS
-  if (Serial) {
+  if (Serial.available() > 0) {
     serialLastActiveMillis = millis();
   }
   Interrupts interrupts;
-  if (finished && !Serial && millis() - serialLastActiveMillis > SERIAL_SLEEP_TIMEOUT_MS) {
+  if (finished && millis() - serialLastActiveMillis > SERIAL_SLEEP_TIMEOUT_MS) {
     interrupts = sleepManager->sleep();
   } else {
     interrupts = sleepManager->getSeenInterruptsAndClear();

@@ -23,7 +23,8 @@ SleepManager::SleepManager() {
   power_timer1_disable();
   power_timer2_disable();
   //  power_twi_disable();
-  power_usart0_disable();
+  // usart0 is required on Arduino Uno for serial connection (not on Leonardo)
+  //  power_usart0_disable();
   power_adc_enable();
   power_spi_disable();
 
