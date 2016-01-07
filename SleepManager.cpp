@@ -21,7 +21,8 @@ SleepManager::SleepManager() {
   // http://www.atmel.com/webdoc/AVRLibcReferenceManual/group__avr__power.html
   //  power_timer0_disable();
   power_timer1_disable();
-  power_timer2_disable();
+  // timer2 used for water meter
+  //  power_timer2_disable();
   //  power_twi_disable();
   // usart0 is required on Arduino Uno for serial connection (not on Leonardo)
   //  power_usart0_disable();

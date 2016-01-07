@@ -3,6 +3,7 @@
 
 #include "SleepManager.h"
 #include "WaterManager.h"
+#include "WaterMeter.h"
 
 #define STOP_ALL_INT_PIN 0
 #define SERIAL_SLEEP_TIMEOUT_MS 30000
@@ -12,6 +13,7 @@ void isrStopAll();
 
 SleepManager *sleepManager;
 WaterManager *waterManager;
+WaterMeter *waterMeter;
 volatile boolean stopAllTriggered = false;
 unsigned long serialLastActiveMillis = 0;
 
@@ -20,14 +22,14 @@ void setup() {
   delay(100); // wait for serial to init
   sleepManager = new SleepManager();
   waterManager = new WaterManager();
+  waterMeter = new WaterMeter();
+  waterMeter->start();
 
   pinMode(STOP_ALL_INT_PIN, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(STOP_ALL_INT_PIN), isrStopAll, FALLING);
 
-  //  RTC.setAlarm(ALM1_MATCH_SECONDS, 0, 0, 0, 0);
   RTC.alarmInterrupt(ALARM_1, true);
   RTC.alarmInterrupt(ALARM_2, false);
-
 }
 
 void loop() {
@@ -79,6 +81,8 @@ void loop() {
     stopAllTriggered = false;
     waterManager->stopAll();
   }
+
+  waterMeter->calculate();
 
   // allows also to sync time after wakeup
   delay(1000); // repeat every second
