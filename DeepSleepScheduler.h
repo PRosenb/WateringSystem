@@ -21,6 +21,8 @@ enum TaskTimeout {
   NO_SUPERVISION
 };
 
+#define NOT_USED 255
+
 class Task {
     friend class Scheduler;
   public:
@@ -48,6 +50,7 @@ class Scheduler {
 
     bool deepSleep;
     TaskTimeout taskTimeout;
+    byte awakeIndicationPin;
 
     static void isrWdt();
   private:

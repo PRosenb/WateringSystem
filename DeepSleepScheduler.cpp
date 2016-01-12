@@ -11,6 +11,7 @@ Scheduler::Scheduler() {
   millisInDeepSleep = 0;
   deepSleep = true;
   taskTimeout = TIMEOUT_8S;
+  awakeIndicationPin = NOT_USED;
 }
 
 void Scheduler::schedule(void (*callback)()) {
@@ -19,7 +20,7 @@ void Scheduler::schedule(void (*callback)()) {
 }
 
 void Scheduler::scheduleFromInterrupt(void (*callback)()) {
-//  taskFromInterrupt = new Task(callback, SCHEDULE_IMMEDIATELLY);
+  //  taskFromInterrupt = new Task(callback, SCHEDULE_IMMEDIATELLY);
 }
 
 void Scheduler::scheduleDelayed(void (*callback)(), int delayMillis) {
@@ -45,14 +46,21 @@ void Scheduler::insertTask(Task *newTask) {
   if (first == NULL) {
     first = newTask;
   } else {
-    Task *currentTask = first;
-    while (currentTask->next != NULL && currentTask->next->scheduledUptimeMillis <= newTask->scheduledUptimeMillis) {
-      currentTask = currentTask->next;
+    if (first->scheduledUptimeMillis > newTask->scheduledUptimeMillis) {
+      // insert before first
+      newTask->next = first;
+      first = newTask;
+    } else {
+      Task *currentTask = first;
+      while (currentTask->next != NULL && currentTask->next->scheduledUptimeMillis <= newTask->scheduledUptimeMillis) {
+        currentTask = currentTask->next;
+      }
+      // insert after currentTask
+      if (currentTask->next != NULL) {
+        newTask->next = currentTask->next;
+      }
+      currentTask->next = newTask;
     }
-    if (currentTask->next != NULL) {
-      newTask->next = currentTask->next;
-    }
-    currentTask->next = newTask;
   }
   interrupts();
 }
@@ -97,22 +105,41 @@ void Scheduler::execute() {
         // sleep until
         wdt_disable();
         set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+        //Serial.println("infinite sleep");
       } else {
         set_sleep_mode(SLEEP_MODE_IDLE);
       }
     }
     if (sleep) {
+//      Serial.println("before sleep");
+      delay(150);
+      if (awakeIndicationPin != NOT_USED) {
+        digitalWrite(awakeIndicationPin, LOW);
+      }
       sleep_mode();            // here the device is actually put to sleep!!
+      if (awakeIndicationPin != NOT_USED) {
+        digitalWrite(awakeIndicationPin, HIGH);
+      }
+//            Serial.println("after sleep");
     }
     // THE PROGRAM CONTINUES FROM HERE AFTER WAKING UP
     sleep_disable();
 
-    if (taskTimeout != NO_SUPERVISION) {
-      // change back to taskTimeout
-      wdt_enable(taskTimeout);
-    } else {
-      wdt_disable();
-    }
+    noInterrupts();
+    unsigned long wdtSleepTimeMillisLocal = wdtSleepTimeMillis;
+    interrupts();
+    if (wdtSleepTimeMillisLocal == 0) {
+      if (taskTimeout != NO_SUPERVISION) {
+        // change back to taskTimeout
+        wdt_reset();
+        wdt_disable();
+        wdt_enable(taskTimeout);
+        //        Serial.print("to taskTimeout: ");
+        //        Serial.println(taskTimeout);
+      } else {
+        wdt_disable();
+      }
+    } // else the wd is still running
 
     //    Serial.print("millisInDeepSleep ");
     //    Serial.println(millisInDeepSleep);
@@ -142,9 +169,11 @@ bool Scheduler::evaluateAndPrepareSleep() {
     }
     if (maxWaitTimeMillis == 0) {
       sleep = false;
-    } else if (!deepSleep || maxWaitTimeMillis < 17) {
+      //      Serial.println("no sleep");
+    } else if (!deepSleep || maxWaitTimeMillis < 998) {
       sleep = true;
       set_sleep_mode(SLEEP_MODE_IDLE);
+      //      Serial.println("SLEEP_MODE_IDLE");
     } else {
       sleep = true;
       set_sleep_mode(SLEEP_MODE_PWR_DOWN);
@@ -183,13 +212,17 @@ bool Scheduler::evaluateAndPrepareSleep() {
 
       // enable interrupt
       // first timeout will be the interrupt, second system reset
-      WDTCSR |= (1 << WDIE);
+      WDTCSR |= (1 << WDCE) | (1 << WDIE);
       millisBeforeDeepSleep = millis();
+      //      Serial.print("SLEEP_MODE_PWR_DOWN: ");
+      //      Serial.println(wdtSleepTimeMillis);
     }
   } else {
     // wdt already running, so we woke up due to an other interrupt
     // continue sleepting without enabling wdt again
     sleep = true;
+    WDTCSR |= (1 << WDCE) | (1 << WDIE);
+    Serial.println("SLEEP_MODE_PWR_DOWN resleep");
   }
   return sleep;
 }
@@ -199,6 +232,7 @@ void Scheduler::isrWdt() {
   millisInDeepSleep += wdtSleepTimeMillis;
   wdtSleepTimeMillis = 0;
   millisInDeepSleep -= millis() - millisBeforeDeepSleep;
+  // TODO handle case when interrupt during deep sleep excutes a long task. Then the WD would restart the device
 }
 
 ISR (WDT_vect) {
