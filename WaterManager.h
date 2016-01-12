@@ -69,12 +69,7 @@ class WaterManager {
     void startAutomaticWithWarn();
     void startAutomatic();
     void stopAll();
-    // return true if finished
-    boolean update();
-    void allValvesOff();
   private:
-    boolean updateWithoutAllValvesOff();
-
     Valve *valveMain;
     Valve *valveArea1;
     Valve *valveArea2;
@@ -91,8 +86,6 @@ class WaterManager {
     DurationState *stateAutomatic2;
     DurationState *stateAutomatic3;
     DurationState *stateManual;
-
-    boolean stopAllRequested;
 };
 
 #endif

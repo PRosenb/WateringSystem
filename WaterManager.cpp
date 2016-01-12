@@ -7,7 +7,6 @@ WaterManager::WaterManager() {
   valveArea1 = new Valve(VALVE2_PIN);
   valveArea2 = new Valve(VALVE3_PIN);
   valveArea3 = new Valve(VALVE4_PIN);
-  stopAllRequested = false;
 
   superStateMainIdle = new DurationState(0, "mainIdle");
   superStateMainOn = new ValveState(valveMain, 0, "mainOn");
@@ -27,7 +26,7 @@ WaterManager::WaterManager() {
   stateAutomatic3->nextState = stateIdle;
   stateManual->nextState = stateIdle;
 
-  fsm = new DurationFsm(*stateIdle, "FSM");
+  fsm = DurationFsm::getInstance(*stateIdle, "FSM");
 }
 
 WaterManager::~WaterManager() {
@@ -43,7 +42,7 @@ WaterManager::~WaterManager() {
   delete stateAutomatic2;
   delete stateAutomatic3;
   delete stateManual;
-  delete fsm;
+  DurationFsm::deleteInstance();
 }
 
 void WaterManager::manualMainOn() {
@@ -51,9 +50,12 @@ void WaterManager::manualMainOn() {
 }
 
 void WaterManager::stopAll() {
-  stopAllRequested = true;
   fsm->changeState(*stateIdle);
-  allValvesOff();
+  // all off, just to be really sure..
+  valveMain->off();
+  valveArea1->off();
+  valveArea2->off();
+  valveArea3->off();
 }
 
 void WaterManager::startAutomaticWithWarn() {
@@ -65,33 +67,5 @@ void WaterManager::startAutomaticWithWarn() {
 
 void WaterManager::startAutomatic() {
   fsm->changeState(*stateAutomatic1);
-}
-
-boolean WaterManager::update() {
-  const boolean finished = updateWithoutAllValvesOff();
-  if (finished) {
-    allValvesOff();
-  }
-  return finished;
-}
-
-boolean WaterManager::updateWithoutAllValvesOff() {
-  if (stopAllRequested) {
-    stopAllRequested = false;
-    return true;
-  }
-
-  if (!fsm->isInState(*stateIdle)) {
-    fsm->changeToNextStateIfElapsed();
-  }
-
-  return fsm->isInState(*stateIdle);
-}
-
-void WaterManager::allValvesOff() {
-  valveMain->off();
-  valveArea1->off();
-  valveArea2->off();
-  valveArea3->off();
 }
 
