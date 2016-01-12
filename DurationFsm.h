@@ -20,16 +20,23 @@ class DurationState: public State {
 //define the finite state machine functionality
 class DurationFsm: FiniteStateMachine {
   public:
-    DurationFsm(DurationState& current, String name);
-    virtual ~DurationFsm() {};
-
+    static DurationFsm *getInstance(DurationState& current, const String name);
+    static void deleteInstance();
+    
     virtual DurationFsm& changeState(DurationState& state);
-    virtual DurationFsm& changeToNextStateIfElapsed();
 
     virtual DurationState& getCurrentState();
     virtual boolean isInState(DurationState &state) const;
 
     unsigned long timeInCurrentState();
+    
+  private:
+    DurationFsm(DurationState& current, String name);
+    virtual ~DurationFsm() {};
+    // static to be called by the scheduler
+    static void timeElapsedStatic();
+    void timeElapsed();
+    static DurationFsm *instance;
 };
 
 #endif

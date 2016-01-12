@@ -1,24 +1,49 @@
 
 #include "DurationFsm.h"
+#include "DeepSleepScheduler.h"
 
 //FINITE STATE MACHINE
+
+DurationFsm *DurationFsm::instance;
+
+DurationFsm *DurationFsm::getInstance(DurationState& current, const String name) {
+  if (instance == NULL) {
+    instance = new DurationFsm(current, name);
+  }
+  return instance;
+}
+
+void DurationFsm::deleteInstance() {
+  if (instance != NULL) {
+    delete instance;
+    instance = NULL;
+  }
+}
+
 DurationFsm::DurationFsm(DurationState& current, const String name): FiniteStateMachine(current, name) {
 }
 
-DurationFsm& DurationFsm::changeState(DurationState& state) {
-  return (DurationFsm&) FiniteStateMachine::changeState(state);
+void DurationFsm::timeElapsedStatic() {
+  instance->timeElapsed();
 }
 
-DurationFsm& DurationFsm::changeToNextStateIfElapsed() {
+void DurationFsm::timeElapsed() {
   DurationState currentState = getCurrentState();
-  if (currentState.nextState != NULL && FiniteStateMachine::timeInCurrentState() >= currentState.minDurationMs) {
+  if (currentState.nextState != NULL) {
     DurationState *nextState = currentState.nextState;
     while (nextState->nextState != NULL && nextState->minDurationMs == 0) {
       nextState = nextState->nextState;
     }
     changeState(*nextState);
   }
-  return *this;
+}
+
+DurationFsm& DurationFsm::changeState(DurationState& state) {
+  scheduler.removeCallbacks(DurationFsm::timeElapsedStatic);
+  if (state.minDurationMs > 0 && state.nextState != NULL) {
+    scheduler.scheduleDelayed(DurationFsm::timeElapsedStatic, state.minDurationMs);
+  }
+  return (DurationFsm&) FiniteStateMachine::changeState(state);
 }
 
 DurationState& DurationFsm::getCurrentState() {
