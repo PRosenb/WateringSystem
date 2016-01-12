@@ -73,6 +73,10 @@ void Scheduler::removeCallbacks(void (*callback)()) {
   interrupts();
 }
 
+// inserts a new task in the ordered lists of tasks
+// if there is a task in the list with the same callback
+// before the position where the new task is to be insert
+// the new task is ignored to prevent list overflow
 void Scheduler::insertTask(Task *newTask) {
   noInterrupts();
   if (first == NULL) {
@@ -84,14 +88,22 @@ void Scheduler::insertTask(Task *newTask) {
       first = newTask;
     } else {
       Task *currentTask = first;
-      while (currentTask->next != NULL && currentTask->next->scheduledUptimeMillis <= newTask->scheduledUptimeMillis) {
+      while (currentTask->next != NULL
+             && currentTask->next->scheduledUptimeMillis <= newTask->scheduledUptimeMillis
+             && currentTask->callback != newTask->callback) {
         currentTask = currentTask->next;
       }
+      if (currentTask->callback != newTask->callback) {
         // insert after currentTask
         if (currentTask->next != NULL) {
           newTask->next = currentTask->next;
         }
         currentTask->next = newTask;
+      } else {
+        // a task with the same callback exists before the location where the new one should be insert
+        // ignore the new task
+        delete newTask;
+      }
     }
   }
   interrupts();
