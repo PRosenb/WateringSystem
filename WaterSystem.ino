@@ -34,6 +34,7 @@ void setup() {
   // reset alarms if active
   RTC.alarm(ALARM_1);
   RTC.alarm(ALARM_2);
+  delay(1000);
 
   pinMode(START_SERIAL_PIN, INPUT_PULLUP);
   attachPinChangeInterrupt(START_SERIAL_PIN, isrStartSerial, FALLING);
@@ -61,13 +62,17 @@ void startAutomaticRtc() {
   waterManager->startAutomaticWithWarn();
 }
 
-void isrRtc() {
+void rtcScheduled() {
   if (RTC.alarm(ALARM_1)) {
     scheduler.schedule(startAutomaticRtc);
   }
   if (RTC.alarm(ALARM_2)) {
     // not used
   }
+}
+
+void isrRtc() {
+  scheduler.schedule(rtcScheduled);
 }
 
 void startManual() {
@@ -198,7 +203,6 @@ void handleSetAlarmTime() {
   if (colon == ':' && hours >= 0 && hours <= 24 && minutes >= 0 && minutes <= 60) {
     //setAlarm(ALARM_TYPES_t alarmType, byte seconds, byte minutes, byte hours, byte daydate);
     RTC.setAlarm(ALM1_MATCH_HOURS, 0, minutes, hours, 0);
-    delay(1000);
 
     Serial.print("set start time to ");
     Serial.print(hours);
