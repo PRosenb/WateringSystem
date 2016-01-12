@@ -45,11 +45,12 @@ class Scheduler {
     void scheduleDelayed(void (*callback)(), int delayMillis);
     void scheduleAt(void (*callback)(), unsigned long uptimeMillis);
     void scheduleAtFrontOfQueue(void (*callback)());
-    void scheduleFromInterrupt(void (*callback)());
     void removeCallbacks(void (*callback)());
+    void aquireNoDeepSleepLock();
+    void releaseNoDeepSleepLock();
+    bool doesDeepSleep();
     void execute();
 
-    bool deepSleep;
     TaskTimeout taskTimeout;
     byte awakeIndicationPin;
 
@@ -62,6 +63,7 @@ class Scheduler {
     inline bool evaluateAndPrepareSleep();
     Task  *first;
     Task *taskFromInterrupt;
+    unsigned int noDeepSleepLocksCount;
     static volatile unsigned long millisInDeepSleep;
     static volatile unsigned long millisBeforeDeepSleep;
     static volatile unsigned long wdtSleepTimeMillis;

@@ -9,7 +9,7 @@ volatile unsigned long Scheduler::wdtSleepTimeMillis;
 Scheduler::Scheduler() {
   first = NULL;
   millisInDeepSleep = 0;
-  deepSleep = true;
+  noDeepSleepLocksCount = 0;
   taskTimeout = TIMEOUT_8S;
   awakeIndicationPin = NOT_USED;
 }
@@ -17,10 +17,6 @@ Scheduler::Scheduler() {
 void Scheduler::schedule(void (*callback)()) {
   Task *newTask = new Task(callback, SCHEDULE_IMMEDIATELLY);
   insertTask(newTask);
-}
-
-void Scheduler::scheduleFromInterrupt(void (*callback)()) {
-  //  taskFromInterrupt = new Task(callback, SCHEDULE_IMMEDIATELLY);
 }
 
 void Scheduler::scheduleDelayed(void (*callback)(), int delayMillis) {
@@ -39,6 +35,17 @@ void Scheduler::scheduleAtFrontOfQueue(void (*callback)()) {
   newTask->next = first;
   first = newTask;
   interrupts();
+}
+void Scheduler::aquireNoDeepSleepLock() {
+  noDeepSleepLocksCount++;
+}
+void Scheduler::releaseNoDeepSleepLock() {
+  if (noDeepSleepLocksCount != 0) {
+    noDeepSleepLocksCount--;
+  }
+}
+bool Scheduler::doesDeepSleep() {
+  return noDeepSleepLocksCount == 0;
 }
 
 void Scheduler::removeCallbacks(void (*callback)()) {
@@ -80,11 +87,11 @@ void Scheduler::insertTask(Task *newTask) {
       while (currentTask->next != NULL && currentTask->next->scheduledUptimeMillis <= newTask->scheduledUptimeMillis) {
         currentTask = currentTask->next;
       }
-      // insert after currentTask
-      if (currentTask->next != NULL) {
-        newTask->next = currentTask->next;
-      }
-      currentTask->next = newTask;
+        // insert after currentTask
+        if (currentTask->next != NULL) {
+          newTask->next = currentTask->next;
+        }
+        currentTask->next = newTask;
     }
   }
   interrupts();
@@ -126,7 +133,7 @@ void Scheduler::execute() {
     } else {
       // nothing in the queue
       sleep = true;
-      if (deepSleep) {
+      if (doesDeepSleep()) {
         // sleep until
         wdt_disable();
         set_sleep_mode(SLEEP_MODE_PWR_DOWN);
@@ -194,11 +201,11 @@ bool Scheduler::evaluateAndPrepareSleep() {
     }
     if (maxWaitTimeMillis == 0) {
       sleep = false;
-      //      Serial.println("no sleep");
-    } else if (!deepSleep || maxWaitTimeMillis < 998) {
+      //            Serial.println("no sleep");
+    } else if (!doesDeepSleep() || maxWaitTimeMillis < 998) {
       sleep = true;
       set_sleep_mode(SLEEP_MODE_IDLE);
-      //      Serial.println("SLEEP_MODE_IDLE");
+      //            Serial.println("SLEEP_MODE_IDLE");
     } else {
       sleep = true;
       set_sleep_mode(SLEEP_MODE_PWR_DOWN);

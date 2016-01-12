@@ -19,6 +19,7 @@
 WaterManager *waterManager;
 WaterMeter *waterMeter;
 unsigned long serialLastActiveMillis = 0;
+boolean aquiredWakeLock = false;
 
 void setup() {
   Serial.begin(9600);
@@ -119,6 +120,10 @@ void printTime() {
 void startListenToSerial() {
   serialLastActiveMillis = millis();
   scheduler.removeCallbacks(listenToSerial);
+  if (!aquiredWakeLock) {
+    aquiredWakeLock = true;
+    scheduler.aquireNoDeepSleepLock();
+  }
   delay(200);
   listenToSerial();
 }
@@ -130,12 +135,13 @@ void listenToSerial() {
     handleSerialInput();
   }
   if (millis() - serialLastActiveMillis > SERIAL_SLEEP_TIMEOUT_MS) {
-    scheduler.deepSleep = true;
+    if (aquiredWakeLock) {
+      aquiredWakeLock = false;
+      scheduler.releaseNoDeepSleepLock();
+    }
   } else {
     scheduler.scheduleDelayed(listenToSerial, 1000);
-    scheduler.deepSleep = false;
   }
-  delay(1000);
 }
 
 void readSerial(char inData[], int inDataLength) {
