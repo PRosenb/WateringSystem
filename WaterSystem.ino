@@ -1,91 +1,136 @@
 
 #include <DS3232RTC.h>    // http://github.com/JChristensen/DS3232RTC
+#include <PinChangeInt.h> // https://github.com/GreyGnome/PinChangeInt
 
-#include "SleepManager.h"
 #include "WaterManager.h"
 #include "WaterMeter.h"
+#include "DeepSleepScheduler.h"
 
-#define STOP_ALL_INT_PIN 0
+#define START_SERIAL_PIN 2
+// potential PinChangePins on Leonardo: 8, 9, 10, 11
+#define RTC_INT_PIN 8
+#define START_MANUAL_PIN 9
+#define START_AUTOMATIC_PIN 10
+#define STOP_ALL_PIN 11
+
 #define SERIAL_SLEEP_TIMEOUT_MS 30000
+#define AWAKE_LED_PIN 13
 
-void rtcTriggered();
-void isrStopAll();
-
-SleepManager *sleepManager;
 WaterManager *waterManager;
 WaterMeter *waterMeter;
-volatile boolean stopAllTriggered = false;
 unsigned long serialLastActiveMillis = 0;
 
 void setup() {
   Serial.begin(9600);
   delay(100); // wait for serial to init
-  sleepManager = new SleepManager();
+  Serial.println("------------------- startup");
+  delay(100);
   waterManager = new WaterManager();
   waterMeter = new WaterMeter();
   waterMeter->start();
 
-  pinMode(STOP_ALL_INT_PIN, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(STOP_ALL_INT_PIN), isrStopAll, FALLING);
-
   RTC.alarmInterrupt(ALARM_1, true);
   RTC.alarmInterrupt(ALARM_2, false);
+  // reset alarms if active
+  RTC.alarm(ALARM_1);
+  RTC.alarm(ALARM_2);
+
+  pinMode(START_SERIAL_PIN, INPUT_PULLUP);
+  attachPinChangeInterrupt(START_SERIAL_PIN, isrStartSerial, FALLING);
+  pinMode(RTC_INT_PIN, INPUT_PULLUP);
+  attachPinChangeInterrupt(RTC_INT_PIN, isrRtc, FALLING);
+  pinMode(START_MANUAL_PIN, INPUT_PULLUP);
+  attachPinChangeInterrupt(START_MANUAL_PIN, isrStartManual, FALLING);
+  pinMode(START_AUTOMATIC_PIN, INPUT_PULLUP);
+  attachPinChangeInterrupt(START_AUTOMATIC_PIN, isrStartAutomatic, FALLING);
+  pinMode(STOP_ALL_PIN, INPUT_PULLUP);
+  attachPinChangeInterrupt(STOP_ALL_PIN, isrStopAll, FALLING);
+
+  pinMode(AWAKE_LED_PIN, OUTPUT);
+  scheduler.awakeIndicationPin = AWAKE_LED_PIN;
+
+  startListenToSerial();
 }
 
 void loop() {
+  scheduler.execute();
+}
+
+void startAutomaticRtc() {
+  Serial.println("startAutomaticRtc");
+  waterManager->startAutomaticWithWarn();
+}
+
+void isrRtc() {
+  if (RTC.alarm(ALARM_1)) {
+    scheduler.schedule(startAutomaticRtc);
+  }
+  if (RTC.alarm(ALARM_2)) {
+    // not used
+  }
+}
+
+void startManual() {
+  Serial.println("startManual");
+  waterManager->manualMainOn();
+}
+
+void isrStartManual() {
+  scheduler.schedule(startManual);
+}
+
+void startAutomatic() {
+  Serial.println("startAutomatic");
+  waterManager->startAutomatic();
+}
+
+void isrStartAutomatic() {
+  scheduler.schedule(startAutomatic);
+}
+
+void stopAll() {
+  Serial.println("stopAll");
+  waterManager->stopAll();
+}
+
+void isrStopAll() {
+  scheduler.schedule(stopAll);
+}
+
+void isrStartSerial() {
+  scheduler.schedule(startListenToSerial);
+}
+
+void printTime() {
+  setSyncProvider(RTC.get);
   Serial.print(hour(), DEC);
   Serial.print(':');
   Serial.print(minute(), DEC);
   Serial.print(':');
   Serial.println(second(), DEC);
+  delay(100);
+}
 
-  if (Serial.available() > 0) {
-    handleSerialInput();
-  }
+void startListenToSerial() {
+  serialLastActiveMillis = millis();
+  scheduler.removeCallbacks(listenToSerial);
+  delay(200);
+  listenToSerial();
+}
 
-  boolean finished = waterManager->update();
-  //    finished = false;
-  // do not sleep until Serial is disconnected for SERIAL_SLEEP_TIMEOUT_MS
+void listenToSerial() {
+  printTime();
   if (Serial.available() > 0) {
     serialLastActiveMillis = millis();
+    handleSerialInput();
   }
-  Interrupts interrupts;
-  if (finished && millis() - serialLastActiveMillis > SERIAL_SLEEP_TIMEOUT_MS) {
-    interrupts = sleepManager->sleep();
+  if (millis() - serialLastActiveMillis > SERIAL_SLEEP_TIMEOUT_MS) {
+    scheduler.deepSleep = true;
   } else {
-    interrupts = sleepManager->getSeenInterruptsAndClear();
+    scheduler.scheduleDelayed(listenToSerial, 1000);
+    scheduler.deepSleep = false;
   }
-
-  if (interrupts.rtcAlarm1 > 0) {
-    Serial.println("RTC1_INT");
-    rtcTriggered();
-  }
-  if (interrupts.rtcAlarm2 > 0) {
-    Serial.println("RTC2_INT");
-  }
-  if (interrupts.wakeupInterrupt1 > 0) {
-    Serial.print("WAKEUP_INTERRUPT_1: ");
-    Serial.println(interrupts.wakeupInterrupt1, DEC);
-    waterManager->manualMainOn();
-  }
-  if (interrupts.wakeupInterrupt2 > 0) {
-    Serial.print("WAKEUP_INTERRUPT_2: ");
-    Serial.println(interrupts.wakeupInterrupt2, DEC);
-    waterManager->startAutomatic();
-  }
-  if (interrupts.wakeupInterrupt3 > 0) {
-    Serial.print("WAKEUP_INTERRUPT_3: ");
-    Serial.println(interrupts.wakeupInterrupt3, DEC);
-  }
-  if (stopAllTriggered) {
-    stopAllTriggered = false;
-    waterManager->stopAll();
-  }
-
-  waterMeter->calculate();
-
-  // allows also to sync time after wakeup
-  delay(1000); // repeat every second
+  delay(1000);
 }
 
 void readSerial(char inData[], int inDataLength) {
@@ -153,6 +198,7 @@ void handleSetAlarmTime() {
   if (colon == ':' && hours >= 0 && hours <= 24 && minutes >= 0 && minutes <= 60) {
     //setAlarm(ALARM_TYPES_t alarmType, byte seconds, byte minutes, byte hours, byte daydate);
     RTC.setAlarm(ALM1_MATCH_HOURS, 0, minutes, hours, 0);
+    delay(1000);
 
     Serial.print("set start time to ");
     Serial.print(hours);
@@ -240,18 +286,5 @@ void handleSerialInput() {
       Serial.println("g<alarmNumber>: get alarm time");
       Serial.println("d<YYYY>-<MM>-<DD>T<hh>:<mm>: set date/time");
   }
-}
-
-void rtcTriggered() {
-  Serial.println("alarm triggered");
-  int t = RTC.temperature();
-  float celsius = t / 4.0;
-  Serial.print("temp:");
-  Serial.println(celsius, DEC);
-  waterManager->startAutomaticWithWarn();
-}
-
-void isrStopAll() {
-  stopAllTriggered = true;
 }
 
