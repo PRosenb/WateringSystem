@@ -41,6 +41,31 @@ void Scheduler::scheduleAtFrontOfQueue(void (*callback)()) {
   interrupts();
 }
 
+void Scheduler::removeCallbacks(void (*callback)()) {
+  noInterrupts();
+  if (first != NULL) {
+    Task *previousTask = NULL;
+    Task *currentTask = first;
+    while (currentTask != NULL) {
+      if (currentTask->callback == callback) {
+        Task *taskToDelete = currentTask;
+        if (previousTask == NULL) {
+          // remove the first task
+          first = taskToDelete->next;
+        } else {
+          previousTask->next = taskToDelete->next;
+        }
+        currentTask = taskToDelete->next;
+        delete taskToDelete;
+      } else {
+        previousTask = currentTask;
+        currentTask = currentTask->next;
+      }
+    }
+  }
+  interrupts();
+}
+
 void Scheduler::insertTask(Task *newTask) {
   noInterrupts();
   if (first == NULL) {
@@ -105,13 +130,13 @@ void Scheduler::execute() {
         // sleep until
         wdt_disable();
         set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-        //Serial.println("infinite sleep");
+        Serial.println("infinite sleep");
       } else {
         set_sleep_mode(SLEEP_MODE_IDLE);
       }
     }
     if (sleep) {
-//      Serial.println("before sleep");
+      //      Serial.println("before sleep");
       delay(150);
       if (awakeIndicationPin != NOT_USED) {
         digitalWrite(awakeIndicationPin, LOW);
@@ -120,7 +145,7 @@ void Scheduler::execute() {
       if (awakeIndicationPin != NOT_USED) {
         digitalWrite(awakeIndicationPin, HIGH);
       }
-//            Serial.println("after sleep");
+      //            Serial.println("after sleep");
     }
     // THE PROGRAM CONTINUES FROM HERE AFTER WAKING UP
     sleep_disable();

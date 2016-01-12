@@ -46,6 +46,7 @@ class Scheduler {
     void scheduleAt(void (*callback)(), unsigned long uptimeMillis);
     void scheduleAtFrontOfQueue(void (*callback)());
     void scheduleFromInterrupt(void (*callback)());
+    void removeCallbacks(void (*callback)());
     void execute();
 
     bool deepSleep;
