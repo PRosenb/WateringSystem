@@ -4,7 +4,7 @@ Scheduler scheduler = Scheduler();
 
 volatile unsigned long Scheduler::millisInDeepSleep;
 volatile unsigned long Scheduler::millisBeforeDeepSleep;
-volatile unsigned long Scheduler::wdtSleepTimeMillis;
+volatile unsigned int Scheduler::wdtSleepTimeMillis;
 
 Scheduler::Scheduler() {
   first = NULL;

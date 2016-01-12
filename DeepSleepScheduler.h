@@ -26,15 +26,15 @@ enum TaskTimeout {
 class Task {
     friend class Scheduler;
   public:
-    Task(void (*callback)(), const long scheduledUptimeMillis): scheduledUptimeMillis(scheduledUptimeMillis) {
+    Task(void (*callback)(), const unsigned long scheduledUptimeMillis): scheduledUptimeMillis(scheduledUptimeMillis) {
       Task::callback = callback;
       Task::next = NULL;
     }
   private:
     // 0 is used for immediatelly
-    const long scheduledUptimeMillis;
-    void    (*callback)();
-    Task          *next;
+    const unsigned long scheduledUptimeMillis;
+    void (*callback)();
+    Task *next;
 };
 
 class Scheduler {
@@ -46,6 +46,7 @@ class Scheduler {
     void scheduleAt(void (*callback)(), unsigned long uptimeMillis);
     void scheduleAtFrontOfQueue(void (*callback)());
     void removeCallbacks(void (*callback)());
+    // aquireNoDeepSleepLock() supports up to 255 locks
     void aquireNoDeepSleepLock();
     void releaseNoDeepSleepLock();
     bool doesDeepSleep();
@@ -61,12 +62,11 @@ class Scheduler {
       return millis() + millisInDeepSleep;
     }
     inline bool evaluateAndPrepareSleep();
-    Task  *first;
-    Task *taskFromInterrupt;
-    unsigned int noDeepSleepLocksCount;
+    Task *first;
+    byte noDeepSleepLocksCount;
     static volatile unsigned long millisInDeepSleep;
     static volatile unsigned long millisBeforeDeepSleep;
-    static volatile unsigned long wdtSleepTimeMillis;
+    static volatile unsigned int wdtSleepTimeMillis;
 };
 
 extern Scheduler scheduler;
