@@ -281,6 +281,10 @@ void handleSerialInput() {
     case 'a':
       handleSetAlarmTime();
       break;
+    case 'm':
+      RTC.setAlarm(ALM1_MATCH_SECONDS, 0, 0, 0, 0);
+      Serial.println("alarm every minute");
+      break;
     case 'g':
       handleGetAlarmTime(serialReadInt(1));
       break;
@@ -289,6 +293,7 @@ void handleSerialInput() {
       Serial.println(command);
       Serial.println("Supported commands:");
       Serial.println("a<hh>:<mm>: set alarm time");
+      Serial.println("m set alarm every minute (for testing)");
       Serial.println("g<alarmNumber>: get alarm time");
       Serial.println("d<YYYY>-<MM>-<DD>T<hh>:<mm>: set date/time");
   }
