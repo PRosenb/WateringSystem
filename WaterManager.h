@@ -4,6 +4,7 @@
 
 #include "Arduino.h"
 #include "DurationFsm.h"
+#include "WaterMeter.h"
 
 #define UNUSED 255
 
@@ -27,18 +28,41 @@ class Valve {
         pinMode(pin, OUTPUT);
       }
     }
-    void on() {
+    virtual void on() {
       if (pin != UNUSED) {
         digitalWrite(pin, HIGH);
       }
     }
-    void off() {
+    virtual void off() {
       if (pin != UNUSED) {
         digitalWrite(pin, LOW);
       }
     }
   private:
     byte pin;
+};
+
+class MeasuredValve: public Valve {
+  public:
+    MeasuredValve(byte pin): Valve(pin) {
+      waterMeter = new WaterMeter();
+    }
+    virtual ~MeasuredValve() {
+      delete waterMeter;
+    }
+    virtual void on() {
+      waterMeter->start();
+      Valve::on();
+    }
+    virtual void off() {
+      Valve::off();
+      waterMeter->stop();
+    }
+    unsigned long getTotalCount() {
+      return waterMeter->getTotalCount();
+    }
+  private:
+    WaterMeter *waterMeter;
 };
 
 class ValveState: public DurationState {
@@ -51,7 +75,6 @@ class ValveState: public DurationState {
     }
     virtual void enter() {
       valve->on();
-
     }
     virtual void exit() {
       valve->off();
@@ -70,7 +93,7 @@ class WaterManager {
     void startAutomatic();
     void stopAll();
   private:
-    Valve *valveMain;
+    MeasuredValve *valveMain;
     Valve *valveArea1;
     Valve *valveArea2;
     Valve *valveArea3;

@@ -3,7 +3,6 @@
 #include <PinChangeInt.h> // https://github.com/GreyGnome/PinChangeInt
 
 #include "WaterManager.h"
-#include "WaterMeter.h"
 #include "DeepSleepScheduler.h"
 
 #define START_SERIAL_PIN 2
@@ -17,7 +16,6 @@
 #define AWAKE_LED_PIN 13
 
 WaterManager *waterManager;
-WaterMeter *waterMeter;
 unsigned long serialLastActiveMillis = 0;
 boolean aquiredWakeLock = false;
 
@@ -27,8 +25,6 @@ void setup() {
   Serial.println("------------------- startup");
   delay(100);
   waterManager = new WaterManager();
-  waterMeter = new WaterMeter();
-  waterMeter->start();
 
   RTC.alarmInterrupt(ALARM_1, true);
   RTC.alarmInterrupt(ALARM_2, false);

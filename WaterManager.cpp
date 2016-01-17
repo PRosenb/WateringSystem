@@ -3,7 +3,7 @@
 #include <Time.h>         // http://www.arduino.cc/playground/Code/Time
 
 WaterManager::WaterManager() {
-  valveMain = new Valve(VALVE1_PIN);
+  valveMain = new MeasuredValve(VALVE1_PIN);
   valveArea1 = new Valve(VALVE2_PIN);
   valveArea2 = new Valve(VALVE3_PIN);
   valveArea3 = new Valve(VALVE4_PIN);
@@ -56,6 +56,8 @@ void WaterManager::stopAll() {
   valveArea1->off();
   valveArea2->off();
   valveArea3->off();
+  Serial.print("measured: "); delay(100);
+  Serial.println(valveMain->getTotalCount());
 }
 
 void WaterManager::startAutomaticWithWarn() {
