@@ -22,8 +22,7 @@
 
 class Valve {
   public:
-    Valve(byte pin) {
-      Valve::pin = pin;
+    Valve(const byte pin): pin(pin) {
       if (pin != UNUSED) {
         pinMode(pin, OUTPUT);
       }
@@ -39,7 +38,7 @@ class Valve {
       }
     }
   private:
-    byte pin;
+    const byte pin;
 };
 
 class MeasuredValve: public Valve {
