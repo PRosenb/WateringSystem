@@ -12,12 +12,17 @@ class WaterMeter {
     virtual ~WaterMeter();
     void start();
     void stop();
+    unsigned int getTotalCount() {
+      return totalPulseCount;
+    }
     void calculate();
   private:
     static void isrWaterMeterPulses();
     static void isrTimer();
 
-    static volatile unsigned int pulseCount;
+    bool started;
+    static volatile unsigned int totalPulseCount;
+    static volatile unsigned int lastPulseCount;
     static volatile unsigned int samplesCount;
     static volatile byte pulsesPos;
     static volatile unsigned int pulsesCount[VALUES_COUNT];
