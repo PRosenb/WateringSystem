@@ -56,6 +56,8 @@ class MeasuredValve: public Valve {
     virtual void off() {
       Valve::off();
       waterMeter->stop();
+      Serial.print(F("measured: "));
+      Serial.println(getTotalCount());
     }
     unsigned long getTotalCount() {
       return waterMeter->getTotalCount();
