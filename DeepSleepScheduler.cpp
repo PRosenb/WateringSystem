@@ -135,7 +135,7 @@ void Scheduler::execute() {
 
     //    if (first != NULL) {
     //      Serial.print(F("has more in "));
-    //      Serial.println(first->scheduledUptimeMillis - getSchedulerMillis()); delay(100);
+    //      Serial.println(first->scheduledUptimeMillis - getSchedulerMillis());
     //    }
 
     sleep_enable();          // enables the sleep bit, a safety pin
@@ -146,10 +146,9 @@ void Scheduler::execute() {
       // nothing in the queue
       sleep = true;
       if (doesDeepSleep()) {
-        // sleep until
+        Serial.println(F("infinite sleep"));
         wdt_disable();
         set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-        Serial.println("infinite sleep");
       } else {
         set_sleep_mode(SLEEP_MODE_IDLE);
       }
@@ -177,8 +176,6 @@ void Scheduler::execute() {
         // change back to taskTimeout
         wdt_reset();
         wdt_enable(taskTimeout);
-        //        Serial.print(F("to taskTimeout: "));
-        //        Serial.println(taskTimeout);
       } else {
         wdt_disable();
       }
