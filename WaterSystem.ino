@@ -1,5 +1,14 @@
 
 #include <DS3232RTC.h>    // http://github.com/JChristensen/DS3232RTC
+
+#define NO_PIN_STATE
+#define NO_PIN_NUMBER
+// PCI1: Aurdino Uno PINs 5..8?
+//#define NO_PORTB_PINCHANGES
+// PCI2: Aurdiono Uno PINs 10..13?
+#define NO_PORTC_PINCHANGES
+// PCI0: Aurdino Uno PINs 2..4?
+//#define NO_PORTD_PINCHANGES
 #include <PinChangeInt.h> // https://github.com/GreyGnome/PinChangeInt
 
 #include "WaterManager.h"
