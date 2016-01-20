@@ -29,11 +29,14 @@ unsigned long serialLastActiveMillis = 0;
 boolean aquiredWakeLock = false;
 
 void setup() {
+  int freeRamValue = freeRam();
   Serial.begin(9600);
   delay(100); // wait for serial to init
   Serial.println();
-  Serial.println(F("------------------- startup"));
+  Serial.print(F("------------------- startup: "));
+  Serial.println(freeRamValue);
   delay(100);
+  
   waterManager = new WaterManager();
 
   RTC.alarmInterrupt(ALARM_1, true);
@@ -61,7 +64,13 @@ void setup() {
 }
 
 void loop() {
-  scheduler.execute();
+    scheduler.execute();
+  }
+
+int freeRam () {
+  extern int __heap_start, *__brkval;
+  int v;
+  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
 }
 
 void startAutomaticRtc() {
@@ -120,10 +129,13 @@ void printTime() {
   Serial.print(F(":"));
   Serial.print(minute(), DEC);
   Serial.print(F(":"));
-  Serial.println(second(), DEC);
+  Serial.print(second(), DEC);
+  Serial.print(F(" "));
+  Serial.println(freeRam());
   delay(100);
 }
 
+// TODO restart on serial connect
 void startListenToSerial() {
   Serial.println(F("startListenToSerial"));
   serialLastActiveMillis = millis();
