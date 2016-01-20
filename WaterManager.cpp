@@ -37,11 +37,15 @@ WaterManager::~WaterManager() {
 
   delete superStateMainIdle;
   delete superStateMainOn;
+  
   delete stateIdle;
+  delete stateWarn;
+  delete stateWaitBefore;
   delete stateAutomatic1;
   delete stateAutomatic2;
   delete stateAutomatic3;
   delete stateManual;
+  
   DurationFsm::deleteInstance();
 }
 
