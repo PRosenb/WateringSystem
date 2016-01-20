@@ -10,26 +10,33 @@ FiniteStateMachine::FiniteStateMachine(State& current, const String name): name(
 
 FiniteStateMachine& FiniteStateMachine::changeState(State& state) {
   if (currentState != &state) {
+    currentState->exit();
+
     Serial.print(name);
-    Serial.print(F(" changeState "));
+    Serial.print(F(": changeState: "));
     Serial.print(currentState->name);
     Serial.print(F(" -> "));
     Serial.print(state.name);
 
-    currentState->exit();
     boolean differentSuperStates = currentState->superState != state.superState;
     if (differentSuperStates && currentState->superState != NULL) {
-      Serial.print(F(" : super "));
+      Serial.print(F(", SUPER: "));
       Serial.print(currentState->superState->name);
       Serial.print(F(" -> "));
+      if (state.superState != NULL) {
+        Serial.print(currentState->superState->name);
+      }
+      Serial.println();
+
       currentState->superState->exit();
+    } else {
+      Serial.println();
     }
+
     currentState = &state;
-    if (differentSuperStates && currentState->superState != NULL) {
-      Serial.print(currentState->superState->name);
+    if (differentSuperStates && state.superState != NULL) {
       currentState->superState->enter();
     }
-    Serial.println();
     currentState->enter();
     stateChangeTime = millis();
   }
