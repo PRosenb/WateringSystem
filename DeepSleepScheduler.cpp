@@ -176,7 +176,6 @@ void Scheduler::execute() {
       if (taskTimeout != NO_SUPERVISION) {
         // change back to taskTimeout
         wdt_reset();
-        wdt_disable();
         wdt_enable(taskTimeout);
         //        Serial.print(F("to taskTimeout: "));
         //        Serial.println(taskTimeout);
