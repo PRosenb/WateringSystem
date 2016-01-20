@@ -24,7 +24,7 @@ FiniteStateMachine& FiniteStateMachine::changeState(State& state) {
       Serial.print(currentState->superState->name);
       Serial.print(F(" -> "));
       if (state.superState != NULL) {
-        Serial.print(currentState->superState->name);
+        Serial.print(state.superState->name);
       }
       Serial.println();
 
