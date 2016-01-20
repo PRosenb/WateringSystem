@@ -22,7 +22,8 @@ boolean aquiredWakeLock = false;
 void setup() {
   Serial.begin(9600);
   delay(100); // wait for serial to init
-  Serial.println("------------------- startup");
+  Serial.println();
+  Serial.println(F("------------------- startup"));
   delay(100);
   waterManager = new WaterManager();
 
@@ -55,11 +56,12 @@ void loop() {
 }
 
 void startAutomaticRtc() {
-  Serial.println("startAutomaticRtc");
+  Serial.println(F("startAutomaticRtc")); delay(150);
   waterManager->startAutomaticWithWarn();
 }
 
 void rtcScheduled() {
+  //  Serial.println(F("rtcScheduled"));delay(150);
   if (RTC.alarm(ALARM_1)) {
     scheduler.schedule(startAutomaticRtc);
   }
@@ -73,7 +75,7 @@ void isrRtc() {
 }
 
 void startManual() {
-  Serial.println("startManual");
+  Serial.println(F("startManual"));
   waterManager->manualMainOn();
 }
 
@@ -82,7 +84,7 @@ void isrStartManual() {
 }
 
 void startAutomatic() {
-  Serial.println("startAutomatic");
+  Serial.println(F("startAutomatic"));
   waterManager->startAutomatic();
 }
 
@@ -91,7 +93,7 @@ void isrStartAutomatic() {
 }
 
 void stopAll() {
-  Serial.println("stopAll");
+  Serial.println(F("stopAll"));
   waterManager->stopAll();
 }
 
@@ -106,14 +108,15 @@ void isrStartSerial() {
 void printTime() {
   setSyncProvider(RTC.get);
   Serial.print(hour(), DEC);
-  Serial.print(':');
+  Serial.print(F(":"));
   Serial.print(minute(), DEC);
-  Serial.print(':');
+  Serial.print(F(":"));
   Serial.println(second(), DEC);
   delay(100);
 }
 
 void startListenToSerial() {
+  Serial.println(F("startListenToSerial"));
   serialLastActiveMillis = millis();
   scheduler.removeCallbacks(listenToSerial);
   if (!aquiredWakeLock) {
@@ -134,6 +137,7 @@ void listenToSerial() {
     if (aquiredWakeLock) {
       aquiredWakeLock = false;
       scheduler.releaseNoDeepSleepLock();
+      Serial.println(F("stop serial"));
     }
   } else {
     scheduler.scheduleDelayed(listenToSerial, 1000);
@@ -181,20 +185,20 @@ void handleSetDateTime() {
 
     tmElements_t tm;
     RTC.read(tm);
-    Serial.print("RTC values: ");
+    Serial.print(F("RTC values: "));
     Serial.print(tm.Year + 1970, DEC);
-    Serial.print('-');
+    Serial.print(F("-"));
     Serial.print(tm.Month);
-    Serial.print('-');
+    Serial.print(F("-"));
     Serial.print(tm.Day);
-    Serial.print(' ');
+    Serial.print(F(" "));
     Serial.print(tm.Hour);
-    Serial.print(':');
+    Serial.print(F(":"));
     Serial.print(tm.Minute);
-    Serial.print(':');
+    Serial.print(F(":"));
     Serial.println(tm.Second);
   } else {
-    Serial.println("Wrong format, e.g. use d2016-01-03T16:43");
+    Serial.println(F("Wrong format, e.g. use d2016-01-03T16:43"));
   }
 }
 
@@ -206,12 +210,12 @@ void handleSetAlarmTime() {
     //setAlarm(ALARM_TYPES_t alarmType, byte seconds, byte minutes, byte hours, byte daydate);
     RTC.setAlarm(ALM1_MATCH_HOURS, 0, minutes, hours, 0);
 
-    Serial.print("set start time to ");
+    Serial.print(F("set start time to "));
     Serial.print(hours);
-    Serial.print(":");
+    Serial.print(F(":"));
     Serial.println(minutes);
   } else {
-    Serial.println("set start time failed, wrong format, expect s<hh>:<mm>, e.g. s14:45");
+    Serial.println(F("set start time failed, wrong format, expect s<hh>:<mm>, e.g. s14:45"));
   }
 }
 
@@ -219,54 +223,54 @@ void handleGetAlarmTime(byte alarmNumber) {
   if (alarmNumber == 0) {
     alarmNumber = 1;
   }
-  Serial.print("Alarm");
+  Serial.print(F("Alarm"));
   Serial.print(alarmNumber);
-  Serial.print(": ");
+  Serial.print(F(": "));
   tmElements_t tm;
   ALARM_TYPES_t alarmType = RTC.readAlarm(alarmNumber, tm);
   Serial.print(tm.Hour);
-  Serial.print(":");
+  Serial.print(F(":"));
   Serial.print(tm.Minute);
-  Serial.print(":");
+  Serial.print(F(":"));
   Serial.print(tm.Second);
-  Serial.print(", day: ");
+  Serial.print(F(", day: "));
   Serial.print(tm.Day);
-  Serial.print(", wday: ");
+  Serial.print(F(", wday: "));
   Serial.print(tm.Wday);
-  Serial.print(", alarmType: ");
+  Serial.print(F(", alarmType: "));
   switch (alarmType) {
     case ALM1_EVERY_SECOND:
-      Serial.print("ALM1_EVERY_SECOND");
+      Serial.print(F("ALM1_EVERY_SECOND"));
       break;
     case ALM1_MATCH_SECONDS:
-      Serial.print("ALM1_MATCH_SECONDS");
+      Serial.print(F("ALM1_MATCH_SECONDS"));
       break;
     case ALM1_MATCH_MINUTES:
-      Serial.print("ALM1_MATCH_MINUTES");
+      Serial.print(F("ALM1_MATCH_MINUTES"));
       break;
     case ALM1_MATCH_HOURS:
-      Serial.print("ALM1_MATCH_HOURS");
+      Serial.print(F("ALM1_MATCH_HOURS"));
       break;
     case ALM1_MATCH_DATE:
-      Serial.print("ALM1_MATCH_DATE");
+      Serial.print(F("ALM1_MATCH_DATE"));
       break;
     case ALM1_MATCH_DAY:
-      Serial.print("ALM1_MATCH_DAY");
+      Serial.print(F("ALM1_MATCH_DAY"));
       break;
     case ALM2_EVERY_MINUTE:
-      Serial.print("ALM2_EVERY_MINUTE");
+      Serial.print(F("ALM2_EVERY_MINUTE"));
       break;
     case ALM2_MATCH_MINUTES:
-      Serial.print("ALM2_MATCH_MINUTES");
+      Serial.print(F("ALM2_MATCH_MINUTES"));
       break;
     case ALM2_MATCH_HOURS:
-      Serial.print("ALM2_MATCH_HOURS");
+      Serial.print(F("ALM2_MATCH_HOURS"));
       break;
     case ALM2_MATCH_DATE:
-      Serial.print("ALM2_MATCH_DATE");
+      Serial.print(F("ALM2_MATCH_DATE"));
       break;
     case ALM2_MATCH_DAY:
-      Serial.print("ALM2_MATCH_DAY");
+      Serial.print(F("ALM2_MATCH_DAY"));
       break;
   }
   Serial.println();
@@ -283,19 +287,19 @@ void handleSerialInput() {
       break;
     case 'm':
       RTC.setAlarm(ALM1_MATCH_SECONDS, 0, 0, 0, 0);
-      Serial.println("alarm every minute");
+      Serial.println(F("alarm every minute"));
       break;
     case 'g':
       handleGetAlarmTime(serialReadInt(1));
       break;
     default:
-      Serial.print("Unknown command: ");
+      Serial.print(F("Unknown command: "));
       Serial.println(command);
-      Serial.println("Supported commands:");
-      Serial.println("a<hh>:<mm>: set alarm time");
-      Serial.println("m set alarm every minute (for testing)");
-      Serial.println("g<alarmNumber>: get alarm time");
-      Serial.println("d<YYYY>-<MM>-<DD>T<hh>:<mm>: set date/time");
+      Serial.println(F("Supported commands:"));
+      Serial.println(F("a<hh>:<mm>: set alarm time"));
+      Serial.println(F("m set alarm every minute (for testing)"));
+      Serial.println(F("g<alarmNumber>: get alarm time"));
+      Serial.println(F("d<YYYY>-<MM>-<DD>T<hh>:<mm>: set date/time"));
   }
 }
 

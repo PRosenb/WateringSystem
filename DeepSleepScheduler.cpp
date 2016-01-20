@@ -134,7 +134,7 @@ void Scheduler::execute() {
     wdt_reset();
 
     //    if (first != NULL) {
-    //      Serial.print("has more in ");
+    //      Serial.print(F("has more in "));
     //      Serial.println(first->scheduledUptimeMillis - getSchedulerMillis()); delay(100);
     //    }
 
@@ -155,7 +155,7 @@ void Scheduler::execute() {
       }
     }
     if (sleep) {
-      //      Serial.println("before sleep");
+      //      Serial.println(F("before sleep"));
       delay(150);
       if (awakeIndicationPin != NOT_USED) {
         digitalWrite(awakeIndicationPin, LOW);
@@ -164,7 +164,7 @@ void Scheduler::execute() {
       if (awakeIndicationPin != NOT_USED) {
         digitalWrite(awakeIndicationPin, HIGH);
       }
-      //            Serial.println("after sleep");
+      //            Serial.println(F("after sleep"));
     }
     // THE PROGRAM CONTINUES FROM HERE AFTER WAKING UP
     sleep_disable();
@@ -178,14 +178,14 @@ void Scheduler::execute() {
         wdt_reset();
         wdt_disable();
         wdt_enable(taskTimeout);
-        //        Serial.print("to taskTimeout: ");
+        //        Serial.print(F("to taskTimeout: "));
         //        Serial.println(taskTimeout);
       } else {
         wdt_disable();
       }
     } // else the wd is still running
 
-    //    Serial.print("millisInDeepSleep ");
+    //    Serial.print(F("millisInDeepSleep "));
     //    Serial.println(millisInDeepSleep);
   }
   if (taskTimeout != NO_SUPERVISION) {
@@ -213,11 +213,11 @@ bool Scheduler::evaluateAndPrepareSleep() {
     }
     if (maxWaitTimeMillis == 0) {
       sleep = false;
-      //            Serial.println("no sleep");
+      //            Serial.println(F("no sleep"));
     } else if (!doesDeepSleep() || maxWaitTimeMillis < 998) {
       sleep = true;
       set_sleep_mode(SLEEP_MODE_IDLE);
-      //            Serial.println("SLEEP_MODE_IDLE");
+      //            Serial.println(F("SLEEP_MODE_IDLE"));
     } else {
       sleep = true;
       set_sleep_mode(SLEEP_MODE_PWR_DOWN);
@@ -258,15 +258,15 @@ bool Scheduler::evaluateAndPrepareSleep() {
       // first timeout will be the interrupt, second system reset
       WDTCSR |= (1 << WDCE) | (1 << WDIE);
       millisBeforeDeepSleep = millis();
-      //      Serial.print("SLEEP_MODE_PWR_DOWN: ");
-      //      Serial.println(wdtSleepTimeMillis);
+      Serial.print(F("SLEEP_MODE_PWR_DOWN: "));
+      Serial.println(wdtSleepTimeMillis);
     }
   } else {
     // wdt already running, so we woke up due to an other interrupt
     // continue sleepting without enabling wdt again
     sleep = true;
     WDTCSR |= (1 << WDCE) | (1 << WDIE);
-    Serial.println("SLEEP_MODE_PWR_DOWN resleep");
+    Serial.println(F("SLEEP_MODE_PWR_DOWN resleep"));
   }
   return sleep;
 }

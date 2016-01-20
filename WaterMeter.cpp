@@ -58,9 +58,9 @@ void WaterMeter::calculate() {
   }
   interrupts();
 
-  Serial.print("value: ");
+  Serial.print(F("value: "));
   Serial.print(1.0 * waterMeterValueSum);
-  Serial.print(", samples: ");
+  Serial.print(F(", samples: "));
   Serial.println(samplesCountLocal);
 }
 

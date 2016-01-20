@@ -11,17 +11,17 @@ FiniteStateMachine::FiniteStateMachine(State& current, const String name): name(
 FiniteStateMachine& FiniteStateMachine::changeState(State& state) {
   if (currentState != &state) {
     Serial.print(name);
-    Serial.print(" changeState ");
+    Serial.print(F(" changeState "));
     Serial.print(currentState->name);
-    Serial.print(" -> ");
+    Serial.print(F(" -> "));
     Serial.print(state.name);
 
     currentState->exit();
     boolean differentSuperStates = currentState->superState != state.superState;
     if (differentSuperStates && currentState->superState != NULL) {
-      Serial.print(" : super ");
+      Serial.print(F(" : super "));
       Serial.print(currentState->superState->name);
-      Serial.print(" -> ");
+      Serial.print(F(" -> "));
       currentState->superState->exit();
     }
     currentState = &state;

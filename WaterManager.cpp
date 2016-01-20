@@ -56,7 +56,7 @@ void WaterManager::stopAll() {
   valveArea1->off();
   valveArea2->off();
   valveArea3->off();
-  Serial.print("measured: "); delay(100);
+  Serial.print(F("measured: "));
   Serial.println(valveMain->getTotalCount());
 }
 
