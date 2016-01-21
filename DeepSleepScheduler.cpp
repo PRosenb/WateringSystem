@@ -7,11 +7,15 @@ volatile unsigned long Scheduler::millisBeforeDeepSleep;
 volatile unsigned int Scheduler::wdtSleepTimeMillis;
 
 Scheduler::Scheduler() {
-  first = NULL;
-  millisInDeepSleep = 0;
-  noDeepSleepLocksCount = 0;
   taskTimeout = TIMEOUT_8S;
   awakeIndicationPin = NOT_USED;
+
+  millisInDeepSleep = 0;
+  millisBeforeDeepSleep = 0;
+  wdtSleepTimeMillis = 0;
+
+  first = NULL;
+  noDeepSleepLocksCount = 0;
 }
 
 void Scheduler::schedule(void (*callback)()) {
@@ -36,6 +40,7 @@ void Scheduler::scheduleAtFrontOfQueue(void (*callback)()) {
   first = newTask;
   interrupts();
 }
+
 void Scheduler::aquireNoDeepSleepLock() {
   noDeepSleepLocksCount++;
 }
@@ -110,6 +115,13 @@ void Scheduler::insertTask(Task *newTask) {
 }
 
 void Scheduler::execute() {
+  Task* current = first;
+  while (current != NULL) {
+    Serial.print(current->scheduledUptimeMillis);
+    Serial.print(F(": "));
+    current->callback();
+    current = current->next;
+  }
   if (taskTimeout != NO_SUPERVISION) {
     wdt_enable(taskTimeout);
   }
@@ -197,7 +209,7 @@ bool Scheduler::evaluateAndPrepareSleep() {
   interrupts();
 
   if (wdtSleepTimeMillisLocal == 0) {
-    // wdt sleep not enabled
+    // not woken up during WDT sleep
 
     unsigned long maxWaitTimeMillis = 0;
     unsigned long currentSchedulerMillis = getSchedulerMillis();
@@ -209,11 +221,10 @@ bool Scheduler::evaluateAndPrepareSleep() {
     }
     if (maxWaitTimeMillis == 0) {
       sleep = false;
-      //            Serial.println(F("no sleep"));
+      // use SLEEP_MODE_IDLE for values less then 998
     } else if (!doesDeepSleep() || maxWaitTimeMillis < 998) {
       sleep = true;
       set_sleep_mode(SLEEP_MODE_IDLE);
-      //            Serial.println(F("SLEEP_MODE_IDLE"));
     } else {
       sleep = true;
       set_sleep_mode(SLEEP_MODE_PWR_DOWN);

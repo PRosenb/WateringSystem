@@ -6,6 +6,7 @@
 #define DEEP_SLEEP_SCHEDULER_H
 
 #define SCHEDULE_IMMEDIATELLY 0
+#define NOT_USED 255
 
 enum TaskTimeout {
   TIMEOUT_15Ms,
@@ -21,25 +22,11 @@ enum TaskTimeout {
   NO_SUPERVISION
 };
 
-#define NOT_USED 255
-
-class Task {
-    friend class Scheduler;
-  public:
-    Task(void (*callback)(), const unsigned long scheduledUptimeMillis): scheduledUptimeMillis(scheduledUptimeMillis) {
-      Task::callback = callback;
-      Task::next = NULL;
-    }
-  private:
-    // 0 is used for immediatelly
-    const unsigned long scheduledUptimeMillis;
-    void (*callback)();
-    Task *next;
-};
-
 class Scheduler {
-    friend class Task;
   public:
+    TaskTimeout taskTimeout;
+    byte awakeIndicationPin;
+
     Scheduler();
     void schedule(void (*callback)());
     void scheduleDelayed(void (*callback)(), int delayMillis);
@@ -52,21 +39,34 @@ class Scheduler {
     bool doesDeepSleep();
     void execute();
 
-    TaskTimeout taskTimeout;
-    byte awakeIndicationPin;
-
+    // do not call, used by WDT ISR
     static void isrWdt();
   private:
+    class Task {
+      public:
+        Task(void (*callback)(), const unsigned long scheduledUptimeMillis)
+          : scheduledUptimeMillis(scheduledUptimeMillis), callback(callback), next(NULL) {
+        }
+        // 0 is used for immediatelly
+        const unsigned long scheduledUptimeMillis;
+        void (* const callback)();
+        Task *next;
+    };
+    // variables used in the interrupt
+    static volatile unsigned long millisInDeepSleep;
+    static volatile unsigned long millisBeforeDeepSleep;
+    static volatile unsigned int wdtSleepTimeMillis;
+    
+    // first element in the run queue
+    Task *first;
+    // controls if deep sleep is done, 0 does deep sleep
+    byte noDeepSleepLocksCount;
+
     void insertTask(Task *task);
     inline unsigned long getSchedulerMillis() {
       return millis() + millisInDeepSleep;
     }
     inline bool evaluateAndPrepareSleep();
-    Task *first;
-    byte noDeepSleepLocksCount;
-    static volatile unsigned long millisInDeepSleep;
-    static volatile unsigned long millisBeforeDeepSleep;
-    static volatile unsigned int wdtSleepTimeMillis;
 };
 
 extern Scheduler scheduler;
