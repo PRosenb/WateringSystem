@@ -158,7 +158,7 @@ void Scheduler::execute() {
       // nothing in the queue
       sleep = true;
       if (doesDeepSleep()) {
-        Serial.println(F("infinite sleep"));
+        Serial.println(F("infinite sleep")); delay(150);
         wdt_disable();
         set_sleep_mode(SLEEP_MODE_PWR_DOWN);
       } else {
@@ -166,8 +166,8 @@ void Scheduler::execute() {
       }
     }
     if (sleep) {
-      //      Serial.println(F("before sleep"));
-      delay(150);
+      // allows serial to finish before sleep but leads to wrong sleep duration
+      // delay(150);
       if (awakeIndicationPin != NOT_USED) {
         digitalWrite(awakeIndicationPin, LOW);
       }
@@ -175,7 +175,6 @@ void Scheduler::execute() {
       if (awakeIndicationPin != NOT_USED) {
         digitalWrite(awakeIndicationPin, HIGH);
       }
-      //            Serial.println(F("after sleep"));
     }
     // THE PROGRAM CONTINUES FROM HERE AFTER WAKING UP
     sleep_disable();
@@ -225,6 +224,7 @@ bool Scheduler::evaluateAndPrepareSleep() {
     } else if (!doesDeepSleep() || maxWaitTimeMillis < SLEEP_TIME_1S + BUFFER_TIME) {
       sleep = true;
       set_sleep_mode(SLEEP_MODE_IDLE);
+      //      Serial.print(F("SLEEP_MODE_IDLE"));
     } else {
       sleep = true;
       set_sleep_mode(SLEEP_MODE_PWR_DOWN);
@@ -265,15 +265,15 @@ bool Scheduler::evaluateAndPrepareSleep() {
       // first timeout will be the interrupt, second system reset
       WDTCSR |= (1 << WDCE) | (1 << WDIE);
       millisBeforeDeepSleep = millis();
-      Serial.print(F("SLEEP_MODE_PWR_DOWN: "));
-      Serial.println(wdtSleepTimeMillis);
+      // increase buffer time for this output
+      // Serial.print(F("SLEEP_MODE_PWR_DOWN: "));
+      // Serial.println(wdtSleepTimeMillis); delay(BUFFER_TIME);
     }
   } else {
     // wdt already running, so we woke up due to an other interrupt
     // continue sleepting without enabling wdt again
     sleep = true;
     WDTCSR |= (1 << WDCE) | (1 << WDIE);
-    Serial.println(F("SLEEP_MODE_PWR_DOWN resleep"));
   }
   return sleep;
 }
