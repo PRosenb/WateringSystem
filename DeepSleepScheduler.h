@@ -41,7 +41,7 @@ class Scheduler {
 
     Scheduler();
     void schedule(void (*callback)());
-    void scheduleDelayed(void (*callback)(), int delayMillis);
+    void scheduleDelayed(void (*callback)(), unsigned long delayMillis);
     void scheduleAt(void (*callback)(), unsigned long uptimeMillis);
     void scheduleAtFrontOfQueue(void (*callback)());
     void removeCallbacks(void (*callback)());

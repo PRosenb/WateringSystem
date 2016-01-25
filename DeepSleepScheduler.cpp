@@ -23,8 +23,8 @@ void Scheduler::schedule(void (*callback)()) {
   insertTask(newTask);
 }
 
-void Scheduler::scheduleDelayed(void (*callback)(), int delayMillis) {
-  Task *newTask = new Task(callback, getSchedulerMillis() + delayMillis);
+void Scheduler::scheduleDelayed(void (*callback)(), unsigned long delayMillis) {
+  Task *newTask = new Task(callback, getMillis() + delayMillis);
   insertTask(newTask);
 }
 
