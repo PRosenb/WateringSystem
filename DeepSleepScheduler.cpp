@@ -129,7 +129,7 @@ void Scheduler::execute() {
     while (true) {
       Task *current = NULL;
       noInterrupts();
-      if (first != NULL && first->scheduledUptimeMillis <= getSchedulerMillis()) {
+      if (first != NULL && first->scheduledUptimeMillis <= getMillis()) {
         current = first;
         first = current->next;
       }
@@ -147,7 +147,7 @@ void Scheduler::execute() {
 
     //    if (first != NULL) {
     //      Serial.print(F("has more in "));
-    //      Serial.println(first->scheduledUptimeMillis - getSchedulerMillis());
+    //      Serial.println(first->scheduledUptimeMillis - getMillis());
     //    }
 
     sleep_enable();          // enables the sleep bit, a safety pin
@@ -211,7 +211,7 @@ bool Scheduler::evaluateAndPrepareSleep() {
     // not woken up during WDT sleep
 
     unsigned long maxWaitTimeMillis = 0;
-    unsigned long currentSchedulerMillis = getSchedulerMillis();
+    unsigned long currentSchedulerMillis = getMillis();
     noInterrupts();
     unsigned long firstScheduledUptimeMillis = first->scheduledUptimeMillis;
     interrupts();

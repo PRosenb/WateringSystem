@@ -50,6 +50,10 @@ class Scheduler {
     void releaseNoDeepSleepLock();
     bool doesDeepSleep();
     void execute();
+    // returns the millis since startup where the sleep time was added
+    inline unsigned long getMillis() {
+      return millis() + millisInDeepSleep;
+    }
 
     // do not call, used by WDT ISR
     static void isrWdt();
@@ -75,9 +79,6 @@ class Scheduler {
     byte noDeepSleepLocksCount;
 
     void insertTask(Task *task);
-    inline unsigned long getSchedulerMillis() {
-      return millis() + millisInDeepSleep;
-    }
     inline bool evaluateAndPrepareSleep();
 };
 
