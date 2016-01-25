@@ -221,43 +221,43 @@ bool Scheduler::evaluateAndPrepareSleep() {
     }
     if (maxWaitTimeMillis == 0) {
       sleep = false;
-      // use SLEEP_MODE_IDLE for values less then 998
-    } else if (!doesDeepSleep() || maxWaitTimeMillis < 998) {
+      // use SLEEP_MODE_IDLE for values less then SLEEP_TIME_1S
+    } else if (!doesDeepSleep() || maxWaitTimeMillis < SLEEP_TIME_1S + BUFFER_TIME) {
       sleep = true;
       set_sleep_mode(SLEEP_MODE_IDLE);
     } else {
       sleep = true;
       set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 
-      if (maxWaitTimeMillis >= 8002) {
-        wdtSleepTimeMillis = 8000;
+      if (maxWaitTimeMillis >= SLEEP_TIME_8S + BUFFER_TIME) {
+        wdtSleepTimeMillis = SLEEP_TIME_8S;
         wdt_enable(WDTO_8S);
-      } else if (maxWaitTimeMillis >= 4002) {
-        wdtSleepTimeMillis = 4000;
+      } else if (maxWaitTimeMillis >= SLEEP_TIME_4S + BUFFER_TIME) {
+        wdtSleepTimeMillis = SLEEP_TIME_4S;
         wdt_enable(WDTO_4S);
-      } else if (maxWaitTimeMillis >= 2002) {
-        wdtSleepTimeMillis = 2000;
+      } else if (maxWaitTimeMillis >= SLEEP_TIME_2S + BUFFER_TIME) {
+        wdtSleepTimeMillis = SLEEP_TIME_2S;
         wdt_enable(WDTO_2S);
-      } else if (maxWaitTimeMillis >= 998) {
-        wdtSleepTimeMillis = 1000;
+      } else if (maxWaitTimeMillis >= SLEEP_TIME_1S + BUFFER_TIME) {
+        wdtSleepTimeMillis = SLEEP_TIME_1S;
         wdt_enable(WDTO_1S);
-      } else if (maxWaitTimeMillis >= 502) {
-        wdtSleepTimeMillis = 500;
+      } else if (maxWaitTimeMillis >= SLEEP_TIME_500MS + BUFFER_TIME) {
+        wdtSleepTimeMillis = SLEEP_TIME_500MS;
         wdt_enable(WDTO_500MS);
-      } else if (maxWaitTimeMillis >= 252) {
-        wdtSleepTimeMillis = 250;
+      } else if (maxWaitTimeMillis >= SLEEP_TIME_250MS + BUFFER_TIME) {
+        wdtSleepTimeMillis = SLEEP_TIME_250MS;
         wdt_enable(WDTO_250MS);
-      } else if (maxWaitTimeMillis >= 122) {
-        wdtSleepTimeMillis = 120;
+      } else if (maxWaitTimeMillis >= SLEEP_TIME_120MS + BUFFER_TIME) {
+        wdtSleepTimeMillis = SLEEP_TIME_120MS;
         wdt_enable(WDTO_120MS);
-      } else if (maxWaitTimeMillis >= 62) {
-        wdtSleepTimeMillis = 60;
+      } else if (maxWaitTimeMillis >= SLEEP_TIME_60MS + BUFFER_TIME) {
+        wdtSleepTimeMillis = SLEEP_TIME_60MS;
         wdt_enable(WDTO_60MS);
-      } else if (maxWaitTimeMillis >= 32) {
-        wdtSleepTimeMillis = 30;
+      } else if (maxWaitTimeMillis >= SLEEP_TIME_30MS + BUFFER_TIME) {
+        wdtSleepTimeMillis = SLEEP_TIME_30MS;
         wdt_enable(WDTO_30MS);
       } else { // maxWaitTimeMs >= 17
-        wdtSleepTimeMillis = 15;
+        wdtSleepTimeMillis = SLEEP_TIME_15MS;
         wdt_enable(WDTO_15MS);
       }
 
