@@ -1,15 +1,9 @@
 
 #include <DS3232RTC.h>    // http://github.com/JChristensen/DS3232RTC
 
-#define NO_PIN_STATE
-#define NO_PIN_NUMBER
-// PCI1: Aurdino Uno PINs 5..8?
-//#define NO_PORTB_PINCHANGES
-// PCI2: Aurdiono Uno PINs 10..13?
-#define NO_PORTC_PINCHANGES
-// PCI0: Aurdino Uno PINs 2..4?
-//#define NO_PORTD_PINCHANGES
-#include <PinChangeInt.h> // https://github.com/GreyGnome/PinChangeInt
+#define EI_NOTPORTC
+#define EI_NOTPORTD
+#include <EnableInterrupt.h> // https://github.com/GreyGnome/EnableInterrupt
 
 #include "WaterManager.h"
 #include "DeepSleepScheduler.h"
@@ -36,7 +30,7 @@ void setup() {
   Serial.print(F("------------------- startup: "));
   Serial.println(freeRamValue);
   delay(100);
-  
+
   waterManager = new WaterManager();
 
   RTC.alarmInterrupt(ALARM_1, true);
@@ -47,15 +41,15 @@ void setup() {
   delay(1000);
 
   pinMode(START_SERIAL_PIN, INPUT_PULLUP);
-  attachPinChangeInterrupt(START_SERIAL_PIN, isrStartSerial, FALLING);
+  enableInterrupt(START_SERIAL_PIN, isrStartSerial, FALLING);
   pinMode(RTC_INT_PIN, INPUT_PULLUP);
-  attachPinChangeInterrupt(RTC_INT_PIN, isrRtc, FALLING);
+  enableInterrupt(RTC_INT_PIN, isrRtc, FALLING);
   pinMode(START_MANUAL_PIN, INPUT_PULLUP);
-  attachPinChangeInterrupt(START_MANUAL_PIN, isrStartManual, FALLING);
+  enableInterrupt(START_MANUAL_PIN, isrStartManual, FALLING);
   pinMode(START_AUTOMATIC_PIN, INPUT_PULLUP);
-  attachPinChangeInterrupt(START_AUTOMATIC_PIN, isrStartAutomatic, FALLING);
+  enableInterrupt(START_AUTOMATIC_PIN, isrStartAutomatic, FALLING);
   pinMode(STOP_ALL_PIN, INPUT_PULLUP);
-  attachPinChangeInterrupt(STOP_ALL_PIN, isrStopAll, FALLING);
+  enableInterrupt(STOP_ALL_PIN, isrStopAll, FALLING);
 
   pinMode(AWAKE_LED_PIN, OUTPUT);
   scheduler.awakeIndicationPin = AWAKE_LED_PIN;
@@ -67,7 +61,7 @@ void loop() {
     scheduler.execute();
   }
 
-int freeRam () {
+int freeRam() {
   extern int __heap_start, *__brkval;
   int v;
   return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);

@@ -1,10 +1,9 @@
 
 #include <MsTimer2.h>     // https://github.com/PaulStoffregen/MsTimer2
 
-#ifndef PinChangeInt_h
-#define LIBCALL_PINCHANGEINT
-#include "../PinChangeInt/PinChangeInt.h"
-#endif
+#define LIBCALL_ENABLEINTERRUPT
+#include <EnableInterrupt.h>
+
 #include "DeepSleepScheduler.h"
 
 #include "WaterMeter.h"
@@ -33,7 +32,7 @@ void WaterMeter::start() {
     pulsesPos = 0;
     samplesCount = 0;
 
-    attachPinChangeInterrupt(WATER_METER_PIN, WaterMeter::isrWaterMeterPulses, FALLING);
+    enableInterrupt(WATER_METER_PIN, WaterMeter::isrWaterMeterPulses, FALLING);
     MsTimer2::start();
   }
 }
