@@ -236,7 +236,7 @@ void handleSetAlarmTime() {
     Serial.print(F(":"));
     Serial.println(minutes);
   } else {
-    Serial.println(F("set start time failed, wrong format, expect s<hh>:<mm>, e.g. s14:45"));
+    Serial.println(F("set start time failed, wrong format, expect s<hh>:<mm>, e.g. a14:45"));
   }
 }
 
