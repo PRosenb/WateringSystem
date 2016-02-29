@@ -4,6 +4,7 @@
 #define LIBCALL_ENABLEINTERRUPT
 #include <EnableInterrupt.h>
 
+#define LIBCALL_DEEP_SLEEP_SCHEDULER
 #include "DeepSleepScheduler.h"
 
 #include "WaterMeter.h"

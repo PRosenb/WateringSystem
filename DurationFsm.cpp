@@ -1,5 +1,7 @@
 
 #include "DurationFsm.h"
+
+#define LIBCALL_DEEP_SLEEP_SCHEDULER
 #include "DeepSleepScheduler.h"
 
 //FINITE STATE MACHINE
