@@ -68,10 +68,10 @@ class MeasuredValve: public Valve {
 
 class ValveState: public DurationState {
   public:
-    ValveState(Valve *valve, unsigned int durationMs, String name): DurationState(durationMs, name) {
+    ValveState(Valve *valve, unsigned long durationMs, String name): DurationState(durationMs, name) {
       ValveState::valve = valve;
     }
-    ValveState(Valve *valve, unsigned int durationMs, String name, DurationState * const superState): DurationState(durationMs, name, superState) {
+    ValveState(Valve *valve, unsigned long durationMs, String name, DurationState * const superState): DurationState(durationMs, name, superState) {
       ValveState::valve = valve;
     }
     virtual void enter() {
