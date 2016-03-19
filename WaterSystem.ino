@@ -7,13 +7,18 @@
 
 #include "WaterManager.h"
 #include "DeepSleepScheduler.h"
+#include "LedState.h"
 
 #define START_SERIAL_PIN 2
 // potential PinChangePins on Leonardo: 8, 9, 10, 11
 #define RTC_INT_PIN 8
 #define START_MANUAL_PIN 9
 #define START_AUTOMATIC_PIN 10
-#define STOP_ALL_PIN 11
+#define MODE_PIN 11
+
+#define MODE_COLOR_GREEN_PIN A0
+#define MODE_COLOR_RED_PIN A1
+#define MODE_COLOR_BLUE_PIN A2
 
 #define SERIAL_SLEEP_TIMEOUT_MS 30000
 #define AWAKE_LED_PIN 13
@@ -21,6 +26,12 @@
 WaterManager *waterManager;
 unsigned long serialLastActiveMillis = 0;
 boolean aquiredWakeLock = false;
+
+// ModeFsm
+DurationState *modeOff;
+DurationState *modeAutomatic;
+DurationState *modeOffOnce;
+DurationFsm *modeFsm;
 
 void setup() {
   int freeRamValue = freeRam();
@@ -48,18 +59,38 @@ void setup() {
   enableInterrupt(START_MANUAL_PIN, isrStartManual, FALLING);
   pinMode(START_AUTOMATIC_PIN, INPUT_PULLUP);
   enableInterrupt(START_AUTOMATIC_PIN, isrStartAutomatic, FALLING);
-  pinMode(STOP_ALL_PIN, INPUT_PULLUP);
-  enableInterrupt(STOP_ALL_PIN, isrStopAll, FALLING);
+  pinMode(MODE_PIN, INPUT_PULLUP);
+  enableInterrupt(MODE_PIN, isrMode, FALLING);
 
   pinMode(AWAKE_LED_PIN, OUTPUT);
   scheduler.awakeIndicationPin = AWAKE_LED_PIN;
+
+  initModeFsm();
 
   startListenToSerial();
 }
 
 void loop() {
-    scheduler.execute();
-  }
+  scheduler.execute();
+}
+
+void initModeFsm() {
+  pinMode(MODE_COLOR_GREEN_PIN, OUTPUT);
+  pinMode(MODE_COLOR_RED_PIN, OUTPUT);
+  pinMode(MODE_COLOR_BLUE_PIN, OUTPUT);
+  digitalWrite(MODE_COLOR_GREEN_PIN, HIGH);
+  digitalWrite(MODE_COLOR_RED_PIN, HIGH);
+  digitalWrite(MODE_COLOR_BLUE_PIN, HIGH);
+
+  modeOff = new ColorLedState(255, MODE_COLOR_RED_PIN, 255, 1, "modeOff");
+  modeOffOnce = new ColorLedState(255, MODE_COLOR_RED_PIN, MODE_COLOR_BLUE_PIN, 1, "modeOffOnce");
+  modeAutomatic = new ColorLedState(MODE_COLOR_GREEN_PIN, 255, 255, 1, "modeAutomatic");
+  modeOff->nextState = modeAutomatic;
+  modeAutomatic->nextState = modeOffOnce;
+  modeOffOnce->nextState = modeOff;
+  modeFsm = DurationFsm::createInstanceWithoutScheduledChangeState(*modeOff, "ModeFSM");
+  deactivateModeLed();
+}
 
 int freeRam() {
   extern int __heap_start, *__brkval;
@@ -67,9 +98,39 @@ int freeRam() {
   return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
 }
 
+void isrMode() {
+  scheduler.schedule(modeScheduled);
+}
+
+void modeScheduled() {
+  if (waterManager->isOn()) {
+    waterManager->stopAll();
+  } else {
+    modeFsm->immediatelyChangeToNextState();
+  }
+  showModeLed();
+
+  // simple debounce
+  delay(250);
+  scheduler.removeCallbacks(modeScheduled);
+}
+
+void deactivateModeLed() {
+  digitalWrite(MODE_COLOR_GREEN_PIN, HIGH);
+  digitalWrite(MODE_COLOR_RED_PIN, HIGH);
+  digitalWrite(MODE_COLOR_BLUE_PIN, HIGH);
+}
+
 void startAutomaticRtc() {
   Serial.println(F("startAutomaticRtc")); delay(150);
-  waterManager->startAutomaticWithWarn();
+  if (modeFsm->isInState(*modeAutomatic)) {
+    waterManager->startAutomaticWithWarn();
+  } else if (modeFsm->isInState(*modeOffOnce)) {
+    modeFsm->changeState(*modeAutomatic);
+    showModeLed();
+  } else {
+    showModeLed();
+  }
 }
 
 void rtcScheduled() {
@@ -104,17 +165,14 @@ void isrStartAutomatic() {
   scheduler.schedule(startAutomatic);
 }
 
-void stopAll() {
-  Serial.println(F("stopAll"));
-  waterManager->stopAll();
-}
-
-void isrStopAll() {
-  scheduler.schedule(stopAll);
-}
-
 void isrStartSerial() {
   scheduler.schedule(startListenToSerial);
+}
+
+void showModeLed() {
+  ((ColorLedState&)modeFsm->getCurrentState()).reactivateLed();
+  scheduler.removeCallbacks(deactivateModeLed);
+  scheduler.scheduleDelayed(deactivateModeLed, 10000);
 }
 
 void printTime() {
