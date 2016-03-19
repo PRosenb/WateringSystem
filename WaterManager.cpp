@@ -72,3 +72,7 @@ void WaterManager::startAutomatic() {
   fsm->changeState(*stateAutomatic1);
 }
 
+bool WaterManager::isOn() {
+  return !fsm->isInState(*stateIdle);
+}
+

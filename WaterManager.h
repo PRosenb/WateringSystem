@@ -93,6 +93,7 @@ class WaterManager {
     void startAutomaticWithWarn();
     void startAutomatic();
     void stopAll();
+    bool isOn();
   private:
     MeasuredValve *valveMain;
     Valve *valveArea1;
