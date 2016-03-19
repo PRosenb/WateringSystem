@@ -8,14 +8,18 @@
 
 DurationFsm *DurationFsm::instance;
 
-DurationFsm *DurationFsm::getInstance(DurationState& current, const String name) {
+DurationFsm *DurationFsm::createOrGetTheOneInstanceWithScheduledChangeState(DurationState& current, const String name) {
   if (instance == NULL) {
     instance = new DurationFsm(current, name);
   }
   return instance;
 }
 
-void DurationFsm::deleteInstance() {
+DurationFsm *DurationFsm::createInstanceWithoutScheduledChangeState(DurationState& current, const String name) {
+  return new DurationFsm(current, name);
+}
+
+void DurationFsm::deleteTheOneInstanceWithScheduledChangeState() {
   if (instance != NULL) {
     delete instance;
     instance = NULL;
@@ -26,10 +30,12 @@ DurationFsm::DurationFsm(DurationState& current, const String name): FiniteState
 }
 
 void DurationFsm::timeElapsedStatic() {
-  instance->timeElapsed();
+  if (instance != NULL) {
+    instance->immediatelyChangeToNextState();
+  }
 }
 
-void DurationFsm::timeElapsed() {
+DurationState& DurationFsm::immediatelyChangeToNextState() {
   DurationState currentState = getCurrentState();
   if (currentState.nextState != NULL) {
     DurationState *nextState = currentState.nextState;
@@ -37,13 +43,22 @@ void DurationFsm::timeElapsed() {
       nextState = nextState->nextState;
     }
     changeState(*nextState);
+    return *nextState;
+  } else {
+    if (this == instance) {
+      // we do not call changeState() so we need to ensure the callback is cancelled.
+      scheduler.removeCallbacks(DurationFsm::timeElapsedStatic);
+    }
+    return currentState;
   }
 }
 
 DurationFsm& DurationFsm::changeState(DurationState& state) {
-  scheduler.removeCallbacks(DurationFsm::timeElapsedStatic);
-  if (state.minDurationMs > 0 && state.nextState != NULL) {
-    scheduler.scheduleDelayed(DurationFsm::timeElapsedStatic, state.minDurationMs);
+  if (this == instance) {
+    scheduler.removeCallbacks(DurationFsm::timeElapsedStatic);
+    if (state.minDurationMs > 0 && state.nextState != NULL) {
+      scheduler.scheduleDelayed(DurationFsm::timeElapsedStatic, state.minDurationMs);
+    }
   }
   return (DurationFsm&) FiniteStateMachine::changeState(state);
 }
