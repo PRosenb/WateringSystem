@@ -106,12 +106,18 @@ void modeScheduled() {
   if (waterManager->isOn()) {
     waterManager->stopAll();
   } else {
-    modeFsm->immediatelyChangeToNextState();
+    // first show current state and then change it
+    // LOW == LED active
+    if (digitalRead(MODE_COLOR_GREEN_PIN) == LOW
+        || digitalRead(MODE_COLOR_RED_PIN) == LOW
+        || digitalRead(MODE_COLOR_BLUE_PIN) == LOW) {
+      modeFsm->immediatelyChangeToNextState();
+    }
   }
   showModeLed();
 
   // simple debounce
-  delay(250);
+  delay(200);
   scheduler.removeCallbacks(modeScheduled);
 }
 
