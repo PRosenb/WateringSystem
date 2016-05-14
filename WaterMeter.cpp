@@ -9,15 +9,14 @@
 
 #include "WaterMeter.h"
 
+volatile unsigned long WaterMeter::samplesInInterval;
 volatile unsigned int WaterMeter::totalPulseCount;
 volatile unsigned int WaterMeter::lastPulseCount;
-volatile byte WaterMeter::pulsesPos;
-volatile unsigned int WaterMeter::samplesCount;
-volatile unsigned int WaterMeter::pulsesCount[VALUES_COUNT];
+void (*WaterMeter::callback)();
 
-WaterMeter::WaterMeter() {
+WaterMeter::WaterMeter(const unsigned long invervalMs) {
   pinMode(WATER_METER_PIN, INPUT_PULLUP);
-  MsTimer2::set(100, WaterMeter::isrTimer);
+  MsTimer2::set(invervalMs, WaterMeter::isrTimer);
   totalPulseCount = 0;
   started = false;
 }
@@ -30,8 +29,6 @@ void WaterMeter::start() {
     started = true;
     scheduler.aquireNoDeepSleepLock();
     lastPulseCount = totalPulseCount;
-    pulsesPos = 0;
-    samplesCount = 0;
 
     enableInterrupt(WATER_METER_PIN, WaterMeter::isrWaterMeterPulses, FALLING);
     MsTimer2::start();
@@ -42,26 +39,18 @@ void WaterMeter::stop() {
   if (started) {
     started = false;
     MsTimer2::stop();
-    detachPinChangeInterrupt(WATER_METER_PIN);
+    disableInterrupt(WATER_METER_PIN);
     scheduler.releaseNoDeepSleepLock();
   }
 }
 
-void WaterMeter::calculate() {
-  unsigned int waterMeterValueSum = 0;
+void WaterMeter::setThresholdCallback(const unsigned long samplesInInterval, void (*callback)()) {
+  WaterMeter::samplesInInterval = samplesInInterval;
+  WaterMeter::callback = callback;
+}
 
-  noInterrupts();
-  unsigned int samplesCountLocal = samplesCount;
-  samplesCount = 0;
-  for (byte i = 0; i < VALUES_COUNT; i++) {
-    waterMeterValueSum += pulsesCount[i];
-  }
-  interrupts();
-
-  Serial.print(F("value: "));
-  Serial.print(1.0 * waterMeterValueSum);
-  Serial.print(F(", samples: "));
-  Serial.println(samplesCountLocal);
+void WaterMeter::removeThresholdCallback() {
+  callback = NULL;
 }
 
 void WaterMeter::isrWaterMeterPulses() {
@@ -69,9 +58,10 @@ void WaterMeter::isrWaterMeterPulses() {
 }
 
 void WaterMeter::isrTimer() {
-  pulsesPos %= VALUES_COUNT;
-  pulsesCount[pulsesPos] = totalPulseCount - lastPulseCount;
+  unsigned int pulsesCount = totalPulseCount - lastPulseCount;
   lastPulseCount = totalPulseCount;
-  samplesCount++;
+  if (callback != NULL && pulsesCount >= samplesInInterval) {
+    scheduler.schedule(callback);
+  }
 }
 

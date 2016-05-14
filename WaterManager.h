@@ -41,10 +41,11 @@ class Valve {
     const byte pin;
 };
 
+// only one valve can be a MeasuredValve
 class MeasuredValve: public Valve {
   public:
     MeasuredValve(byte pin): Valve(pin) {
-      waterMeter = new WaterMeter();
+      waterMeter = new WaterMeter(100);
     }
     virtual ~MeasuredValve() {
       delete waterMeter;

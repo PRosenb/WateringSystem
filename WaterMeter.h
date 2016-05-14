@@ -8,24 +8,24 @@
 
 class WaterMeter {
   public:
-    WaterMeter();
+    WaterMeter(const unsigned long invervalMs);
     virtual ~WaterMeter();
     void start();
     void stop();
+    void setThresholdCallback(const unsigned long samplesInInterval, void (*callback)());
+    void removeThresholdCallback();
     unsigned int getTotalCount() {
       return totalPulseCount;
     }
-    void calculate();
   private:
+    static void (*callback)();
     static void isrWaterMeterPulses();
     static void isrTimer();
 
     bool started;
+    static volatile unsigned long samplesInInterval;
     static volatile unsigned int totalPulseCount;
     static volatile unsigned int lastPulseCount;
-    static volatile unsigned int samplesCount;
-    static volatile byte pulsesPos;
-    static volatile unsigned int pulsesCount[VALUES_COUNT];
 };
 
 #endif
