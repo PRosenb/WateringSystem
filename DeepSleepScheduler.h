@@ -14,15 +14,17 @@
     limitations under the License.
 */
 /*
-This file is part of the DeepSleepScheduler library for Arduino.
-Definition and code are in the header file in order to allow the user to configure the library by using defines.
-The following options are available:
-- #define LIBCALL_DEEP_SLEEP_SCHEDULER: This h file can only be included once within a project as it also contains the implementation.
+  This file is part of the DeepSleepScheduler library for Arduino.
+  Definition and code are in the header file in order to allow the user to configure the library by using defines.
+  The following options are available:
+  - #define LIBCALL_DEEP_SLEEP_SCHEDULER: This h file can only be included once within a project as it also contains the implementation.
   To use it in multiple files, define LIBCALL_DEEP_SLEEP_SCHEDULER before all include statements except one
-All following options are to be set before the include where no LIBCALL_DEEP_SLEEP_SCHEDULER is defined.
--
+  All following options are to be set before the include where no LIBCALL_DEEP_SLEEP_SCHEDULER is defined.
+  - #define SLEEP_TIME_XXX_CORRECTION: When the CPU wakes up from SLEEP_MODE_PWR_DOWN, it needs some cycles to get active. This is also dependent on
+  the used CPU type. Using the constants SLEEP_TIME_15MS_CORRECTION to SLEEP_TIME_8S_CORRECTION you can define more exact values for your
+  CPU. Please report values back to me if you do some measuring, thanks.
 */
- 
+
 #ifndef DEEP_SLEEP_SCHEDULER_H
 #define DEEP_SLEEP_SCHEDULER_H
 
@@ -64,7 +66,9 @@ enum TaskTimeout {
 
 class Scheduler {
   public:
+    // supervision timeout of tasks, default is TIMEOUT_8S. Can be deactivated with NO_SUPERVISION.
     TaskTimeout taskTimeout;
+    // show on a LED if the CPU is in sleep mode or not. HIGH = active, LOW = sleeping. Default is NOT_USED.
     byte awakeIndicationPin;
 
     Scheduler();
@@ -72,11 +76,13 @@ class Scheduler {
     void scheduleDelayed(void (*callback)(), unsigned long delayMillis);
     void scheduleAt(void (*callback)(), unsigned long uptimeMillis);
     void scheduleAtFrontOfQueue(void (*callback)());
+    // cancel all schedules occurences of this callback
     void removeCallbacks(void (*callback)());
     // aquireNoDeepSleepLock() supports up to 255 locks
     void aquireNoDeepSleepLock();
     void releaseNoDeepSleepLock();
     bool doesDeepSleep();
+    // call this method from your loop() method
     void execute();
     // returns the millis since startup where the sleep time was added
     inline unsigned long getMillis() {
@@ -194,10 +200,10 @@ void Scheduler::removeCallbacks(void (*callback)()) {
   interrupts();
 }
 
-// inserts a new task in the ordered lists of tasks
-// if there is a task in the list with the same callback
+// Inserts a new task in the ordered lists of tasks.
+// If there is a task in the list with the same callback
 // before the position where the new task is to be insert
-// the new task is ignored to prevent list overflow
+// the new task is ignored to prevent queue overflow.
 void Scheduler::insertTask(Task *newTask) {
   noInterrupts();
   if (first == NULL) {
@@ -261,11 +267,10 @@ void Scheduler::execute() {
     }
     wdt_reset();
 
-    //    if (first != NULL) {
-    //      Serial.print(F("has more in "));
-    //      Serial.println(first->scheduledUptimeMillis - getMillis());
-    //    }
-
+    // Enable sleep bit with sleep_enable() before the sleep time evaluation because it can happen
+    // that the WDT interrupt occurs during sleep time evaluation but before the CPU
+    // sleeps. In that case, the WDT interrupt clears the sleep bit and the CPU will not sleep
+    // but continue execution immediatelly.
     sleep_enable();          // enables the sleep bit, a safety pin
     bool sleep;
     if (first != NULL) {
@@ -282,34 +287,31 @@ void Scheduler::execute() {
       }
     }
     if (sleep) {
-      // allows serial to finish before sleep but leads to wrong sleep duration
-      // delay(150);
       if (awakeIndicationPin != NOT_USED) {
         digitalWrite(awakeIndicationPin, LOW);
       }
-      sleep_mode();            // here the device is actually put to sleep!!
+      sleep_mode(); // here the device is actually put to sleep
+      // THE PROGRAM CONTINUES FROM HERE AFTER WAKING UP
       if (awakeIndicationPin != NOT_USED) {
         digitalWrite(awakeIndicationPin, HIGH);
       }
     }
-    // THE PROGRAM CONTINUES FROM HERE AFTER WAKING UP
     sleep_disable();
 
     noInterrupts();
     unsigned long wdtSleepTimeMillisLocal = wdtSleepTimeMillis;
     interrupts();
     if (wdtSleepTimeMillisLocal == 0) {
+      // woken up due to WDT interrupt
       if (taskTimeout != NO_SUPERVISION) {
         // change back to taskTimeout
         wdt_reset();
         wdt_enable(taskTimeout);
       } else {
+        // tasks are not suppervised, deactivate WDT
         wdt_disable();
       }
     } // else the wd is still running
-
-    //    Serial.print(F("millisInDeepSleep "));
-    //    Serial.println(millisInDeepSleep);
   }
   if (taskTimeout != NO_SUPERVISION) {
     wdt_disable();
@@ -336,11 +338,10 @@ bool Scheduler::evaluateAndPrepareSleep() {
     }
     if (maxWaitTimeMillis == 0) {
       sleep = false;
-      // use SLEEP_MODE_IDLE for values less then SLEEP_TIME_1S
     } else if (!doesDeepSleep() || maxWaitTimeMillis < SLEEP_TIME_1S + BUFFER_TIME) {
+      // use SLEEP_MODE_IDLE for values less then SLEEP_TIME_1S
       sleep = true;
       set_sleep_mode(SLEEP_MODE_IDLE);
-      //      Serial.print(F("SLEEP_MODE_IDLE"));
     } else {
       sleep = true;
       set_sleep_mode(SLEEP_MODE_PWR_DOWN);
@@ -381,9 +382,6 @@ bool Scheduler::evaluateAndPrepareSleep() {
       // first timeout will be the interrupt, second system reset
       WDTCSR |= (1 << WDCE) | (1 << WDIE);
       millisBeforeDeepSleep = millis();
-      // increase buffer time for this output
-      // Serial.print(F("SLEEP_MODE_PWR_DOWN: "));
-      // Serial.println(wdtSleepTimeMillis); delay(BUFFER_TIME);
     }
   } else {
     // wdt already running, so we woke up due to an other interrupt
