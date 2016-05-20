@@ -16,13 +16,16 @@
 /*
   This file is part of the DeepSleepScheduler library for Arduino.
   Definition and code are in the header file in order to allow the user to configure the library by using defines.
+
   The following options are available:
   - #define LIBCALL_DEEP_SLEEP_SCHEDULER: This h file can only be included once within a project as it also contains the implementation.
-  To use it in multiple files, define LIBCALL_DEEP_SLEEP_SCHEDULER before all include statements except one
-  All following options are to be set before the include where no LIBCALL_DEEP_SLEEP_SCHEDULER is defined.
+    To use it in multiple files, define LIBCALL_DEEP_SLEEP_SCHEDULER before all include statements except one
+    All following options are to be set before the include where no LIBCALL_DEEP_SLEEP_SCHEDULER is defined.
   - #define SLEEP_TIME_XXX_CORRECTION: When the CPU wakes up from SLEEP_MODE_PWR_DOWN, it needs some cycles to get active. This is also dependent on
-  the used CPU type. Using the constants SLEEP_TIME_15MS_CORRECTION to SLEEP_TIME_8S_CORRECTION you can define more exact values for your
-  CPU. Please report values back to me if you do some measuring, thanks.
+    the used CPU type. Using the constants SLEEP_TIME_15MS_CORRECTION to SLEEP_TIME_8S_CORRECTION you can define more exact values for your
+    CPU. Please report values back to me if you do some measuring, thanks.
+  - #define QUEUE_OVERFLOW_PROTECTION: Prevents, that the same callback is scheduled multiple times what may happen with repeated interrupts. When QUEUE_OVERFLOW_PROTECTION
+    is set, the new insert callback is ignored, if an other one is found BEFORE the new one should be insert (due to optimisation).
 */
 
 #ifndef DEEP_SLEEP_SCHEDULER_H
@@ -253,17 +256,21 @@ void Scheduler::insertTask(Task *newTask) {
              && currentTask->callback != newTask->callback) {
         currentTask = currentTask->next;
       }
+#ifdef QUEUE_OVERFLOW_PROTECTION
       if (currentTask->callback != newTask->callback) {
+#endif
         // insert after currentTask
         if (currentTask->next != NULL) {
           newTask->next = currentTask->next;
         }
         currentTask->next = newTask;
+#ifdef QUEUE_OVERFLOW_PROTECTION
       } else {
         // a task with the same callback exists before the location where the new one should be insert
         // ignore the new task
         delete newTask;
       }
+#endif
     }
   }
   interrupts();
@@ -297,7 +304,7 @@ void Scheduler::execute() {
     // that the WDT interrupt occurs during sleep time evaluation but before the CPU
     // sleeps. In that case, the WDT interrupt clears the sleep bit and the CPU will not sleep
     // but continue execution immediatelly.
-    sleep_enable();          // enables the sleep bit, a safety pin
+    sleep_enable(); // enables the sleep bit, a safety pin
     bool sleep;
     if (first != NULL) {
       sleep = evaluateAndPrepareSleep();
