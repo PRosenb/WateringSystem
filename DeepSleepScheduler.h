@@ -270,13 +270,6 @@ void Scheduler::insertTask(Task *newTask) {
 }
 
 void Scheduler::execute() {
-  Task* current = first;
-  while (current != NULL) {
-    Serial.print(current->scheduledUptimeMillis);
-    Serial.print(F(": "));
-    current->callback();
-    current = current->next;
-  }
   if (taskTimeout != NO_SUPERVISION) {
     wdt_enable(taskTimeout);
   }
@@ -312,7 +305,6 @@ void Scheduler::execute() {
       // nothing in the queue
       sleep = true;
       if (doesDeepSleep()) {
-        Serial.println(F("infinite sleep")); delay(150);
         wdt_disable();
         set_sleep_mode(SLEEP_MODE_PWR_DOWN);
       } else {
@@ -346,11 +338,10 @@ void Scheduler::execute() {
       }
     } // else the wd is still running
   }
-  if (taskTimeout != NO_SUPERVISION) {
-    wdt_disable();
-  }
+  // never executed so no need to deactivate the WDT
 }
 
+// returns true if sleep SLEEP_MODE_IDLE or SLEEP_MODE_PWR_DOWN is needed
 bool Scheduler::evaluateAndPrepareSleep() {
   bool sleep = false;
 
