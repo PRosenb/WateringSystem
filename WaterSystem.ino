@@ -1,12 +1,14 @@
 
 #include <DS3232RTC.h>    // http://github.com/JChristensen/DS3232RTC
 
+#define AWAKE_INDICATION_PIN 13
+#include "DeepSleepScheduler.h"
+
 #define EI_NOTPORTC
 #define EI_NOTPORTD
 #include <EnableInterrupt.h> // https://github.com/GreyGnome/EnableInterrupt
 
 #include "WaterManager.h"
-#include "DeepSleepScheduler.h"
 #include "LedState.h"
 
 #define START_SERIAL_PIN 2
@@ -21,7 +23,6 @@
 #define MODE_COLOR_BLUE_PIN A2
 
 #define SERIAL_SLEEP_TIMEOUT_MS 30000
-#define AWAKE_LED_PIN 13
 
 WaterManager *waterManager;
 unsigned long serialLastActiveMillis = 0;
@@ -61,9 +62,6 @@ void setup() {
   enableInterrupt(START_AUTOMATIC_PIN, isrStartAutomatic, FALLING);
   pinMode(MODE_PIN, INPUT_PULLUP);
   enableInterrupt(MODE_PIN, isrMode, FALLING);
-
-  pinMode(AWAKE_LED_PIN, OUTPUT);
-  scheduler.awakeIndicationPin = AWAKE_LED_PIN;
 
   initModeFsm();
 

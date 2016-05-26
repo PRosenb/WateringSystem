@@ -21,6 +21,7 @@
   - #define LIBCALL_DEEP_SLEEP_SCHEDULER: This h file can only be included once within a project as it also contains the implementation.
     To use it in multiple files, define LIBCALL_DEEP_SLEEP_SCHEDULER before all include statements except one
     All following options are to be set before the include where no LIBCALL_DEEP_SLEEP_SCHEDULER is defined.
+  - #define AWAKE_INDICATION_PIN: Show on a LED if the CPU is active or in sleep mode. HIGH = active, LOW = sleeping.
   - #define SLEEP_TIME_XXX_CORRECTION: When the CPU wakes up from SLEEP_MODE_PWR_DOWN, it needs some cycles to get active. This is also dependent on
     the used CPU type. Using the constants SLEEP_TIME_15MS_CORRECTION to SLEEP_TIME_8S_CORRECTION you can define more exact values for your
     CPU. Please report values back to me if you do some measuring, thanks.
@@ -108,13 +109,6 @@ class Scheduler {
        Default: TIMEOUT_8S
     */
     TaskTimeout taskTimeout;
-    
-    /**
-       Show on a LED if the CPU is active or in sleep mode.
-       HIGH = active, LOW = sleeping.
-       Default: NOT_USED
-    */
-    byte awakeIndicationPin;
 
     /**
        Schedule the callback method as soon as possible but after other tasks
@@ -122,21 +116,21 @@ class Scheduler {
        @param callback: the method to be called on the main thread
     */
     void schedule(void (*callback)());
-    
+
     /**
-       Schedule the callback in after delayMillis milli seconds
+       Schedule the callback after delayMillis milli seconds.
        @param callback: the method to be called on the main thread
        @param delayMillis: the time to wait in milli seconds until the callback shall be made
     */
     void scheduleDelayed(void (*callback)(), unsigned long delayMillis);
-    
+
     /**
        Schedule the callback uptimeMillis milli seconds after the device was started.
        @param callback: the method to be called on the main thread
        @param uptimeMillis: the time in millis since the device was started to schedule the callback.
     */
     void scheduleAt(void (*callback)(), unsigned long uptimeMillis);
-    
+
     /**
        Schedule the callback method as next task even if other tasks are in the queue already.
        @param callback: the method to be called on the main thread
@@ -144,36 +138,31 @@ class Scheduler {
     void scheduleAtFrontOfQueue(void (*callback)());
 
     /**
-       Cancel all schedules that were scheduled for this callback
+       Cancel all schedules that were scheduled for this callback.
        @param callback: method of which all schedules shall be removed
     */
     void removeCallbacks(void (*callback)());
-    
+
     /**
        Aquire a lock to prevent the CPU from entering deep sleep.
        aquireNoDeepSleepLock() supports up to 255 locks.
        You need to call releaseNoDeepSleepLock() the same amount of times
-       as removeCallbacks() to allow the CPU again to enter deep sleep.
+       as removeCallbacks() to allow the CPU to enter deep sleep again.
     */
     void aquireNoDeepSleepLock();
-    
+
     /**
        Release the lock aquired by aquireNoDeepSleepLock(). Please make sure you
        call releaseNoDeepSleepLock() the same amount of times as aquireNoDeepSleepLock(),
        otherwise the CPU is not allowed to enter deep sleep.
     */
     void releaseNoDeepSleepLock();
-    
+
     /**
        return: true if the CPU is currently allowed to enter deep sleep, false otherwise.
     */
     bool doesDeepSleep();
-    
-    /**
-       This method needs to be called from your loop() method and does not return.
-    */
-    void execute();
-    
+
     /**
        return: The millis since startup of the device where the sleep time was added
     */
@@ -182,10 +171,15 @@ class Scheduler {
     }
 
     /**
+       This method needs to be called from your loop() method and does not return.
+    */
+    void execute();
+
+    /**
        Constructor of the scheduler. Do not all this method as there is only one instance of Scheduler supported.
     */
     Scheduler();
-    
+
     /**
         Do not call this method, it is used by the watchdog interrupt.
     */
@@ -235,8 +229,10 @@ volatile unsigned long Scheduler::millisBeforeDeepSleep;
 volatile unsigned int Scheduler::wdtSleepTimeMillis;
 
 Scheduler::Scheduler() {
+#ifdef AWAKE_INDICATION_PIN
+  pinMode(AWAKE_INDICATION_PIN, OUTPUT);
+#endif
   taskTimeout = TIMEOUT_8S;
-  awakeIndicationPin = NOT_USED;
 
   millisInDeepSleep = 0;
   millisBeforeDeepSleep = 0;
@@ -389,14 +385,14 @@ void Scheduler::execute() {
       }
     }
     if (sleep) {
-      if (awakeIndicationPin != NOT_USED) {
-        digitalWrite(awakeIndicationPin, LOW);
-      }
+#ifdef AWAKE_INDICATION_PIN
+      digitalWrite(AWAKE_INDICATION_PIN, LOW);
+#endif
       sleep_mode(); // here the device is actually put to sleep
       // THE PROGRAM CONTINUES FROM HERE AFTER WAKING UP
-      if (awakeIndicationPin != NOT_USED) {
-        digitalWrite(awakeIndicationPin, HIGH);
-      }
+#ifdef AWAKE_INDICATION_PIN
+      digitalWrite(AWAKE_INDICATION_PIN, HIGH);
+#endif
     }
     sleep_disable();
 
