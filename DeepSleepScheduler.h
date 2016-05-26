@@ -70,7 +70,8 @@
 #define SLEEP_TIME_8S_CORRECTION 415
 #endif
 
-// defines
+// constants
+// =========
 #define SLEEP_TIME_15MS 15 + SLEEP_TIME_15MS_CORRECTION
 #define SLEEP_TIME_30MS 30 + SLEEP_TIME_30MS_CORRECTION
 #define SLEEP_TIME_60MS 60 + SLEEP_TIME_60MS_CORRECTION
@@ -102,30 +103,92 @@ enum TaskTimeout {
 
 class Scheduler {
   public:
-    // supervision timeout of tasks, default is TIMEOUT_8S. Can be deactivated with NO_SUPERVISION.
+    /**
+       Configure the supervision of callbacks. Can be deactivated with NO_SUPERVISION.
+       Default: TIMEOUT_8S
+    */
     TaskTimeout taskTimeout;
-    // show on a LED if the CPU is in sleep mode or not. HIGH = active, LOW = sleeping. Default is NOT_USED.
+    
+    /**
+       Show on a LED if the CPU is active or in sleep mode.
+       HIGH = active, LOW = sleeping.
+       Default: NOT_USED
+    */
     byte awakeIndicationPin;
 
-    Scheduler();
+    /**
+       Schedule the callback method as soon as possible but after other tasks
+       that are to be scheduled immediately and are in the queue already.
+       @param callback: the method to be called on the main thread
+    */
     void schedule(void (*callback)());
+    
+    /**
+       Schedule the callback in after delayMillis milli seconds
+       @param callback: the method to be called on the main thread
+       @param delayMillis: the time to wait in milli seconds until the callback shall be made
+    */
     void scheduleDelayed(void (*callback)(), unsigned long delayMillis);
+    
+    /**
+       Schedule the callback uptimeMillis milli seconds after the device was started.
+       @param callback: the method to be called on the main thread
+       @param uptimeMillis: the time in millis since the device was started to schedule the callback.
+    */
     void scheduleAt(void (*callback)(), unsigned long uptimeMillis);
+    
+    /**
+       Schedule the callback method as next task even if other tasks are in the queue already.
+       @param callback: the method to be called on the main thread
+    */
     void scheduleAtFrontOfQueue(void (*callback)());
-    // cancel all schedules occurences of this callback
+
+    /**
+       Cancel all schedules that were scheduled for this callback
+       @param callback: method of which all schedules shall be removed
+    */
     void removeCallbacks(void (*callback)());
-    // aquireNoDeepSleepLock() supports up to 255 locks
+    
+    /**
+       Aquire a lock to prevent the CPU from entering deep sleep.
+       aquireNoDeepSleepLock() supports up to 255 locks.
+       You need to call releaseNoDeepSleepLock() the same amount of times
+       as removeCallbacks() to allow the CPU again to enter deep sleep.
+    */
     void aquireNoDeepSleepLock();
+    
+    /**
+       Release the lock aquired by aquireNoDeepSleepLock(). Please make sure you
+       call releaseNoDeepSleepLock() the same amount of times as aquireNoDeepSleepLock(),
+       otherwise the CPU is not allowed to enter deep sleep.
+    */
     void releaseNoDeepSleepLock();
+    
+    /**
+       return: true if the CPU is currently allowed to enter deep sleep, false otherwise.
+    */
     bool doesDeepSleep();
-    // call this method from your loop() method
+    
+    /**
+       This method needs to be called from your loop() method and does not return.
+    */
     void execute();
-    // returns the millis since startup where the sleep time was added
+    
+    /**
+       return: The millis since startup of the device where the sleep time was added
+    */
     inline unsigned long getMillis() {
       return millis() + millisInDeepSleep;
     }
 
-    // do not call, used by WDT ISR
+    /**
+       Constructor of the scheduler. Do not all this method as there is only one instance of Scheduler supported.
+    */
+    Scheduler();
+    
+    /**
+        Do not call this method, it is used by the watchdog interrupt.
+    */
     static void isrWdt();
   private:
     class Task {
@@ -143,15 +206,22 @@ class Scheduler {
     static volatile unsigned long millisBeforeDeepSleep;
     static volatile unsigned int wdtSleepTimeMillis;
 
-    // first element in the run queue
+    /**
+       first element in the run queue
+    */
     Task *first;
-    // controls if deep sleep is done, 0 does deep sleep
+    /**
+       controls if deep sleep is done, 0 does deep sleep
+    */
     byte noDeepSleepLocksCount;
 
     void insertTask(Task *task);
     inline bool evaluateAndPrepareSleep();
 };
 
+/**
+   the one and only instance of Scheduler
+*/
 extern Scheduler scheduler;
 
 #ifndef LIBCALL_DEEP_SLEEP_SCHEDULER
@@ -428,7 +498,6 @@ void Scheduler::isrWdt() {
   millisInDeepSleep += wdtSleepTimeMillis;
   wdtSleepTimeMillis = 0;
   millisInDeepSleep -= millis() - millisBeforeDeepSleep;
-  // TODO handle case when interrupt during deep sleep excutes a long task. Then the WD would restart the device
 }
 
 ISR (WDT_vect) {
