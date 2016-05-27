@@ -20,7 +20,7 @@
   The following options are available:
   - #define LIBCALL_DEEP_SLEEP_SCHEDULER: This h file can only be included once within a project as it also contains the implementation.
     To use it in multiple files, define LIBCALL_DEEP_SLEEP_SCHEDULER before all include statements except one
-    All following options are to be set before the include where no LIBCALL_DEEP_SLEEP_SCHEDULER is defined.
+  All following options are to be set before the include where no LIBCALL_DEEP_SLEEP_SCHEDULER is defined.
   - #define AWAKE_INDICATION_PIN: Show on a LED if the CPU is active or in sleep mode. HIGH = active, LOW = sleeping.
   - #define SLEEP_TIME_XXX_CORRECTION: When the CPU wakes up from SLEEP_MODE_PWR_DOWN, it needs some cycles to get active. This is also dependent on
     the used CPU type. Using the constants SLEEP_TIME_15MS_CORRECTION to SLEEP_TIME_8S_CORRECTION you can define more exact values for your
@@ -118,16 +118,16 @@ class Scheduler {
     void schedule(void (*callback)());
 
     /**
-       Schedule the callback after delayMillis milli seconds.
+       Schedule the callback after delayMillis milliseconds.
        @param callback: the method to be called on the main thread
-       @param delayMillis: the time to wait in milli seconds until the callback shall be made
+       @param delayMillis: the time to wait in milliseconds until the callback shall be made
     */
     void scheduleDelayed(void (*callback)(), unsigned long delayMillis);
 
     /**
-       Schedule the callback uptimeMillis milli seconds after the device was started.
+       Schedule the callback uptimeMillis milliseconds after the device was started.
        @param callback: the method to be called on the main thread
-       @param uptimeMillis: the time in millis since the device was started to schedule the callback.
+       @param uptimeMillis: the time in milliseconds since the device was started to schedule the callback.
     */
     void scheduleAt(void (*callback)(), unsigned long uptimeMillis);
 
@@ -144,16 +144,16 @@ class Scheduler {
     void removeCallbacks(void (*callback)());
 
     /**
-       Aquire a lock to prevent the CPU from entering deep sleep.
-       aquireNoDeepSleepLock() supports up to 255 locks.
+       Acquire a lock to prevent the CPU from entering deep sleep.
+       acquireNoDeepSleepLock() supports up to 255 locks.
        You need to call releaseNoDeepSleepLock() the same amount of times
        as removeCallbacks() to allow the CPU to enter deep sleep again.
     */
-    void aquireNoDeepSleepLock();
+    void acquireNoDeepSleepLock();
 
     /**
-       Release the lock aquired by aquireNoDeepSleepLock(). Please make sure you
-       call releaseNoDeepSleepLock() the same amount of times as aquireNoDeepSleepLock(),
+       Release the lock acquired by acquireNoDeepSleepLock(). Please make sure you
+       call releaseNoDeepSleepLock() the same amount of times as acquireNoDeepSleepLock(),
        otherwise the CPU is not allowed to enter deep sleep.
     */
     void releaseNoDeepSleepLock();
@@ -164,7 +164,7 @@ class Scheduler {
     bool doesDeepSleep();
 
     /**
-       return: The millis since startup of the device where the sleep time was added
+       return: The milliseconds since startup of the device where the sleep time was added
     */
     inline unsigned long getMillis() {
       return millis() + millisInDeepSleep;
@@ -265,7 +265,7 @@ void Scheduler::scheduleAtFrontOfQueue(void (*callback)()) {
   interrupts();
 }
 
-void Scheduler::aquireNoDeepSleepLock() {
+void Scheduler::acquireNoDeepSleepLock() {
   noDeepSleepLocksCount++;
 }
 void Scheduler::releaseNoDeepSleepLock() {

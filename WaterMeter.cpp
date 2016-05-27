@@ -27,7 +27,7 @@ WaterMeter::~WaterMeter() {
 void WaterMeter::start() {
   if (!started) {
     started = true;
-    scheduler.aquireNoDeepSleepLock();
+    scheduler.acquireNoDeepSleepLock();
     lastPulseCount = totalPulseCount;
 
     enableInterrupt(WATER_METER_PIN, WaterMeter::isrWaterMeterPulses, FALLING);

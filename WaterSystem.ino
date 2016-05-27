@@ -198,7 +198,7 @@ void startListenToSerial() {
   scheduler.removeCallbacks(listenToSerial);
   if (!aquiredWakeLock) {
     aquiredWakeLock = true;
-    scheduler.aquireNoDeepSleepLock();
+    scheduler.acquireNoDeepSleepLock();
   }
   delay(200);
   listenToSerial();
