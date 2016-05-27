@@ -127,7 +127,8 @@ class Scheduler {
     /**
        Schedule the callback uptimeMillis milliseconds after the device was started.
        @param callback: the method to be called on the main thread
-       @param uptimeMillis: the time in milliseconds since the device was started to schedule the callback.
+       @param uptimeMillis: the time in milliseconds since the device was started
+                            to schedule the callback.
     */
     void scheduleAt(void (*callback)(), unsigned long uptimeMillis);
 
@@ -319,7 +320,10 @@ void Scheduler::insertTask(Task *newTask) {
       Task *currentTask = first;
       while (currentTask->next != NULL
              && currentTask->next->scheduledUptimeMillis <= newTask->scheduledUptimeMillis
-             && currentTask->callback != newTask->callback) {
+#ifdef QUEUE_OVERFLOW_PROTECTION
+             && currentTask->callback != newTask->callback
+#endif
+            ) {
         currentTask = currentTask->next;
       }
 #ifdef QUEUE_OVERFLOW_PROTECTION
