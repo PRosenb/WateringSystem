@@ -157,7 +157,7 @@ class Scheduler {
        return: true if the CPU is currently allowed to enter deep sleep, false otherwise.
     */
     bool doesDeepSleep();
-    
+
     /**
        Configure the supervision of future tasks. Can be deactivated with NO_SUPERVISION.
        Default: TIMEOUT_8S
@@ -248,12 +248,6 @@ Scheduler::Scheduler() {
   noDeepSleepLocksCount = 0;
 }
 
-void Scheduler::setTaskTimeout(TaskTimeout taskTimeout) {
-  noInterrupts();
-  this->taskTimeout = taskTimeout;
-  interrupts();
-}
-
 void Scheduler::schedule(void (*callback)()) {
   Task *newTask = new Task(callback, SCHEDULE_IMMEDIATELLY);
   insertTask(newTask);
@@ -275,18 +269,6 @@ void Scheduler::scheduleAtFrontOfQueue(void (*callback)()) {
   newTask->next = first;
   first = newTask;
   interrupts();
-}
-
-void Scheduler::acquireNoDeepSleepLock() {
-  noDeepSleepLocksCount++;
-}
-void Scheduler::releaseNoDeepSleepLock() {
-  if (noDeepSleepLocksCount != 0) {
-    noDeepSleepLocksCount--;
-  }
-}
-bool Scheduler::doesDeepSleep() {
-  return noDeepSleepLocksCount == 0;
 }
 
 void Scheduler::removeCallbacks(void (*callback)()) {
@@ -311,6 +293,26 @@ void Scheduler::removeCallbacks(void (*callback)()) {
       }
     }
   }
+  interrupts();
+}
+
+void Scheduler::acquireNoDeepSleepLock() {
+  noDeepSleepLocksCount++;
+}
+
+void Scheduler::releaseNoDeepSleepLock() {
+  if (noDeepSleepLocksCount != 0) {
+    noDeepSleepLocksCount--;
+  }
+}
+
+bool Scheduler::doesDeepSleep() {
+  return noDeepSleepLocksCount == 0;
+}
+
+void Scheduler::setTaskTimeout(TaskTimeout taskTimeout) {
+  noInterrupts();
+  this->taskTimeout = taskTimeout;
   interrupts();
 }
 
