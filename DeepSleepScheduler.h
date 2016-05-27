@@ -105,12 +105,6 @@ enum TaskTimeout {
 class Scheduler {
   public:
     /**
-       Configure the supervision of callbacks. Can be deactivated with NO_SUPERVISION.
-       Default: TIMEOUT_8S
-    */
-    TaskTimeout taskTimeout;
-
-    /**
        Schedule the callback method as soon as possible but after other tasks
        that are to be scheduled immediately and are in the queue already.
        @param callback: the method to be called on the main thread
@@ -163,6 +157,13 @@ class Scheduler {
        return: true if the CPU is currently allowed to enter deep sleep, false otherwise.
     */
     bool doesDeepSleep();
+    
+    /**
+       Configure the supervision of future tasks. Can be deactivated with NO_SUPERVISION.
+       Default: TIMEOUT_8S
+       @param taskTimeout: The task timeout to be used
+    */
+    void setTaskTimeout(TaskTimeout taskTimeout);
 
     /**
        return: The milliseconds since startup of the device where the sleep time was added
@@ -202,7 +203,11 @@ class Scheduler {
     static volatile unsigned int wdtSleepTimeMillis;
 
     /**
-       first element in the run queue
+       Currently set task timeout
+    */
+    TaskTimeout taskTimeout;
+    /**
+          first element in the run queue
     */
     Task *first;
     /**
@@ -241,6 +246,12 @@ Scheduler::Scheduler() {
 
   first = NULL;
   noDeepSleepLocksCount = 0;
+}
+
+void Scheduler::setTaskTimeout(TaskTimeout taskTimeout) {
+  noInterrupts();
+  this->taskTimeout = taskTimeout;
+  interrupts();
 }
 
 void Scheduler::schedule(void (*callback)()) {
@@ -347,9 +358,11 @@ void Scheduler::insertTask(Task *newTask) {
 }
 
 void Scheduler::execute() {
+  noInterrupts();
   if (taskTimeout != NO_SUPERVISION) {
     wdt_enable(taskTimeout);
   }
+  interrupts();
   while (true) {
     while (true) {
       Task *current = NULL;
@@ -405,10 +418,13 @@ void Scheduler::execute() {
     interrupts();
     if (wdtSleepTimeMillisLocal == 0) {
       // woken up due to WDT interrupt
-      if (taskTimeout != NO_SUPERVISION) {
+      noInterrupts();
+      const TaskTimeout taskTimeoutLocal = taskTimeout;
+      interrupts();
+      if (taskTimeoutLocal != NO_SUPERVISION) {
         // change back to taskTimeout
         wdt_reset();
-        wdt_enable(taskTimeout);
+        wdt_enable(taskTimeoutLocal);
       } else {
         // tasks are not suppervised, deactivate WDT
         wdt_disable();
