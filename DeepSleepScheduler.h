@@ -85,7 +85,6 @@
 #define SLEEP_TIME_8S 8000 + SLEEP_TIME_8S_CORRECTION
 #define BUFFER_TIME 2
 
-#define SCHEDULE_IMMEDIATELLY 0
 #define NOT_USED 255
 
 enum TaskTimeout {
@@ -249,7 +248,7 @@ Scheduler::Scheduler() {
 }
 
 void Scheduler::schedule(void (*callback)()) {
-  Task *newTask = new Task(callback, SCHEDULE_IMMEDIATELLY);
+  Task *newTask = new Task(callback, getMillis());
   insertTask(newTask);
 }
 
@@ -264,7 +263,7 @@ void Scheduler::scheduleAt(void (*callback)(), unsigned long uptimeMillis) {
 }
 
 void Scheduler::scheduleAtFrontOfQueue(void (*callback)()) {
-  Task *newTask = new Task(callback, SCHEDULE_IMMEDIATELLY);
+  Task *newTask = new Task(callback, getMillis());
   noInterrupts();
   newTask->next = first;
   first = newTask;
