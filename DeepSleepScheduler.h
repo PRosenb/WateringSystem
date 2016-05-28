@@ -71,7 +71,7 @@
 #define SLEEP_TIME_8S_CORRECTION 415
 #endif
 
-// constants
+// Constants
 // =========
 #define SLEEP_TIME_15MS 15 + SLEEP_TIME_15MS_CORRECTION
 #define SLEEP_TIME_30MS 30 + SLEEP_TIME_30MS_CORRECTION
@@ -191,22 +191,22 @@ class Scheduler {
         Task(void (*callback)(), const unsigned long scheduledUptimeMillis)
           : scheduledUptimeMillis(scheduledUptimeMillis), callback(callback), next(NULL) {
         }
-        // 0 is used for immediatelly
         const unsigned long scheduledUptimeMillis;
         void (* const callback)();
         Task *next;
     };
+
     // variables used in the interrupt
     static volatile unsigned long millisInDeepSleep;
     static volatile unsigned long millisBeforeDeepSleep;
     static volatile unsigned int wdtSleepTimeMillis;
 
     /**
-       Currently set task timeout
+       currently set task timeout
     */
     TaskTimeout taskTimeout;
     /**
-          first element in the run queue
+       first element in the run queue
     */
     Task *first;
     /**
@@ -316,8 +316,8 @@ void Scheduler::setTaskTimeout(TaskTimeout taskTimeout) {
 }
 
 // Inserts a new task in the ordered lists of tasks.
-// If there is a task in the list with the same callback
-// before the position where the new task is to be insert
+// QUEUE_OVERFLOW_PROTECTION: If there is a task in the list with the
+// same callback before the position where the new task is to be insert
 // the new task is ignored to prevent queue overflow.
 void Scheduler::insertTask(Task *newTask) {
   noInterrupts();
@@ -342,9 +342,7 @@ void Scheduler::insertTask(Task *newTask) {
       if (currentTask->callback != newTask->callback) {
 #endif
         // insert after currentTask
-        if (currentTask->next != NULL) {
-          newTask->next = currentTask->next;
-        }
+        newTask->next = currentTask->next;
         currentTask->next = newTask;
 #ifdef QUEUE_OVERFLOW_PROTECTION
       } else {
