@@ -1,12 +1,14 @@
 
 #include "DurationFsm.h"
 
+//DURATION FSM
 #define LIBCALL_DEEP_SLEEP_SCHEDULER
 #include "DeepSleepScheduler.h"
 
-//FINITE STATE MACHINE
-
 DurationFsm::DurationFsm(DurationState& current, const String name): FiniteStateMachine(current, name) {
+  if (current.minDurationMs > 0 && current.nextState != NULL) {
+    scheduler.scheduleDelayed(this, current.minDurationMs);
+  }
 }
 
 DurationState& DurationFsm::immediatelyChangeToNextState() {
@@ -51,4 +53,4 @@ void DurationFsm::run() {
   immediatelyChangeToNextState();
 }
 
-//END FINITE STATE MACHINE
+//END DURATION FSM
