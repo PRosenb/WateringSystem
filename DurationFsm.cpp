@@ -9,10 +9,6 @@
 DurationFsm::DurationFsm(DurationState& current, const String name): FiniteStateMachine(current, name) {
 }
 
-void DurationFsm::run() {
-  immediatelyChangeToNextState();
-}
-
 DurationState& DurationFsm::immediatelyChangeToNextState() {
   DurationState currentState = getCurrentState();
   if (currentState.nextState != NULL) {
@@ -49,6 +45,10 @@ boolean DurationFsm::isInState(DurationState & state) const {
 
 unsigned long DurationFsm::timeInCurrentState() {
   return scheduler.getMillis() - stateChangeTime;
+}
+
+void DurationFsm::run() {
+  immediatelyChangeToNextState();
 }
 
 //END FINITE STATE MACHINE

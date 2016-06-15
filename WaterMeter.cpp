@@ -12,7 +12,7 @@
 volatile unsigned long WaterMeter::samplesInInterval;
 volatile unsigned int WaterMeter::totalPulseCount;
 volatile unsigned int WaterMeter::lastPulseCount;
-void (*WaterMeter::callback)();
+volatile Runnable *WaterMeter::listener;
 
 WaterMeter::WaterMeter(const unsigned long invervalMs) {
   pinMode(WATER_METER_PIN, INPUT_PULLUP);
@@ -44,13 +44,9 @@ void WaterMeter::stop() {
   }
 }
 
-void WaterMeter::setThresholdCallback(const unsigned long samplesInInterval, void (*callback)()) {
+void WaterMeter::setThresholdListener(const unsigned long samplesInInterval, Runnable *runnable) {
   WaterMeter::samplesInInterval = samplesInInterval;
-  WaterMeter::callback = callback;
-}
-
-void WaterMeter::removeThresholdCallback() {
-  callback = NULL;
+  WaterMeter::listener = listener;
 }
 
 void WaterMeter::isrWaterMeterPulses() {
@@ -60,8 +56,8 @@ void WaterMeter::isrWaterMeterPulses() {
 void WaterMeter::isrTimer() {
   unsigned int pulsesCount = totalPulseCount - lastPulseCount;
   lastPulseCount = totalPulseCount;
-  if (callback != NULL && pulsesCount >= samplesInInterval) {
-    scheduler.schedule(callback);
+  if (listener != NULL && pulsesCount >= samplesInInterval) {
+    scheduler.schedule((Runnable*) listener);
   }
 }
 

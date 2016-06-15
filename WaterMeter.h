@@ -3,6 +3,9 @@
 
 #include "Arduino.h"
 
+#define LIBCALL_DEEP_SLEEP_SCHEDULER
+#include "DeepSleepScheduler.h"
+
 #define WATER_METER_PIN 12
 #define VALUES_COUNT 10
 
@@ -12,13 +15,12 @@ class WaterMeter {
     virtual ~WaterMeter();
     void start();
     void stop();
-    void setThresholdCallback(const unsigned long samplesInInterval, void (*callback)());
-    void removeThresholdCallback();
+    void setThresholdListener(const unsigned long samplesInInterval, Runnable *listener);
     unsigned int getTotalCount() {
       return totalPulseCount;
     }
   private:
-    static void (*callback)();
+    static volatile Runnable *listener;
     static void isrWaterMeterPulses();
     static void isrTimer();
 
