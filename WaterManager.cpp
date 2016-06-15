@@ -8,8 +8,8 @@ WaterManager::WaterManager() {
   valveArea2 = new Valve(VALVE3_PIN);
   valveArea3 = new Valve(VALVE4_PIN);
 
-  superStateMainIdle = new DurationState(0, "mainIdle");
-  superStateMainOn = new ValveState(valveMain, 0, "mainOn");
+  superStateMainIdle = new SuperState("mainIdle");
+  superStateMainOn = new ValveSuperState(valveMain, "mainOn");
 
   stateIdle = new DurationState(0, "areasIdle", superStateMainIdle);
   stateWarn = new ValveState(valveArea1, (unsigned long) DURATION_WARN_SEC * 1000, "warn", superStateMainOn);

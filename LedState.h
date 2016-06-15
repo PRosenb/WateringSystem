@@ -9,8 +9,6 @@ class ColorLedState: public DurationState {
     // the pins to set to LOW on enter, 255 for unused colors
     ColorLedState(byte greenPin, byte redPin, byte bluePin, unsigned long durationMs, String name): DurationState(durationMs, name), greenPin(greenPin), redPin(redPin), bluePin(bluePin) {
     }
-    ColorLedState(byte greenPin, byte redPin, byte bluePin, unsigned long durationMs, String name, DurationState * const superState): DurationState(durationMs, name, superState), greenPin(greenPin), redPin(redPin), bluePin(bluePin) {
-    }
     virtual void enter() {
       reactivateLed();
     }

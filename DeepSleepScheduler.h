@@ -101,6 +101,9 @@ enum TaskTimeout {
   NO_SUPERVISION
 };
 
+/**
+   Extend from Runnable in order to have the run() method run by the scheduler.
+*/
 class Runnable {
   public:
     virtual void run() = 0;

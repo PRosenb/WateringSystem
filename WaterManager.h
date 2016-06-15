@@ -67,13 +67,9 @@ class MeasuredValve: public Valve {
     WaterMeter *waterMeter;
 };
 
-class ValveState: public DurationState {
+class ValveSuperState: public SuperState {
   public:
-    ValveState(Valve *valve, unsigned long durationMs, String name): DurationState(durationMs, name) {
-      ValveState::valve = valve;
-    }
-    ValveState(Valve *valve, unsigned long durationMs, String name, DurationState * const superState): DurationState(durationMs, name, superState) {
-      ValveState::valve = valve;
+    ValveSuperState(Valve *valve, String name): valve(valve), SuperState(name) {
     }
     virtual void enter() {
       valve->on();
@@ -82,7 +78,21 @@ class ValveState: public DurationState {
       valve->off();
     }
   private:
-    Valve *valve;
+    Valve * const valve;
+};
+
+class ValveState: public DurationState {
+  public:
+    ValveState(Valve *valve, unsigned long durationMs, String name, SuperState * const superState): valve(valve), DurationState(durationMs, name, superState) {
+    }
+    virtual void enter() {
+      valve->on();
+    }
+    virtual void exit() {
+      valve->off();
+    }
+  private:
+    Valve * const valve;
 };
 
 
@@ -102,8 +112,8 @@ class WaterManager {
     Valve *valveArea3;
 
     DurationFsm *fsm;
-    DurationState *superStateMainIdle;
-    DurationState *superStateMainOn;
+    SuperState *superStateMainIdle;
+    ValveSuperState *superStateMainOn;
 
     DurationState *stateIdle;
     DurationState *stateWarn;
