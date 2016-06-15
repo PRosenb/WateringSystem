@@ -31,9 +31,11 @@ class FiniteStateMachine {
 
     unsigned long timeInCurrentState();
 
+  protected:
+    unsigned long stateChangeTime;
+
   private:
     State* currentState;
-    unsigned long stateChangeTime;
     const String name;
 };
 

@@ -80,13 +80,13 @@ void initModeFsm() {
   digitalWrite(MODE_COLOR_RED_PIN, HIGH);
   digitalWrite(MODE_COLOR_BLUE_PIN, HIGH);
 
-  modeOff = new ColorLedState(255, MODE_COLOR_RED_PIN, 255, 1, "modeOff");
-  modeOffOnce = new ColorLedState(255, MODE_COLOR_RED_PIN, MODE_COLOR_BLUE_PIN, 1, "modeOffOnce");
-  modeAutomatic = new ColorLedState(MODE_COLOR_GREEN_PIN, 255, 255, 1, "modeAutomatic");
+  modeOff = new ColorLedState(255, MODE_COLOR_RED_PIN, 255, INFINITE_DURATION, "modeOff");
+  modeOffOnce = new ColorLedState(255, MODE_COLOR_RED_PIN, MODE_COLOR_BLUE_PIN, INFINITE_DURATION, "modeOffOnce");
+  modeAutomatic = new ColorLedState(MODE_COLOR_GREEN_PIN, 255, 255, INFINITE_DURATION, "modeAutomatic");
   modeOff->nextState = modeAutomatic;
   modeAutomatic->nextState = modeOffOnce;
   modeOffOnce->nextState = modeOff;
-  modeFsm = DurationFsm::createInstanceWithoutScheduledChangeState(*modeOff, "ModeFSM");
+  modeFsm = new DurationFsm(*modeOff, "ModeFSM");
   deactivateModeLed();
 }
 

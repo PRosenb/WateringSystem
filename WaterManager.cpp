@@ -25,7 +25,7 @@ WaterManager::WaterManager() {
   stateAutomatic2->nextState = stateIdle;
   stateManual->nextState = stateIdle;
 
-  fsm = DurationFsm::createOrGetTheOneInstanceWithScheduledChangeState(*stateIdle, "FSM");
+  fsm = new DurationFsm(*stateIdle, "FSM");
 }
 
 WaterManager::~WaterManager() {
@@ -44,8 +44,7 @@ WaterManager::~WaterManager() {
   delete stateAutomatic2;
   delete stateAutomatic3;
   delete stateManual;
-  
-  DurationFsm::deleteTheOneInstanceWithScheduledChangeState();
+  delete fsm;
 }
 
 void WaterManager::manualMainOn() {
