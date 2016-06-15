@@ -5,18 +5,27 @@
 #include "Arduino.h"
 
 //define the functionality of the states
+class SuperState {
+  public:
+    SuperState(String name): name(name) {
+    }
+    virtual ~SuperState() {}
+    virtual void enter() {}
+    virtual void exit() {}
+    const String name;
+};
+
 class State {
   public:
     State(String name): name(name), superState(NULL) {
     }
-    // supports one level of super states. Super states of super states are ignored.
-    State(String name, State *const superState): name(name), superState(superState) {
+    State(String name, SuperState *const superState): name(name), superState(superState) {
     }
     virtual ~State() {}
     virtual void enter() {}
     virtual void exit() {}
     const String name;
-    State * const superState;
+    SuperState * const superState;
 };
 
 //define the finite state machine functionality

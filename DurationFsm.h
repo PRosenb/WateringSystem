@@ -15,7 +15,7 @@ class DurationState: public State {
   public:
     DurationState(const unsigned long minDurationMs, String name): State(name), minDurationMs(minDurationMs), nextState(NULL) {
     }
-    DurationState(const unsigned long minDurationMs, String name, State * const superState): State(name, superState), minDurationMs(minDurationMs), nextState(NULL) {
+    DurationState(const unsigned long minDurationMs, String name, SuperState * const superState): State(name, superState), minDurationMs(minDurationMs), nextState(NULL) {
     }
     const unsigned long minDurationMs;
     // nextState as NULL marks a state that is not changed when calling changeToNextStateIfElapsed(). minDurationMs is ignored in that case.
