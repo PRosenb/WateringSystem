@@ -531,7 +531,10 @@ void Scheduler::execute() {
     // but continue execution immediatelly.
     sleep_enable(); // enables the sleep bit, a safety pin
     bool sleep;
-    if (first != NULL) {
+    noInterrupts();
+    bool queueEmpty = first == NULL;
+    interrupts();
+    if (!queueEmpty) {
       sleep = evaluateAndPrepareSleep();
     } else {
       // nothing in the queue
@@ -590,7 +593,10 @@ bool Scheduler::evaluateAndPrepareSleep() {
     unsigned long maxWaitTimeMillis = 0;
     unsigned long currentSchedulerMillis = getMillis();
     noInterrupts();
-    unsigned long firstScheduledUptimeMillis = first->scheduledUptimeMillis;
+    unsigned long firstScheduledUptimeMillis = 0;
+    if (first != NULL) {
+      firstScheduledUptimeMillis = first->scheduledUptimeMillis;
+    }
     interrupts();
     if (firstScheduledUptimeMillis > currentSchedulerMillis) {
       maxWaitTimeMillis = firstScheduledUptimeMillis - currentSchedulerMillis;
