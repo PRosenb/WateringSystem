@@ -56,8 +56,8 @@ void setup() {
   enableInterrupt(START_SERIAL_PIN, isrStartSerial, FALLING);
   pinMode(RTC_INT_PIN, INPUT_PULLUP);
   enableInterrupt(RTC_INT_PIN, isrRtc, FALLING);
-  pinMode(START_MANUAL_PIN, INPUT_PULLUP);
-  enableInterrupt(START_MANUAL_PIN, isrStartManual, FALLING);
+//  pinMode(START_MANUAL_PIN, INPUT_PULLUP);
+//  enableInterrupt(START_MANUAL_PIN, isrStartManual, FALLING);
   pinMode(START_AUTOMATIC_PIN, INPUT_PULLUP);
   enableInterrupt(START_AUTOMATIC_PIN, isrStartAutomatic, FALLING);
   pinMode(MODE_PIN, INPUT_PULLUP);

@@ -15,13 +15,16 @@ WaterManager::WaterManager() {
   stateWarn = new ValveState(valveArea1, (unsigned long) DURATION_WARN_SEC * 1000, "warn", superStateMainOn);
   stateWaitBefore = new DurationState((unsigned long) DURATION_WAIT_BEFORE_SEC * 1000, "areasIdle", superStateMainIdle);
   stateAutomatic1 = new ValveState(valveArea1, (unsigned long) DURATION_AUTOMATIC1_SEC * 1000, "area1", superStateMainOn);
+  stateWarnAutomatic2 = new ValveState(valveArea2, (unsigned long) DURATION_WARN_SEC * 1000, "warnArea2", superStateMainOn);
+  stateWaitBeforeAutomatic2 = new DurationState((unsigned long) DURATION_WAIT_BEFORE_SEC * 1000, "areasIdle", superStateMainIdle);
   stateAutomatic2 = new ValveState(valveArea2, (unsigned long) DURATION_AUTOMATIC2_SEC * 1000, "area2", superStateMainOn);
-//  stateAutomatic3 = new ValveState(valveArea3, (unsigned long) DURATION_AUTOMATIC3_SEC * 1000, "area3", superStateMainOn);
   stateManual = new ValveState(valveArea1, (unsigned long) DURATION_MANUAL_SEC * 1000, "manual", superStateMainOn);
 
   stateWarn->nextState = stateWaitBefore;
   stateWaitBefore->nextState = stateAutomatic1;
-  stateAutomatic1->nextState = stateAutomatic2;
+  stateAutomatic1->nextState = stateWarnAutomatic2;
+  stateWarnAutomatic2->nextState = stateWaitBeforeAutomatic2;
+  stateWaitBeforeAutomatic2->nextState = stateAutomatic2;
   stateAutomatic2->nextState = stateIdle;
   stateManual->nextState = stateIdle;
 
@@ -42,7 +45,6 @@ WaterManager::~WaterManager() {
   delete stateWaitBefore;
   delete stateAutomatic1;
   delete stateAutomatic2;
-  delete stateAutomatic3;
   delete stateManual;
   delete fsm;
 }
