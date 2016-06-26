@@ -2,6 +2,7 @@
 #include <DS3232RTC.h>    // http://github.com/JChristensen/DS3232RTC
 
 #define AWAKE_INDICATION_PIN 13
+#define DEEP_SLEEP_DELAY 100
 #include "DeepSleepScheduler.h"
 
 #define EI_NOTPORTC
@@ -41,7 +42,6 @@ void setup() {
   Serial.println();
   Serial.print(F("------------------- startup: "));
   Serial.println(freeRamValue);
-  delay(100);
 
   waterManager = new WaterManager();
 
@@ -97,7 +97,9 @@ int freeRam() {
 }
 
 void isrMode() {
-  scheduler.schedule(modeScheduled);
+  if (!scheduler.isScheduled(modeScheduled)) {
+    scheduler.schedule(modeScheduled);
+  }
 }
 
 void modeScheduled() {
@@ -126,7 +128,7 @@ void deactivateModeLed() {
 }
 
 void startAutomaticRtc() {
-  Serial.println(F("startAutomaticRtc")); delay(150);
+  Serial.println(F("startAutomaticRtc"));
   if (modeFsm->isInState(*modeAutomatic)) {
     waterManager->startAutomaticWithWarn();
   } else if (modeFsm->isInState(*modeOffOnce)) {
@@ -188,7 +190,6 @@ void printTime() {
   Serial.print(second(), DEC);
   Serial.print(F(" "));
   Serial.println(freeRam());
-  delay(100);
 }
 
 // TODO restart on serial connect
@@ -200,7 +201,6 @@ void startListenToSerial() {
     aquiredWakeLock = true;
     scheduler.acquireNoDeepSleepLock();
   }
-  delay(200);
   listenToSerial();
 }
 
