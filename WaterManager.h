@@ -37,6 +37,13 @@ class Valve {
         digitalWrite(pin, LOW);
       }
     }
+    virtual bool isOn() {
+      if (pin != UNUSED) {
+        return digitalRead(pin) == HIGH;
+      } else {
+        false;
+      }
+    }
   private:
     const byte pin;
 };
@@ -44,8 +51,7 @@ class Valve {
 // only one valve can be a MeasuredValve
 class MeasuredValve: public Valve {
   public:
-    MeasuredValve(byte pin): Valve(pin) {
-      waterMeter = new WaterMeter(100);
+    MeasuredValve(byte pin, WaterMeter *waterMeter): waterMeter(waterMeter), Valve(pin) {
     }
     virtual ~MeasuredValve() {
       delete waterMeter;
@@ -55,16 +61,20 @@ class MeasuredValve: public Valve {
       Valve::on();
     }
     virtual void off() {
+      boolean wasOn = isOn();
+      // still switch if off in any case for security reasons
       Valve::off();
-      waterMeter->stop();
-      Serial.print(F("measured: "));
-      Serial.println(getTotalCount());
+      if (wasOn) {
+        waterMeter->stop();
+        Serial.print(F("measured: "));
+        Serial.println(getTotalCount());
+      }
     }
     unsigned long getTotalCount() {
       return waterMeter->getTotalCount();
     }
   private:
-    WaterMeter *waterMeter;
+    WaterMeter * const waterMeter;
 };
 
 class ValveSuperState: public SuperState {
@@ -98,7 +108,7 @@ class ValveState: public DurationState {
 
 class WaterManager {
   public:
-    WaterManager();
+    WaterManager(WaterMeter *waterMeter);
     ~WaterManager();
     void manualMainOn();
     void startAutomaticWithWarn();

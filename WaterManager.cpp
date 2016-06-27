@@ -2,8 +2,8 @@
 #include "WaterManager.h"
 #include <Time.h>         // http://www.arduino.cc/playground/Code/Time
 
-WaterManager::WaterManager() {
-  valveMain = new MeasuredValve(VALVE1_PIN);
+WaterManager::WaterManager(WaterMeter *waterMeter) {
+  valveMain = new MeasuredValve(VALVE1_PIN, waterMeter);
   valveArea1 = new Valve(VALVE2_PIN);
   valveArea2 = new Valve(VALVE3_PIN);
   valveArea3 = new Valve(VALVE4_PIN);

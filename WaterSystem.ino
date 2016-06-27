@@ -23,9 +23,13 @@
 #define MODE_COLOR_RED_PIN A1
 #define MODE_COLOR_BLUE_PIN A2
 
+#define PIPE_FILLING_TIME_MS 11000
+// free flow around 68 per second
+#define WATER_METER_STOP_THRESHOLD 60
 #define SERIAL_SLEEP_TIMEOUT_MS 30000
 
 WaterManager *waterManager;
+WaterMeter *waterMeter;
 unsigned long serialLastActiveMillis = 0;
 boolean aquiredWakeLock = false;
 
@@ -35,6 +39,16 @@ DurationState *modeAutomatic;
 DurationState *modeOffOnce;
 DurationFsm *modeFsm;
 
+class ThresholdListener: public Runnable {
+    void run() {
+      Serial.print(F("ThresholdListener: "));
+      Serial.println(waterMeter->getLastPulseCountOverThreshold());
+      waterManager->stopAll();
+      modeFsm->changeState(*modeOff);
+    }
+};
+ThresholdListener *thresholdListener = new ThresholdListener();
+
 void setup() {
   int freeRamValue = freeRam();
   Serial.begin(9600);
@@ -43,7 +57,10 @@ void setup() {
   Serial.print(F("------------------- startup: "));
   Serial.println(freeRamValue);
 
-  waterManager = new WaterManager();
+  waterMeter = new WaterMeter(1000);
+  waterMeter->setThresholdSupervisionDelay(PIPE_FILLING_TIME_MS);
+  waterMeter->setThresholdListener(WATER_METER_STOP_THRESHOLD, thresholdListener);
+  waterManager = new WaterManager(waterMeter);
 
   RTC.alarmInterrupt(ALARM_1, true);
   RTC.alarmInterrupt(ALARM_2, false);
@@ -56,8 +73,8 @@ void setup() {
   enableInterrupt(START_SERIAL_PIN, isrStartSerial, FALLING);
   pinMode(RTC_INT_PIN, INPUT_PULLUP);
   enableInterrupt(RTC_INT_PIN, isrRtc, FALLING);
-//  pinMode(START_MANUAL_PIN, INPUT_PULLUP);
-//  enableInterrupt(START_MANUAL_PIN, isrStartManual, FALLING);
+  //  pinMode(START_MANUAL_PIN, INPUT_PULLUP);
+  //  enableInterrupt(START_MANUAL_PIN, isrStartManual, FALLING);
   pinMode(START_AUTOMATIC_PIN, INPUT_PULLUP);
   enableInterrupt(START_AUTOMATIC_PIN, isrStartAutomatic, FALLING);
   pinMode(MODE_PIN, INPUT_PULLUP);
@@ -188,6 +205,8 @@ void printTime() {
   Serial.print(minute(), DEC);
   Serial.print(F(":"));
   Serial.print(second(), DEC);
+  Serial.print(F(" "));
+  Serial.print(waterMeter->getTotalCount());
   Serial.print(F(" "));
   Serial.println(freeRam());
 }
