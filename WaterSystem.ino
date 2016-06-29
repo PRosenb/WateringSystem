@@ -25,7 +25,7 @@
 
 #define PIPE_FILLING_TIME_MS 11000
 // free flow around 68 per second
-#define WATER_METER_STOP_THRESHOLD 60
+#define WATER_METER_STOP_THRESHOLD 68
 #define SERIAL_SLEEP_TIMEOUT_MS 30000
 
 WaterManager *waterManager;

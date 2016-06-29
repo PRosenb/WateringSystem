@@ -129,6 +129,7 @@ class WaterManager {
     DurationState *stateWarn;
     DurationState *stateWaitBefore;
     DurationState *stateAutomatic1;
+    DurationState *stateBeforeWarnAutomatic2;
     DurationState *stateWarnAutomatic2;
     DurationState *stateWaitBeforeAutomatic2;
     DurationState *stateAutomatic2;
