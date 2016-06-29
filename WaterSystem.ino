@@ -369,6 +369,16 @@ void handleGetAlarmTime(byte alarmNumber) {
       Serial.print(F("ALM2_MATCH_DAY"));
       break;
   }
+  Serial.print(F(", cmd: a"));
+  if (tm.Hour < 10) {
+    Serial.print(F("0"));
+  }
+  Serial.print(tm.Hour);
+  Serial.print(F(":"));
+  if (tm.Minute < 10) {
+    Serial.print(F("0"));
+  }
+  Serial.print(tm.Minute);
   Serial.println();
 }
 
