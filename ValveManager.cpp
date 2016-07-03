@@ -1,8 +1,8 @@
 
-#include "WaterManager.h"
+#include "ValveManager.h"
 #include <Time.h>         // http://www.arduino.cc/playground/Code/Time
 
-WaterManager::WaterManager(WaterMeter *waterMeter) {
+ValveManager::ValveManager(WaterMeter *waterMeter) {
   valveMain = new MeasuredValve(VALVE1_PIN, waterMeter);
   valveArea1 = new Valve(VALVE2_PIN);
   valveArea2 = new Valve(VALVE3_PIN);
@@ -34,7 +34,7 @@ WaterManager::WaterManager(WaterMeter *waterMeter) {
   fsm = new DurationFsm(*stateIdle, "FSM");
 }
 
-WaterManager::~WaterManager() {
+ValveManager::~ValveManager() {
   delete valveMain;
   delete valveArea1;
   delete valveArea2;
@@ -52,11 +52,11 @@ WaterManager::~WaterManager() {
   delete fsm;
 }
 
-void WaterManager::manualMainOn() {
+void ValveManager::manualMainOn() {
   fsm->changeState(*stateManual);
 }
 
-void WaterManager::stopAll() {
+void ValveManager::stopAll() {
   fsm->changeState(*stateIdle);
   // all off, just to be really sure..
   valveMain->off();
@@ -65,18 +65,18 @@ void WaterManager::stopAll() {
   valveArea3->off();
 }
 
-void WaterManager::startAutomaticWithWarn() {
+void ValveManager::startAutomaticWithWarn() {
   // ignore if on manual
   if (!fsm->isInState(*stateManual)) {
     fsm->changeState(*stateWarn);
   }
 }
 
-void WaterManager::startAutomatic() {
+void ValveManager::startAutomatic() {
   fsm->changeState(*stateAutomatic1);
 }
 
-bool WaterManager::isOn() {
+bool ValveManager::isOn() {
   return !fsm->isInState(*stateIdle);
 }
 

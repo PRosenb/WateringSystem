@@ -106,10 +106,10 @@ class ValveState: public DurationState {
 };
 
 
-class WaterManager {
+class ValveManager {
   public:
-    WaterManager(WaterMeter *waterMeter);
-    ~WaterManager();
+    ValveManager(WaterMeter *waterMeter);
+    ~ValveManager();
     void manualMainOn();
     void startAutomaticWithWarn();
     void startAutomatic();

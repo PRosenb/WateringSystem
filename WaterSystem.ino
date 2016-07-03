@@ -9,7 +9,7 @@
 #define EI_NOTPORTD
 #include <EnableInterrupt.h> // https://github.com/GreyGnome/EnableInterrupt
 
-#include "WaterManager.h"
+#include "ValveManager.h"
 #include "LedState.h"
 
 #define START_SERIAL_PIN 2
@@ -28,7 +28,7 @@
 #define WATER_METER_STOP_THRESHOLD 68
 #define SERIAL_SLEEP_TIMEOUT_MS 30000
 
-WaterManager *waterManager;
+ValveManager *valveManager;
 WaterMeter *waterMeter;
 unsigned long serialLastActiveMillis = 0;
 boolean aquiredWakeLock = false;
@@ -43,7 +43,7 @@ class ThresholdListener: public Runnable {
     void run() {
       Serial.print(F("ThresholdListener: "));
       Serial.println(waterMeter->getLastPulseCountOverThreshold());
-      waterManager->stopAll();
+      valveManager->stopAll();
       modeFsm->changeState(*modeOff);
     }
 };
@@ -60,7 +60,7 @@ void setup() {
   waterMeter = new WaterMeter(1000);
   waterMeter->setThresholdSupervisionDelay(PIPE_FILLING_TIME_MS);
   waterMeter->setThresholdListener(WATER_METER_STOP_THRESHOLD, thresholdListener);
-  waterManager = new WaterManager(waterMeter);
+  valveManager = new ValveManager(waterMeter);
 
   RTC.alarmInterrupt(ALARM_1, true);
   RTC.alarmInterrupt(ALARM_2, false);
@@ -120,8 +120,8 @@ void isrMode() {
 }
 
 void modeScheduled() {
-  if (waterManager->isOn()) {
-    waterManager->stopAll();
+  if (valveManager->isOn()) {
+    valveManager->stopAll();
   } else {
     // first show current state and then change it
     // LOW == LED active
@@ -147,7 +147,7 @@ void deactivateModeLed() {
 void startAutomaticRtc() {
   Serial.println(F("startAutomaticRtc"));
   if (modeFsm->isInState(*modeAutomatic)) {
-    waterManager->startAutomaticWithWarn();
+    valveManager->startAutomaticWithWarn();
   } else if (modeFsm->isInState(*modeOffOnce)) {
     modeFsm->changeState(*modeAutomatic);
     showModeLed();
@@ -172,7 +172,7 @@ void isrRtc() {
 
 void startManual() {
   Serial.println(F("startManual"));
-  waterManager->manualMainOn();
+  valveManager->manualMainOn();
 }
 
 void isrStartManual() {
@@ -181,7 +181,7 @@ void isrStartManual() {
 
 void startAutomatic() {
   Serial.println(F("startAutomatic"));
-  waterManager->startAutomatic();
+  valveManager->startAutomatic();
 }
 
 void isrStartAutomatic() {
