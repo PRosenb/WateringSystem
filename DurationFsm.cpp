@@ -41,8 +41,12 @@ DurationState& DurationFsm::getCurrentState() {
   return (DurationState&) FiniteStateMachine::getCurrentState();
 }
 
-boolean DurationFsm::isInState(DurationState & state) const {
+boolean DurationFsm::isInState(DurationState& state) const {
   return FiniteStateMachine::isInState(state);
+}
+
+boolean DurationFsm::isInState(SuperState& superState) const {
+  return FiniteStateMachine::isInState(superState);
 }
 
 unsigned long DurationFsm::timeInCurrentState() {

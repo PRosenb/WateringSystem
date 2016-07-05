@@ -49,12 +49,12 @@ State& FiniteStateMachine::getCurrentState() {
 }
 
 //check if state is equal to the currentState
-boolean FiniteStateMachine::isInState(State &state) const {
-  if (&state == currentState) {
-    return true;
-  } else {
-    return false;
-  }
+boolean FiniteStateMachine::isInState(State& state) const {
+  return &state == currentState;
+}
+
+boolean FiniteStateMachine::isInState(SuperState& superState) const {
+  return &superState == currentState->superState;
 }
 
 unsigned long FiniteStateMachine::timeInCurrentState() {

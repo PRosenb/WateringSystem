@@ -34,7 +34,8 @@ class DurationFsm: FiniteStateMachine, Runnable {
     virtual DurationFsm& changeState(DurationState& state);
 
     virtual DurationState& getCurrentState();
-    virtual boolean isInState(DurationState &state) const;
+    virtual boolean isInState(DurationState& state) const;
+    virtual boolean isInState(SuperState& superState) const;
 
     unsigned long timeInCurrentState();
 

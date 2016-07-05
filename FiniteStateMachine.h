@@ -36,7 +36,8 @@ class FiniteStateMachine {
     FiniteStateMachine& changeState(State& state);
 
     State& getCurrentState();
-    boolean isInState(State &state) const;
+    virtual boolean isInState(State& state) const;
+    virtual boolean isInState(SuperState& superState) const;
 
     unsigned long timeInCurrentState();
 
