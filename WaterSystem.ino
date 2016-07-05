@@ -9,7 +9,7 @@
 #define EI_NOTPORTD
 #include <EnableInterrupt.h> // https://github.com/GreyGnome/EnableInterrupt
 
-#include "ValveManager.h"
+#include "WaterManager.h"
 #include "LedState.h"
 
 #define START_SERIAL_PIN 2
@@ -19,35 +19,10 @@
 #define START_AUTOMATIC_PIN 10
 #define MODE_PIN 11
 
-#define MODE_COLOR_GREEN_PIN A0
-#define MODE_COLOR_RED_PIN A1
-#define MODE_COLOR_BLUE_PIN A2
-
-#define PIPE_FILLING_TIME_MS 11000
-// free flow around 68 per second
-#define WATER_METER_STOP_THRESHOLD 68
-#define SERIAL_SLEEP_TIMEOUT_MS 30000
-
-ValveManager *valveManager;
-WaterMeter *waterMeter;
 unsigned long serialLastActiveMillis = 0;
 boolean aquiredWakeLock = false;
 
-// ModeFsm
-DurationState *modeOff;
-DurationState *modeAutomatic;
-DurationState *modeOffOnce;
-DurationFsm *modeFsm;
-
-class ThresholdListener: public Runnable {
-    void run() {
-      Serial.print(F("ThresholdListener: "));
-      Serial.println(waterMeter->getLastPulseCountOverThreshold());
-      valveManager->stopAll();
-      modeFsm->changeState(*modeOff);
-    }
-};
-ThresholdListener *thresholdListener = new ThresholdListener();
+WaterManager *waterManager;
 
 void setup() {
   int freeRamValue = freeRam();
@@ -57,10 +32,7 @@ void setup() {
   Serial.print(F("------------------- startup: "));
   Serial.println(freeRamValue);
 
-  waterMeter = new WaterMeter(1000);
-  waterMeter->setThresholdSupervisionDelay(PIPE_FILLING_TIME_MS);
-  waterMeter->setThresholdListener(WATER_METER_STOP_THRESHOLD, thresholdListener);
-  valveManager = new ValveManager(waterMeter);
+  waterManager = new WaterManager();
 
   RTC.alarmInterrupt(ALARM_1, true);
   RTC.alarmInterrupt(ALARM_2, false);
@@ -80,31 +52,11 @@ void setup() {
   pinMode(MODE_PIN, INPUT_PULLUP);
   enableInterrupt(MODE_PIN, isrMode, FALLING);
 
-  initModeFsm();
-
   startListenToSerial();
 }
 
 void loop() {
   scheduler.execute();
-}
-
-void initModeFsm() {
-  pinMode(MODE_COLOR_GREEN_PIN, OUTPUT);
-  pinMode(MODE_COLOR_RED_PIN, OUTPUT);
-  pinMode(MODE_COLOR_BLUE_PIN, OUTPUT);
-  digitalWrite(MODE_COLOR_GREEN_PIN, HIGH);
-  digitalWrite(MODE_COLOR_RED_PIN, HIGH);
-  digitalWrite(MODE_COLOR_BLUE_PIN, HIGH);
-
-  modeOff = new ColorLedState(255, MODE_COLOR_RED_PIN, 255, INFINITE_DURATION, "modeOff");
-  modeOffOnce = new ColorLedState(255, MODE_COLOR_RED_PIN, MODE_COLOR_BLUE_PIN, INFINITE_DURATION, "modeOffOnce");
-  modeAutomatic = new ColorLedState(MODE_COLOR_GREEN_PIN, 255, 255, INFINITE_DURATION, "modeAutomatic");
-  modeOff->nextState = modeAutomatic;
-  modeAutomatic->nextState = modeOffOnce;
-  modeOffOnce->nextState = modeOff;
-  modeFsm = new DurationFsm(*modeOff, "ModeFSM");
-  deactivateModeLed();
 }
 
 int freeRam() {
@@ -120,40 +72,16 @@ void isrMode() {
 }
 
 void modeScheduled() {
-  if (valveManager->isOn()) {
-    valveManager->stopAll();
-  } else {
-    // first show current state and then change it
-    // LOW == LED active
-    if (digitalRead(MODE_COLOR_GREEN_PIN) == LOW
-        || digitalRead(MODE_COLOR_RED_PIN) == LOW
-        || digitalRead(MODE_COLOR_BLUE_PIN) == LOW) {
-      modeFsm->immediatelyChangeToNextState();
-    }
-  }
-  showModeLed();
+  waterManager->modeClicked();
 
   // simple debounce
   delay(200);
   scheduler.removeCallbacks(modeScheduled);
 }
 
-void deactivateModeLed() {
-  digitalWrite(MODE_COLOR_GREEN_PIN, HIGH);
-  digitalWrite(MODE_COLOR_RED_PIN, HIGH);
-  digitalWrite(MODE_COLOR_BLUE_PIN, HIGH);
-}
-
 void startAutomaticRtc() {
   Serial.println(F("startAutomaticRtc"));
-  if (modeFsm->isInState(*modeAutomatic)) {
-    valveManager->startAutomaticWithWarn();
-  } else if (modeFsm->isInState(*modeOffOnce)) {
-    modeFsm->changeState(*modeAutomatic);
-    showModeLed();
-  } else {
-    showModeLed();
-  }
+  waterManager->startAutomaticRtc();
 }
 
 void rtcScheduled() {
@@ -172,7 +100,7 @@ void isrRtc() {
 
 void startManual() {
   Serial.println(F("startManual"));
-  valveManager->manualMainOn();
+  waterManager->startManual();
 }
 
 void isrStartManual() {
@@ -181,7 +109,7 @@ void isrStartManual() {
 
 void startAutomatic() {
   Serial.println(F("startAutomatic"));
-  valveManager->startAutomatic();
+  waterManager->startAutomatic();
 }
 
 void isrStartAutomatic() {
@@ -192,12 +120,6 @@ void isrStartSerial() {
   scheduler.schedule(startListenToSerial);
 }
 
-void showModeLed() {
-  ((ColorLedState&)modeFsm->getCurrentState()).reactivateLed();
-  scheduler.removeCallbacks(deactivateModeLed);
-  scheduler.scheduleDelayed(deactivateModeLed, 10000);
-}
-
 void printTime() {
   setSyncProvider(RTC.get);
   Serial.print(hour(), DEC);
@@ -206,7 +128,7 @@ void printTime() {
   Serial.print(F(":"));
   Serial.print(second(), DEC);
   Serial.print(F(" "));
-  Serial.print(waterMeter->getTotalCount());
+  Serial.print(waterManager->getUsedWater());
   Serial.print(F(" "));
   Serial.println(freeRam());
 }
