@@ -10,7 +10,6 @@
 #include <EnableInterrupt.h> // https://github.com/GreyGnome/EnableInterrupt
 
 #include "WaterManager.h"
-#include "LedState.h"
 
 #define START_SERIAL_PIN 2
 // potential PinChangePins on Leonardo: 8, 9, 10, 11
@@ -59,24 +58,21 @@ void loop() {
   scheduler.execute();
 }
 
-int freeRam() {
-  extern int __heap_start, *__brkval;
-  int v;
-  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
-}
-
-void isrMode() {
-  if (!scheduler.isScheduled(modeScheduled)) {
-    scheduler.schedule(modeScheduled);
-  }
-}
-
+// ----------------------------------------------------------------------------------
+// interrupts
+// ----------------------------------------------------------------------------------
 void modeScheduled() {
   waterManager->modeClicked();
 
   // simple debounce
   delay(200);
   scheduler.removeCallbacks(modeScheduled);
+}
+
+void isrMode() {
+  if (!scheduler.isScheduled(modeScheduled)) {
+    scheduler.schedule(modeScheduled);
+  }
 }
 
 void startAutomaticRtc() {
@@ -116,23 +112,6 @@ void isrStartAutomatic() {
   scheduler.schedule(startAutomatic);
 }
 
-void isrStartSerial() {
-  scheduler.schedule(startListenToSerial);
-}
-
-void printTime() {
-  setSyncProvider(RTC.get);
-  Serial.print(hour(), DEC);
-  Serial.print(F(":"));
-  Serial.print(minute(), DEC);
-  Serial.print(F(":"));
-  Serial.print(second(), DEC);
-  Serial.print(F(" "));
-  Serial.print(waterManager->getUsedWater());
-  Serial.print(F(" "));
-  Serial.println(freeRam());
-}
-
 // TODO restart on serial connect
 void startListenToSerial() {
   Serial.println(F("startListenToSerial"));
@@ -145,6 +124,13 @@ void startListenToSerial() {
   listenToSerial();
 }
 
+void isrStartSerial() {
+  scheduler.schedule(startListenToSerial);
+}
+
+// ----------------------------------------------------------------------------------
+// serial
+// ----------------------------------------------------------------------------------
 void listenToSerial() {
   printTime();
   if (Serial.available() > 0) {
@@ -162,19 +148,17 @@ void listenToSerial() {
   }
 }
 
-void readSerial(char inData[], int inDataLength) {
-  byte index = 0;
-  // index + 1 to allow one space for the Null termination
-  for (; Serial.available() > 0 && index + 1 < inDataLength; index++) {
-    inData[index] = Serial.read();
-  }
-  inData[index] = '\0'; // Null terminate the string
-}
-
-int serialReadInt(int length) {
-  char inData[length + 1];
-  readSerial(inData, length + 1);
-  return atoi(inData);
+void printTime() {
+  setSyncProvider(RTC.get);
+  Serial.print(hour(), DEC);
+  Serial.print(F(":"));
+  Serial.print(minute(), DEC);
+  Serial.print(F(":"));
+  Serial.print(second(), DEC);
+  Serial.print(F(" "));
+  Serial.print(waterManager->getUsedWater());
+  Serial.print(F(" "));
+  Serial.println(freeRam());
 }
 
 // sets the system and RTC time.
@@ -329,5 +313,29 @@ void handleSerialInput() {
       Serial.println(F("g<alarmNumber>: get alarm time"));
       Serial.println(F("d<YYYY>-<MM>-<DD>T<hh>:<mm>: set date/time"));
   }
+}
+
+// ----------------------------------------------------------------------------------
+// helper
+// ----------------------------------------------------------------------------------
+void readSerial(char inData[], int inDataLength) {
+  byte index = 0;
+  // index + 1 to allow one space for the Null termination
+  for (; Serial.available() > 0 && index + 1 < inDataLength; index++) {
+    inData[index] = Serial.read();
+  }
+  inData[index] = '\0'; // Null terminate the string
+}
+
+int serialReadInt(int length) {
+  char inData[length + 1];
+  readSerial(inData, length + 1);
+  return atoi(inData);
+}
+
+int freeRam() {
+  extern int __heap_start, *__brkval;
+  int v;
+  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
 }
 
