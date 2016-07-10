@@ -83,6 +83,6 @@ void WaterManager::startManual() {
 }
 
 unsigned int WaterManager::getUsedWater() {
-  return waterMeter->getTotalCount(); 
+  return waterMeter->getTotalCount();
 }
 
