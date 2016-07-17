@@ -15,9 +15,6 @@ class ColorLedState: public DurationState, public Runnable {
     }
     virtual void enter() {
       reactivateLed();
-      if (ledOnDurationMs != INFINITE_DURATION) {
-        scheduler.scheduleDelayed(this, ledOnDurationMs);
-      }
     }
     virtual void exit() {
       deactivateLed();
@@ -32,6 +29,9 @@ class ColorLedState: public DurationState, public Runnable {
       }
       if (bluePin != 255) {
         digitalWrite(bluePin, LOW);
+      }
+      if (ledOnDurationMs != INFINITE_DURATION) {
+        scheduler.scheduleDelayed(this, ledOnDurationMs);
       }
     }
     void deactivateLed() {
