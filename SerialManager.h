@@ -25,6 +25,7 @@ class SerialManager: public Runnable {
     // helper methods
     void readSerial(char inData[], int inDataLength);
     int serialReadInt(int length);
+    void printTwoDigits(unsigned int value);
 };
 
 #endif

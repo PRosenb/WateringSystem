@@ -79,24 +79,24 @@ void SerialManager::handleSetDateTime() {
     setTime(hours, minutes, 0, dayValue, monthValue, yearValue);
     //set the RTC from the system time
     RTC.set(now());
-
-    tmElements_t tm;
-    RTC.read(tm);
-    Serial.print(F("RTC values: "));
-    Serial.print(tm.Year + 1970, DEC);
-    Serial.print(F("-"));
-    Serial.print(tm.Month);
-    Serial.print(F("-"));
-    Serial.print(tm.Day);
-    Serial.print(F(" "));
-    Serial.print(tm.Hour);
-    Serial.print(F(":"));
-    Serial.print(tm.Minute);
-    Serial.print(F(":"));
-    Serial.println(tm.Second);
   } else {
     Serial.println(F("Wrong format, e.g. use d2016-01-03T16:43"));
   }
+  tmElements_t tm;
+  RTC.read(tm);
+  Serial.print(F("RTC values: "));
+  Serial.print(tm.Year + 1970, DEC);
+  Serial.print(F("-"));
+  printTwoDigits(tm.Month);
+  Serial.print(F("-"));
+  printTwoDigits(tm.Day);
+  Serial.print(F(" "));
+  printTwoDigits(tm.Hour);
+  Serial.print(F(":"));
+  printTwoDigits(tm.Minute);
+  Serial.print(F(":"));
+  printTwoDigits(tm.Second);
+  Serial.println();
 }
 
 void SerialManager::handleSetAlarmTime() {
@@ -125,11 +125,11 @@ void SerialManager::handleGetAlarmTime(byte alarmNumber) {
   Serial.print(F(": "));
   tmElements_t tm;
   ALARM_TYPES_t alarmType = RTC.readAlarm(alarmNumber, tm);
-  Serial.print(tm.Hour);
+  printTwoDigits(tm.Hour);
   Serial.print(F(":"));
-  Serial.print(tm.Minute);
+  printTwoDigits(tm.Minute);
   Serial.print(F(":"));
-  Serial.print(tm.Second);
+  printTwoDigits(tm.Second);
   Serial.print(F(", day: "));
   Serial.print(tm.Day);
   Serial.print(F(", wday: "));
@@ -171,15 +171,9 @@ void SerialManager::handleGetAlarmTime(byte alarmNumber) {
       break;
   }
   Serial.print(F(", cmd: a"));
-  if (tm.Hour < 10) {
-    Serial.print(F("0"));
-  }
-  Serial.print(tm.Hour);
+  printTwoDigits(tm.Hour);
   Serial.print(F(":"));
-  if (tm.Minute < 10) {
-    Serial.print(F("0"));
-  }
-  Serial.print(tm.Minute);
+  printTwoDigits(tm.Minute);
   Serial.println();
 }
 
@@ -226,6 +220,13 @@ int SerialManager::serialReadInt(int length) {
   char inData[length + 1];
   readSerial(inData, length + 1);
   return atoi(inData);
+}
+
+void SerialManager::printTwoDigits(unsigned int value) {
+  if (value < 10) {
+    Serial.print(F("0"));
+  }
+  Serial.print(value);
 }
 
 int SerialManager::freeRam() {
