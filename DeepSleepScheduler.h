@@ -139,6 +139,8 @@ class Scheduler {
 
     /**
        Schedule the callback uptimeMillis milliseconds after the device was started.
+       Please be aware that uptimeMillis is stopped when no task is pending. In this case,
+       the CPU may only wake up on an external interrupt.
        @param callback: the method to be called on the main thread
        @param uptimeMillis: the time in milliseconds since the device was started
                             to schedule the callback.
@@ -146,6 +148,8 @@ class Scheduler {
     void scheduleAt(void (*callback)(), unsigned long uptimeMillis);
     /**
        Schedule the callback uptimeMillis milliseconds after the device was started.
+       Please be aware that uptimeMillis is stopped when no task is pending. In this case,
+       the CPU may only wake up on an external interrupt.
        @param runnable: the Runnable on which the run() method will be called on the main thread
        @param uptimeMillis: the time in milliseconds since the device was started
                             to schedule the callback.
@@ -169,7 +173,7 @@ class Scheduler {
        the run queue until it finds it or reaches the end.
        @param callback: callback to check
     */
-    boolean isScheduled(void (*callback)());
+    bool isScheduled(void (*callback)()) const;
 
     /**
        Check if this runnable is scheduled at least once already.
@@ -177,7 +181,13 @@ class Scheduler {
        the run queue until it finds it or reaches the end.
       @param runnable: Runnable to check
     */
-    bool isScheduled(Runnable *runnable);
+    bool isScheduled(Runnable *runnable) const;
+
+    /**
+       Returns the scheduled time of the task that is currently running.
+       If no task is currently running, -1 is returned.
+    */
+    unsigned long getScheduleTimeOfCurrentTask() const;
 
     /**
        Cancel all schedules that were scheduled for this callback.
@@ -208,7 +218,7 @@ class Scheduler {
     /**
        return: true if the CPU is currently allowed to enter deep sleep, false otherwise.
     */
-    bool doesDeepSleep();
+    bool doesDeepSleep() const;
 
     /**
        Configure the supervision of future tasks. Can be deactivated with NO_SUPERVISION.
@@ -222,7 +232,7 @@ class Scheduler {
                This value does not consider the time when the CPU is in infinite deep sleep
                while nothing is in the queue.
     */
-    inline unsigned long getMillis() {
+    inline unsigned long getMillis() const {
       unsigned long value;
       ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
         value = millis() + millisInDeepSleep;
@@ -297,6 +307,10 @@ class Scheduler {
        first element in the run queue
     */
     Task *first;
+    /*
+       the task currently running or null if none running
+    */
+    Task *current;
     /**
        Stores the time of the task from which the sleep time of the WDT is
        calculated when it is put to sleep.
@@ -346,6 +360,7 @@ Scheduler::Scheduler() {
   wdtSleepTimeMillis = 0;
 
   first = NULL;
+  current = NULL;
   firstRegularlyScheduledUptimeAfterSleep = 0;
   noDeepSleepLocksCount = 0;
 }
@@ -396,7 +411,7 @@ void Scheduler::scheduleAtFrontOfQueue(Runnable *runnable) {
   }
 }
 
-bool Scheduler::isScheduled(void (*callback)()) {
+bool Scheduler::isScheduled(void (*callback)()) const {
   bool scheduled = false;
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
     Task *currentTask = first;
@@ -411,7 +426,7 @@ bool Scheduler::isScheduled(void (*callback)()) {
   return scheduled;
 }
 
-bool Scheduler::isScheduled(Runnable *runnable) {
+bool Scheduler::isScheduled(Runnable *runnable) const {
   bool scheduled = false;
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
     Task *currentTask = first;
@@ -424,6 +439,16 @@ bool Scheduler::isScheduled(Runnable *runnable) {
     }
   }
   return scheduled;
+}
+
+unsigned long Scheduler::getScheduleTimeOfCurrentTask() const {
+  ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+    if (current != NULL) {
+      return current->scheduledUptimeMillis;
+    } else {
+      return - 1;
+    }
+  }
 }
 
 void Scheduler::removeCallbacks(void (*callback)()) {
@@ -486,7 +511,7 @@ void Scheduler::releaseNoDeepSleepLock() {
   }
 }
 
-bool Scheduler::doesDeepSleep() {
+bool Scheduler::doesDeepSleep() const {
   return noDeepSleepLocksCount == 0;
 }
 
@@ -528,7 +553,6 @@ void Scheduler::execute() {
   interrupts();
   while (true) {
     while (true) {
-      Task *current = NULL;
       noInterrupts();
       if (first != NULL && first->scheduledUptimeMillis <= getMillis()) {
         current = first;
@@ -544,6 +568,9 @@ void Scheduler::execute() {
         lastTaskFinishedMillis = millis();
 #endif
         delete current;
+        noInterrupts();
+        current = NULL;
+        interrupts();
       } else {
         break;
       }
