@@ -2,7 +2,10 @@
 #include "SerialManager.h"
 #include <DS3232RTC.h>    // http://github.com/JChristensen/DS3232RTC
 
-SerialManager::SerialManager() {
+SerialManager::SerialManager(byte bluetoothEnablePin) : bluetoothEnablePin(bluetoothEnablePin) {
+  if (bluetoothEnablePin != UNDEFINED) {
+    pinMode(bluetoothEnablePin, OUTPUT);
+  }
   int freeRamValue = freeRam();
   Serial.begin(9600);
   delay(100); // wait for serial to init
@@ -11,8 +14,11 @@ SerialManager::SerialManager() {
   Serial.println(freeRamValue);
 }
 
-void SerialManager::startSerial(unsigned int durationMs) {
+void SerialManager::startSerial(unsigned long durationMs) {
   SerialManager::durationMs = durationMs;
+  if (bluetoothEnablePin != UNDEFINED) {
+    digitalWrite(bluetoothEnablePin, HIGH);
+  }
 
   serialLastActiveMillis = millis();
   if (!aquiredWakeLock) {
@@ -31,12 +37,15 @@ void SerialManager::run() {
     serialLastActiveMillis = millis();
     handleSerialInput();
   }
-  //  Serial.println(F("1"));
+
   if (millis() - serialLastActiveMillis > durationMs) {
     if (aquiredWakeLock) {
       aquiredWakeLock = false;
       scheduler.releaseNoDeepSleepLock();
       Serial.println(F("stop serial"));
+      if (bluetoothEnablePin != UNDEFINED) {
+        digitalWrite(bluetoothEnablePin, LOW);
+      }
     }
   } else {
     scheduler.scheduleDelayed(this, 1000);

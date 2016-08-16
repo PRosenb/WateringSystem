@@ -17,12 +17,13 @@
 #define START_MANUAL_PIN 9
 #define START_AUTOMATIC_PIN 10
 #define MODE_PIN 11
+#define BLUETOOTH_ENABLE_PIN 3
 
 SerialManager *serialManager;
 WaterManager *waterManager;
 
 void setup() {
-  serialManager = new SerialManager();
+  serialManager = new SerialManager(BLUETOOTH_ENABLE_PIN);
   waterManager = new WaterManager();
 
   RTC.alarmInterrupt(ALARM_1, true);
@@ -53,6 +54,7 @@ void loop() {
 // ----------------------------------------------------------------------------------
 void modeScheduled() {
   waterManager->modeClicked();
+  serialManager->startSerial(SERIAL_SLEEP_TIMEOUT_MS);
 
   // simple debounce
   delay(200);

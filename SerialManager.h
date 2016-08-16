@@ -5,14 +5,17 @@
 #define LIBCALL_DEEP_SLEEP_SCHEDULER
 #include "DeepSleepScheduler.h"
 
+#define UNDEFINED -1
+
 class SerialManager: public Runnable {
   public:
-    SerialManager();
+    SerialManager(byte bluetoothEnablePin);
     virtual ~SerialManager() {};
-    void startSerial(unsigned int durationMs);
+    void startSerial(unsigned long durationMs);
     int freeRam();
     void run();
   private:
+    const byte bluetoothEnablePin;
     unsigned long durationMs;
     unsigned long serialLastActiveMillis = 0;
     boolean aquiredWakeLock = false;
