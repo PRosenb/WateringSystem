@@ -17,14 +17,14 @@
 #define START_MANUAL_PIN 9
 #define START_AUTOMATIC_PIN 10
 #define MODE_PIN 11
-#define BLUETOOTH_ENABLE_PIN 3
+#define BLUETOOTH_ENABLE_PIN 2
 
 SerialManager *serialManager;
 WaterManager *waterManager;
 
 void setup() {
-  serialManager = new SerialManager(BLUETOOTH_ENABLE_PIN);
   waterManager = new WaterManager();
+  serialManager = new SerialManager(waterManager, BLUETOOTH_ENABLE_PIN);
 
   RTC.alarmInterrupt(ALARM_1, true);
   RTC.alarmInterrupt(ALARM_2, false);

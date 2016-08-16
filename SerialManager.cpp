@@ -2,7 +2,7 @@
 #include "SerialManager.h"
 #include <DS3232RTC.h>    // http://github.com/JChristensen/DS3232RTC
 
-SerialManager::SerialManager(byte bluetoothEnablePin) : bluetoothEnablePin(bluetoothEnablePin) {
+SerialManager::SerialManager(WaterManager *waterManager, byte bluetoothEnablePin) : waterManager(waterManager), bluetoothEnablePin(bluetoothEnablePin) {
   if (bluetoothEnablePin != UNDEFINED) {
     pinMode(bluetoothEnablePin, OUTPUT);
   }
@@ -195,21 +195,29 @@ void SerialManager::handleSerialInput() {
     case 'a':
       handleSetAlarmTime();
       break;
-    case 'm':
+    case 't':
       RTC.setAlarm(ALM1_MATCH_SECONDS, 0, 0, 0, 0);
       Serial.println(F("alarm every minute"));
       break;
     case 'g':
       handleGetAlarmTime(serialReadInt(1));
       break;
+    case 'm':
+      waterManager->modeClicked();
+      break;
+    case 's':
+      waterManager->startAutomatic();
+      break;
     default:
       Serial.print(F("Unknown command: "));
       Serial.println(command);
       Serial.println(F("Supported commands:"));
       Serial.println(F("a<hh>:<mm>: set alarm time"));
-      Serial.println(F("m set alarm every minute (for testing)"));
+      Serial.println(F("t set alarm every minute (for testing)"));
       Serial.println(F("g<alarmNumber>: get alarm time"));
       Serial.println(F("d<YYYY>-<MM>-<DD>T<hh>:<mm>: set date/time"));
+      Serial.println(F("m: change mode"));
+      Serial.println(F("s: start automatic"));
   }
 }
 

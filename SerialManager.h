@@ -4,17 +4,19 @@
 
 #define LIBCALL_DEEP_SLEEP_SCHEDULER
 #include "DeepSleepScheduler.h"
+#include "WaterManager.h"
 
 #define UNDEFINED -1
 
 class SerialManager: public Runnable {
   public:
-    SerialManager(byte bluetoothEnablePin);
+    SerialManager(WaterManager *waterManager, byte bluetoothEnablePin);
     virtual ~SerialManager() {};
     void startSerial(unsigned long durationMs);
     int freeRam();
     void run();
   private:
+    const WaterManager* waterManager;
     const byte bluetoothEnablePin;
     unsigned long durationMs;
     unsigned long serialLastActiveMillis = 0;
