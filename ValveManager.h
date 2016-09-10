@@ -15,9 +15,9 @@
 
 #define DURATION_WARN_SEC 2
 #define DURATION_WAIT_BEFORE_SEC 60
-#define DURATION_AUTOMATIC1_SEC 60 * 10
+#define DURATION_AUTOMATIC1_SEC 60 * 5
 #define DURATION_AUTOMATIC2_SEC 60 * 5
-#define DURATION_AUTOMATIC3_SEC 60 * 5
+#define DURATION_AUTOMATIC3_SEC 60 * 1
 #define DURATION_MANUAL_SEC 60 * 5
 
 class Valve {
@@ -126,13 +126,17 @@ class ValveManager {
     ValveSuperState *superStateMainOn;
 
     DurationState *stateIdle;
-    DurationState *stateWarn;
-    DurationState *stateWaitBefore;
+    DurationState *stateWarnAutomatic1;
+    DurationState *stateWaitBeforeAutomatic1;
     DurationState *stateAutomatic1;
     DurationState *stateBeforeWarnAutomatic2;
     DurationState *stateWarnAutomatic2;
     DurationState *stateWaitBeforeAutomatic2;
     DurationState *stateAutomatic2;
+    DurationState *stateBeforeWarnAutomatic3;
+    DurationState *stateWarnAutomatic3;
+    DurationState *stateWaitBeforeAutomatic3;
+    DurationState *stateAutomatic3;
     DurationState *stateManual;
 };
 

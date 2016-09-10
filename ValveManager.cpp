@@ -12,23 +12,35 @@ ValveManager::ValveManager(WaterMeter *waterMeter) {
   superStateMainOn = new ValveSuperState(valveMain, "mainOn");
 
   stateIdle = new DurationState(0, "areasIdle", superStateMainIdle);
-  stateWarn = new ValveState(valveArea1, (unsigned long) DURATION_WARN_SEC * 1000, "warn", superStateMainOn);
-  stateWaitBefore = new DurationState((unsigned long) DURATION_WAIT_BEFORE_SEC * 1000, "areasIdle", superStateMainIdle);
+  stateWarnAutomatic1 = new ValveState(valveArea1, (unsigned long) DURATION_WARN_SEC * 1000, "warn", superStateMainOn);
+  stateWaitBeforeAutomatic1 = new DurationState((unsigned long) DURATION_WAIT_BEFORE_SEC * 1000, "areasIdle", superStateMainIdle);
   stateAutomatic1 = new ValveState(valveArea1, (unsigned long) DURATION_AUTOMATIC1_SEC * 1000, "area1", superStateMainOn);
   // required to switch main valve off in between. Otherwise, the TaskMeter threashold is hit when filling pipe
   stateBeforeWarnAutomatic2 = new DurationState(1000, "beforeWarnArea2", superStateMainIdle);
   stateWarnAutomatic2 = new ValveState(valveArea2, (unsigned long) DURATION_WARN_SEC * 1000, "warnArea2", superStateMainOn);
   stateWaitBeforeAutomatic2 = new DurationState((unsigned long) DURATION_WAIT_BEFORE_SEC * 1000, "areasIdle", superStateMainIdle);
   stateAutomatic2 = new ValveState(valveArea2, (unsigned long) DURATION_AUTOMATIC2_SEC * 1000, "area2", superStateMainOn);
+  // required to switch main valve off in between. Otherwise, the TaskMeter threashold is hit when filling pipe
+  stateBeforeWarnAutomatic3 = new DurationState(1000, "beforeWarnArea3", superStateMainIdle);
+  stateWarnAutomatic3 = new ValveState(valveArea3, (unsigned long) DURATION_WARN_SEC * 1000, "warnArea3", superStateMainOn);
+  stateWaitBeforeAutomatic3 = new DurationState((unsigned long) DURATION_WAIT_BEFORE_SEC * 1000, "areasIdle", superStateMainIdle);
+  stateAutomatic3 = new ValveState(valveArea3, (unsigned long) DURATION_AUTOMATIC2_SEC * 1000, "area3", superStateMainOn);
   stateManual = new ValveState(valveArea1, (unsigned long) DURATION_MANUAL_SEC * 1000, "manual", superStateMainOn);
 
-  stateWarn->nextState = stateWaitBefore;
-  stateWaitBefore->nextState = stateAutomatic1;
+  stateWarnAutomatic1->nextState = stateWaitBeforeAutomatic1;
+  stateWaitBeforeAutomatic1->nextState = stateAutomatic1;
   stateAutomatic1->nextState = stateBeforeWarnAutomatic2;
+  
   stateBeforeWarnAutomatic2->nextState = stateWarnAutomatic2;
   stateWarnAutomatic2->nextState = stateWaitBeforeAutomatic2;
-  stateWaitBeforeAutomatic2->nextState = stateAutomatic2;
-  stateAutomatic2->nextState = stateIdle;
+  stateWaitBeforeAutomatic2->nextState = stateAutomatic2;  
+  stateAutomatic2->nextState = stateBeforeWarnAutomatic3;
+  
+  stateBeforeWarnAutomatic3->nextState = stateWarnAutomatic3;
+  stateWarnAutomatic3->nextState = stateWaitBeforeAutomatic3;
+  stateWaitBeforeAutomatic3->nextState = stateAutomatic3;
+  stateAutomatic3->nextState = stateIdle;
+  
   stateManual->nextState = stateIdle;
 
   fsm = new DurationFsm(*stateIdle, "FSM");
@@ -44,10 +56,17 @@ ValveManager::~ValveManager() {
   delete superStateMainOn;
 
   delete stateIdle;
-  delete stateWarn;
-  delete stateWaitBefore;
+  delete stateWarnAutomatic1;
+  delete stateWaitBeforeAutomatic1;
   delete stateAutomatic1;
+  delete stateBeforeWarnAutomatic2;
+  delete stateWarnAutomatic2;
+  delete stateWaitBeforeAutomatic2;
   delete stateAutomatic2;
+  delete stateBeforeWarnAutomatic3;
+  delete stateWarnAutomatic3;
+  delete stateWaitBeforeAutomatic3;
+  delete stateAutomatic3;
   delete stateManual;
   delete fsm;
 }
@@ -68,7 +87,7 @@ void ValveManager::stopAll() {
 void ValveManager::startAutomaticWithWarn() {
   // ignore if on manual
   if (!fsm->isInState(*stateManual)) {
-    fsm->changeState(*stateWarn);
+    fsm->changeState(*stateWarnAutomatic1);
   }
 }
 
