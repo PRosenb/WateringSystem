@@ -1,28 +1,24 @@
 
 #include <DS3232RTC.h>    // http://github.com/JChristensen/DS3232RTC
+#include "Constants.h"
 
-#define AWAKE_INDICATION_PIN 13
+#define AWAKE_INDICATION_PIN DEEP_SLEEP_SCHEDULER_AWAKE_INDICATION_PIN
 #define DEEP_SLEEP_DELAY 100
 #include "DeepSleepScheduler.h"
 
 #define EI_NOTPORTC
 #define EI_NOTPORTD
 #include <EnableInterrupt.h> // https://github.com/GreyGnome/EnableInterrupt
+#include "EepromWearLevel.h"
 
 #include "WaterManager.h"
 #include "SerialManager.h"
-
-// potential PinChangePins on Leonardo: 8, 9, 10, 11
-#define RTC_INT_PIN 8
-#define START_MANUAL_PIN 9
-#define START_AUTOMATIC_PIN 10
-#define MODE_PIN 11
-#define BLUETOOTH_ENABLE_PIN 2
 
 SerialManager *serialManager;
 WaterManager *waterManager;
 
 void setup() {
+  eepromWearLevel.begin(EEPROM_VERSION, EEPROM_INDEX_COUNT, EEPROM_LENGTH_TO_USE);
   waterManager = new WaterManager();
   serialManager = new SerialManager(waterManager, BLUETOOTH_ENABLE_PIN);
 

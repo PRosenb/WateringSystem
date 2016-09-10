@@ -6,8 +6,8 @@
 
 #define LIBCALL_DEEP_SLEEP_SCHEDULER
 #include "DeepSleepScheduler.h"
+#include "Constants.h"
 
-#define WATER_METER_PIN 12
 #define VALUES_COUNT 10
 
 // Runnable used to delay threshold

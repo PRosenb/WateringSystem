@@ -5,17 +5,9 @@
 #include "Arduino.h"
 #include "DurationFsm.h"
 #include "WaterMeter.h"
+#include "Constants.h"
 
 #define UNUSED 255
-
-#define VALVE1_PIN 4
-#define VALVE2_PIN 5
-#define VALVE3_PIN 6
-#define VALVE4_PIN 7
-
-#define EEPROM_INDEX_ZONE1 0
-#define EEPROM_INDEX_ZONE2 1
-#define EEPROM_INDEX_ZONE3 2
 
 #define DURATION_WARN_SEC 2
 #define DURATION_WAIT_BEFORE_SEC 60

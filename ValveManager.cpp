@@ -4,7 +4,6 @@
 #include "EepromWearLevel.h"
 
 ValveManager::ValveManager(WaterMeter *waterMeter) {
-  eepromWearLevel.begin(2, 3, 128);
   int durationZone1Sec = DEFAULT_DURATION_AUTOMATIC1_SEC;
   durationZone1Sec = eepromWearLevel.get(EEPROM_INDEX_ZONE1, durationZone1Sec);
   int durationZone2Sec = DEFAULT_DURATION_AUTOMATIC2_SEC;
