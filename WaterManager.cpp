@@ -50,6 +50,14 @@ void WaterManager::initModeFsm() {
   modeFsm = new DurationFsm(*modeOff, "ModeFSM");
 }
 
+void WaterManager::setZoneDuration(byte zone, int duration) {
+  valveManager->setZoneDuration(zone, duration);
+}
+
+void WaterManager::printStatus() {
+  valveManager->printStatus();
+}
+
 void WaterManager::modeClicked() {
   if (valveManager->isOn()) {
     valveManager->stopAll();

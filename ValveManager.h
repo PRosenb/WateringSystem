@@ -13,11 +13,15 @@
 #define VALVE3_PIN 6
 #define VALVE4_PIN 7
 
+#define EEPROM_INDEX_ZONE1 0
+#define EEPROM_INDEX_ZONE2 1
+#define EEPROM_INDEX_ZONE3 2
+
 #define DURATION_WARN_SEC 2
 #define DURATION_WAIT_BEFORE_SEC 60
-#define DURATION_AUTOMATIC1_SEC 60 * 5
-#define DURATION_AUTOMATIC2_SEC 60 * 5
-#define DURATION_AUTOMATIC3_SEC 60 * 1
+#define DEFAULT_DURATION_AUTOMATIC1_SEC 60 * 5
+#define DEFAULT_DURATION_AUTOMATIC2_SEC 60 * 5
+#define DEFAULT_DURATION_AUTOMATIC3_SEC 60 * 1
 #define DURATION_MANUAL_SEC 60 * 5
 
 class Valve {
@@ -115,6 +119,8 @@ class ValveManager {
     void startAutomatic();
     void stopAll();
     bool isOn();
+    void setZoneDuration(byte zone, int duration);
+    void printStatus();
   private:
     MeasuredValve *valveMain;
     Valve *valveArea1;

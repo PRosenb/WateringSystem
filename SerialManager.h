@@ -26,6 +26,7 @@ class SerialManager: public Runnable {
     void handleSetDateTime();
     void handleSetAlarmTime();
     void handleGetAlarmTime(byte alarmNumber);
+    void handleWrite();
     void handleSerialInput();
     // helper methods
     void readSerial(char inData[], int inDataLength);

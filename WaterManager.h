@@ -25,7 +25,9 @@ class WaterManager: public Runnable {
     void startAutomaticRtc();
     void startAutomatic();
     void startManual();
+    void setZoneDuration(byte zone, int duration);
     unsigned int getUsedWater();
+    void printStatus();
     void run();
   private:
     void initModeFsm();
