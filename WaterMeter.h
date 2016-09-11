@@ -21,6 +21,9 @@ class WaterMeter: public Runnable {
     inline void setThresholdSupervisionDelay(const unsigned long thresholdSupervisionDelay) {
       WaterMeter::thresholdSupervisionDelay = thresholdSupervisionDelay;
     }
+    unsigned long getSamplesInInterval() {
+      return samplesInInterval;
+    }
     inline unsigned int getTotalCount() {
       return totalPulseCount;
     }

@@ -11,7 +11,7 @@
 
 #define PIPE_FILLING_TIME_MS 11000
 // free flow around 68 per second
-#define WATER_METER_STOP_THRESHOLD 68
+#define DEFAULT_WATER_METER_STOP_THRESHOLD 68
 #define SERIAL_SLEEP_TIMEOUT_MS 120000
 
 class WaterManager: public Runnable {
@@ -23,6 +23,7 @@ class WaterManager: public Runnable {
     void startAutomatic();
     void startManual();
     void setZoneDuration(byte zone, int duration);
+    void setWaterMeterStopThreshold(int ticksPerSecond);
     unsigned int getUsedWater();
     void printStatus();
     void run();

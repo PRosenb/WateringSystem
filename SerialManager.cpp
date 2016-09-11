@@ -225,22 +225,35 @@ void SerialManager::handleSerialInput() {
       Serial.println(F("m: change mode"));
       Serial.println(F("s: start automatic"));
       Serial.println(F("wz<zone>:<value 3 digits> write zone duration in seconds"));
+      Serial.println(F("wm:<value 3 digits> write water meter stop threshold"));
       Serial.println(F("r print status"));
   }
 }
 
 void SerialManager::handleWrite() {
-  int writeType = serialReadInt(1);
-  int zoneNr = serialReadInt(1);
-  Serial.read(); // the :
-  int durationSec = serialReadInt(3);
-  Serial.print(F("handleWrite: "));
-  Serial.print(writeType);
-  Serial.print(F(" "));
-  Serial.print(zoneNr);
-  Serial.print(F(" "));
-  Serial.println(durationSec);
-  waterManager->setZoneDuration(zoneNr, durationSec);
+  char writeType = Serial.read();
+  switch (writeType) {
+    case 'z': {
+        int zoneNr = serialReadInt(1);
+        Serial.read(); // the :
+        int durationSec = serialReadInt(3);
+        Serial.print(F("handleWrite: "));
+        Serial.print(writeType);
+        Serial.print(F(" "));
+        Serial.print(zoneNr);
+        Serial.print(F(" "));
+        Serial.println(durationSec);
+        waterManager->setZoneDuration(zoneNr, durationSec);
+        break;
+      }
+    case 'm':
+      Serial.read(); // the :
+      int waterMeterStopThreshold = serialReadInt(3);
+      Serial.print(F("waterMeterStopThreshold: "));
+      Serial.println(waterMeterStopThreshold);
+      waterManager->setWaterMeterStopThreshold(waterMeterStopThreshold);
+      break;
+  }
 }
 
 // ----------------------------------------------------------------------------------

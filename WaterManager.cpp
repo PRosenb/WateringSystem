@@ -1,11 +1,16 @@
 
 #include "WaterManager.h"
 #include "LedState.h"
+#include "EepromWearLevel.h"
 
 WaterManager::WaterManager() {
+  int waterMeterStopThreshold = DEFAULT_WATER_METER_STOP_THRESHOLD;
+  waterMeterStopThreshold = eepromWearLevel.get(EEPROM_INDEX_WATER_METER_THRESHOLD, waterMeterStopThreshold);
+
   waterMeter = new WaterMeter(1000);
   waterMeter->setThresholdSupervisionDelay(PIPE_FILLING_TIME_MS);
-  waterMeter->setThresholdListener(WATER_METER_STOP_THRESHOLD, this);
+  waterMeter->setThresholdListener(waterMeterStopThreshold, this);
+
   valveManager = new ValveManager(waterMeter);
 
   initModeFsm();
@@ -54,7 +59,16 @@ void WaterManager::setZoneDuration(byte zone, int duration) {
   valveManager->setZoneDuration(zone, duration);
 }
 
+void WaterManager::setWaterMeterStopThreshold(int ticksPerSecond) {
+  eepromWearLevel.put(EEPROM_INDEX_WATER_METER_THRESHOLD, ticksPerSecond);
+  waterMeter->setThresholdListener(ticksPerSecond, this);
+}
+
 void WaterManager::printStatus() {
+  Serial.print(F("WaterMeter. Used: "));
+  Serial.print(waterMeter->getTotalCount());
+  Serial.print(F(", stop threshold: "));
+  Serial.println(waterMeter->getSamplesInInterval());
   valveManager->printStatus();
 }
 
