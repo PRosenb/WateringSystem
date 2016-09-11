@@ -8,7 +8,8 @@ SerialManager::SerialManager(WaterManager *waterManager, byte bluetoothEnablePin
   }
   int freeRamValue = freeRam();
   Serial.begin(9600);
-  delay(100); // wait for serial to init
+  // wait for serial port to connect
+  while (!Serial);
   Serial.println();
   Serial.print(F("------------------- startup: "));
   Serial.println(freeRamValue);
