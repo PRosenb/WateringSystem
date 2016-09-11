@@ -2,7 +2,7 @@
 #include "SerialManager.h"
 #include <DS3232RTC.h>    // http://github.com/JChristensen/DS3232RTC
 
-SerialManager::SerialManager(WaterManager *waterManager, byte bluetoothEnablePin) : waterManager(waterManager), bluetoothEnablePin(bluetoothEnablePin) {
+SerialManager::SerialManager(byte bluetoothEnablePin) :  bluetoothEnablePin(bluetoothEnablePin) {
   if (bluetoothEnablePin != UNDEFINED) {
     pinMode(bluetoothEnablePin, OUTPUT);
   }
@@ -13,6 +13,10 @@ SerialManager::SerialManager(WaterManager *waterManager, byte bluetoothEnablePin
   Serial.println();
   Serial.print(F("------------------- startup: "));
   Serial.println(freeRamValue);
+}
+
+void SerialManager::setWaterManager(WaterManager &waterManager) {
+  SerialManager::waterManager = waterManager;
 }
 
 void SerialManager::startSerial(unsigned long durationMs) {
@@ -204,13 +208,13 @@ void SerialManager::handleSerialInput() {
       handleGetAlarmTime(serialReadInt(1));
       break;
     case 'm':
-      waterManager->modeClicked();
+      waterManager.modeClicked();
       break;
     case 's':
-      waterManager->startAutomatic();
+      waterManager.startAutomatic();
       break;
     case 'r':
-      waterManager->printStatus();
+      waterManager.printStatus();
       break;
     case 'w':
       handleWrite();
@@ -244,7 +248,7 @@ void SerialManager::handleWrite() {
         Serial.print(zoneNr);
         Serial.print(F(" "));
         Serial.println(durationSec);
-        waterManager->setZoneDuration(zoneNr, durationSec);
+        waterManager.setZoneDuration(zoneNr, durationSec);
         break;
       }
     case 'm':
@@ -252,7 +256,7 @@ void SerialManager::handleWrite() {
       int waterMeterStopThreshold = serialReadInt(3);
       Serial.print(F("waterMeterStopThreshold: "));
       Serial.println(waterMeterStopThreshold);
-      waterManager->setWaterMeterStopThreshold(waterMeterStopThreshold);
+      waterManager.setWaterMeterStopThreshold(waterMeterStopThreshold);
       break;
   }
 }

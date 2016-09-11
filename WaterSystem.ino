@@ -18,9 +18,10 @@ SerialManager *serialManager;
 WaterManager *waterManager;
 
 void setup() {
+  serialManager = new SerialManager(BLUETOOTH_ENABLE_PIN);
   eepromWearLevel.begin(EEPROM_VERSION, EEPROM_INDEX_COUNT, EEPROM_LENGTH_TO_USE);
   waterManager = new WaterManager();
-  serialManager = new SerialManager(waterManager, BLUETOOTH_ENABLE_PIN);
+  serialManager->setWaterManager(*waterManager);
 
   RTC.alarmInterrupt(ALARM_1, true);
   RTC.alarmInterrupt(ALARM_2, false);
