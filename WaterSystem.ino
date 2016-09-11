@@ -67,6 +67,7 @@ void isrMode() {
 void startAutomaticRtc() {
   Serial.println(F("startAutomaticRtc"));
   waterManager->startAutomaticRtc();
+  serialManager->startSerial(SERIAL_SLEEP_TIMEOUT_MS);
 }
 
 void rtcScheduled() {
@@ -86,6 +87,7 @@ void isrRtc() {
 void startManual() {
   Serial.println(F("startManual"));
   waterManager->startManual();
+  serialManager->startSerial(SERIAL_SLEEP_TIMEOUT_MS);
 }
 
 void isrStartManual() {
@@ -95,6 +97,7 @@ void isrStartManual() {
 void startAutomatic() {
   Serial.println(F("startAutomatic"));
   waterManager->startAutomatic();
+  serialManager->startSerial(SERIAL_SLEEP_TIMEOUT_MS);
 }
 
 void isrStartAutomatic() {
