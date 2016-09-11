@@ -111,7 +111,13 @@ void ValveManager::startAutomaticWithWarn() {
 }
 
 void ValveManager::startAutomatic() {
-  fsm->changeState(*stateAutomatic1);
+  if (fsm->isInState(*stateAutomatic1)) {
+    fsm->changeState(*stateAutomatic2);
+  } else if (fsm->isInState(*stateAutomatic2)) {
+    fsm->changeState(*stateAutomatic3);
+  } else {
+    fsm->changeState(*stateAutomatic1);
+  }
 }
 
 void ValveManager::setZoneDuration(byte zone, int duration) {

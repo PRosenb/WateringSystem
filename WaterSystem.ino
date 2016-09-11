@@ -98,6 +98,10 @@ void startAutomatic() {
   Serial.println(F("startAutomatic"));
   waterManager->startAutomatic();
   serialManager->startSerial(SERIAL_SLEEP_TIMEOUT_MS);
+  
+  // simple debounce
+  delay(200);
+  scheduler.removeCallbacks(startAutomatic);
 }
 
 void isrStartAutomatic() {
