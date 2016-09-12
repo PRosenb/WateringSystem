@@ -14,26 +14,23 @@
     limitations under the License.
 */
 /*
-  This file is part of the EepromWearLevel library for Arduino.
+  This file is part of the EEPROM_WearLevel library for Arduino.
 */
 
 #ifndef EEPROM_WEAR_LEVEL_H
 #define EEPROM_WEAR_LEVEL_H
 
-// -------------------------------------------------------------------------------------------------
-// Definition (usually in H file)
-// -------------------------------------------------------------------------------------------------
 #include <EEPROM.h>
 
 //#define NO_EEPROM_WRITES
-#define EEPROM_SIZE 34
+#define FAKE_EEPROM_SIZE 34
 
 #define INDEX_VERSION 0
 #define NO_DATA -1
 
-class EepromWearLevel: EEPROMClass {
+class EEPROM_WearLevel: EEPROMClass {
   public:
-    EepromWearLevel();
+    EEPROM_WearLevel();
 
     void begin(const byte version, const int amountOfIndexes);
     void begin(const byte version, const int amountOfIndexes, const int eepromLengthToUse);
@@ -46,10 +43,10 @@ class EepromWearLevel: EEPROMClass {
     void update(const int idx, const uint8_t val);
     void write(const int idx, const uint8_t val);
 
-    template< typename T > T &EepromWearLevel::get(const int idx, T &t) {
+    template< typename T > T &get(const int idx, T &t) {
       return getImpl(idx, t);
     }
-    template< typename T > const T &EepromWearLevel::put(const int idx, const T &t) {
+    template< typename T > const T &put(const int idx, const T &t) {
       put(idx, t, true);
     }
 
@@ -66,7 +63,7 @@ class EepromWearLevel: EEPROMClass {
 
     EepromConfig *eepromConfig;
 #ifdef NO_EEPROM_WRITES
-    byte eeprom[EEPROM_SIZE];
+    byte fakeEeprom[FAKE_EEPROM_SIZE];
 #endif
     unsigned int amountOfIndexes;
 
@@ -91,7 +88,7 @@ class EepromWearLevel: EEPROMClass {
     // --------------------------------------------------------
     // implementation of template methods
     // --------------------------------------------------------
-    template< typename T > T &EepromWearLevel::getImpl(const int idx, T &t) {
+    template< typename T > T &getImpl(const int idx, T &t) {
       const int lastIndex = eepromConfig[idx].lastIndexRead;
       if (lastIndex != NO_DATA) {
         const int dataLength = sizeof(t);
@@ -102,7 +99,7 @@ class EepromWearLevel: EEPROMClass {
 #else
         byte *values = (byte*) &t;
         for (int i = 0; i < dataLength; i++) {
-          values[i] = eeprom[firstIndex + i];
+          values[i] = fakeEeprom[firstIndex + i];
         }
 #endif
       } else {
@@ -111,7 +108,7 @@ class EepromWearLevel: EEPROMClass {
       return t;
     }
 
-    template< typename T > const T &EepromWearLevel::put(const int idx, const T &t, const bool update) {
+    template< typename T > const T &put(const int idx, const T &t, const bool update) {
       const int dataLength = sizeof(t);
       const byte *values = (const byte*) &t;
       const int controlBytesCount = getControlBytesCount(idx);
@@ -125,20 +122,19 @@ class EepromWearLevel: EEPROMClass {
 #else
       const T &resT = t;
       for (int i = 0; i < dataLength; i++) {
-        eeprom[newStartIndex + i] = values[i];
+        fakeEeprom[writeStartIndex + i] = values[i];
       }
 #endif
       updateControlBytes(idx, writeStartIndex, dataLength, controlBytesCount);
       return t;
     }
-
 };
 
 
 /**
-   the instance of EepromWearLevel
+   the instance of EEPROM_WearLevel
 */
-extern EepromWearLevel eepromWearLevel;
+extern EEPROM_WearLevel EEPROMwl;
 
 #endif // #ifndef EEPROM_WEAR_LEVEL_H
 

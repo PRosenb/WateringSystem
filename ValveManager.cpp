@@ -1,15 +1,15 @@
 
 #include "ValveManager.h"
 #include <Time.h>         // http://www.arduino.cc/playground/Code/Time
-#include "EepromWearLevel.h"
+#include "EEPROM_WearLevel.h"
 
 ValveManager::ValveManager(WaterMeter *waterMeter) {
   int durationZone1Sec = DEFAULT_DURATION_AUTOMATIC1_SEC;
-  durationZone1Sec = eepromWearLevel.get(EEPROM_INDEX_ZONE1, durationZone1Sec);
+  durationZone1Sec = EEPROMwl.get(EEPROM_INDEX_ZONE1, durationZone1Sec);
   int durationZone2Sec = DEFAULT_DURATION_AUTOMATIC2_SEC;
-  durationZone2Sec = eepromWearLevel.get(EEPROM_INDEX_ZONE2, durationZone2Sec);
+  durationZone2Sec = EEPROMwl.get(EEPROM_INDEX_ZONE2, durationZone2Sec);
   int durationZone3Sec = DEFAULT_DURATION_AUTOMATIC3_SEC;
-  durationZone3Sec = eepromWearLevel.get(EEPROM_INDEX_ZONE3, durationZone3Sec);
+  durationZone3Sec = EEPROMwl.get(EEPROM_INDEX_ZONE3, durationZone3Sec);
 
   // set limit
   if (durationZone1Sec > 1000) {
@@ -123,15 +123,15 @@ void ValveManager::startAutomatic() {
 void ValveManager::setZoneDuration(byte zone, int duration) {
   switch (zone) {
     case 1:
-      eepromWearLevel.put(EEPROM_INDEX_ZONE1, duration);
+      EEPROMwl.put(EEPROM_INDEX_ZONE1, duration);
       stateAutomatic1->minDurationMs = (unsigned long)duration * 1000;
       break;
     case 2:
-      eepromWearLevel.put(EEPROM_INDEX_ZONE2, duration);
+      EEPROMwl.put(EEPROM_INDEX_ZONE2, duration);
       stateAutomatic2->minDurationMs = (unsigned long)duration * 1000;
       break;
     case 3:
-      eepromWearLevel.put(EEPROM_INDEX_ZONE3, duration);
+      EEPROMwl.put(EEPROM_INDEX_ZONE3, duration);
       stateAutomatic3->minDurationMs = (unsigned long)duration * 1000;
       break;
   }
@@ -149,16 +149,16 @@ void ValveManager::printStatus() {
 
   int value = -1;
   Serial.print(F("eeprom: zone1: "));
-  Serial.print(eepromWearLevel.get(EEPROM_INDEX_ZONE1, value));
+  Serial.print(EEPROMwl.get(EEPROM_INDEX_ZONE1, value));
   Serial.print(F(", zone2: "));
   value = -1;
-  Serial.print(eepromWearLevel.get(EEPROM_INDEX_ZONE2, value));
+  Serial.print(EEPROMwl.get(EEPROM_INDEX_ZONE2, value));
   Serial.print(F(", zone3: "));
   value = -1;
-  Serial.print(eepromWearLevel.get(EEPROM_INDEX_ZONE3, value));
+  Serial.print(EEPROMwl.get(EEPROM_INDEX_ZONE3, value));
   Serial.println();
-  eepromWearLevel.printStatus();
-  eepromWearLevel.printBinary(0, 128);
+  EEPROMwl.printStatus();
+  EEPROMwl.printBinary(0, 128);
   Serial.println();
 }
 

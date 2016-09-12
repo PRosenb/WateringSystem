@@ -9,7 +9,7 @@
 #define EI_NOTPORTC
 #define EI_NOTPORTD
 #include <EnableInterrupt.h> // https://github.com/GreyGnome/EnableInterrupt
-#include "EepromWearLevel.h"
+#include "EEPROM_WearLevel.h"
 
 #include "WaterManager.h"
 #include "SerialManager.h"
@@ -19,7 +19,7 @@ WaterManager *waterManager;
 
 void setup() {
   serialManager = new SerialManager(BLUETOOTH_ENABLE_PIN);
-  eepromWearLevel.begin(EEPROM_VERSION, EEPROM_INDEX_COUNT, EEPROM_LENGTH_TO_USE);
+  EEPROMwl.begin(EEPROM_VERSION, EEPROM_INDEX_COUNT, EEPROM_LENGTH_TO_USE);
   waterManager = new WaterManager();
   serialManager->setWaterManager(*waterManager);
 

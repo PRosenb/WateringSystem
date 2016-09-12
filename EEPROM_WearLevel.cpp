@@ -1,23 +1,23 @@
 #include <Arduino.h>
-#include "EepromWearLevel.h"
+#include "EEPROM_WearLevel.h"
 
-static EepromWearLevel eepromWearLevel;
+static EEPROM_WearLevel EEPROMwl;
 
-EepromWearLevel::EepromWearLevel() {
+EEPROM_WearLevel::EEPROM_WearLevel() {
 #ifdef NO_EEPROM_WRITES
-  for (int i = 0; i < EEPROM_SIZE; i++) {
-    eeprom[i] = 0xFF;
+  for (int i = 0; i < FAKE_EEPROM_SIZE; i++) {
+    fakeEeprom[i] = 0xFF;
   }
 #endif
 }
 
-void EepromWearLevel::begin(const byte version, const int amountOfIndexes) {
+void EEPROM_WearLevel::begin(const byte version, const int amountOfIndexes) {
   begin(version, amountOfIndexes, EEPROMClass::length());
 }
 
-void EepromWearLevel::begin(const byte version, const int amountOfIndexes, const int eepromLengthToUse) {
+void EEPROM_WearLevel::begin(const byte version, const int amountOfIndexes, const int eepromLengthToUse) {
   int startIndex = 1; // index 0 reserved for the version
-  EepromWearLevel::amountOfIndexes = amountOfIndexes;
+  EEPROM_WearLevel::amountOfIndexes = amountOfIndexes;
   // +1 to store a place holder element in the last
   // place to get the lenth of the last element
   eepromConfig = new EepromConfig[amountOfIndexes + 1];
@@ -33,7 +33,7 @@ void EepromWearLevel::begin(const byte version, const int amountOfIndexes, const
   init(version);
 }
 
-void EepromWearLevel::begin(const byte version, const int lengths[]) {
+void EEPROM_WearLevel::begin(const byte version, const int lengths[]) {
   int startIndex = 1; // index 0 reserved for the version
   amountOfIndexes = sizeof(lengths);
   // +1 to store a place holder element in the last
@@ -50,16 +50,17 @@ void EepromWearLevel::begin(const byte version, const int lengths[]) {
   init(version);
 }
 
-void EepromWearLevel::init(const byte version) {
+void EEPROM_WearLevel::init(const byte version) {
   const byte previousVersion = readByte(INDEX_VERSION);
 #ifndef NO_EEPROM_WRITES
   EEPROMClass::write(INDEX_VERSION, version);
 #else
-  eeprom[0] = version;
+  fakeEeprom[0] = version;
 #endif
 
   // -1 because the last one is a placeholder
-  for (int index = 0; index < amountOfIndexes; index++) {
+  int index;
+  for (index = 0; index < amountOfIndexes; index++) {
     const int controlBytesCount = getControlBytesCount(index);
     if (version != previousVersion) {
       clearBytesToOnes(eepromConfig[index].startIndexControlBytes, controlBytesCount);
@@ -67,32 +68,34 @@ void EepromWearLevel::init(const byte version) {
 
     eepromConfig[index].lastIndexRead = findIndex(eepromConfig[index], controlBytesCount);
   }
+  // the last one as a placeholder to calculate the length of the last real element
+  eepromConfig[index].lastIndexRead = NO_DATA;
 }
 
-int EepromWearLevel::getMaxDataLength(const int idx) {
+int EEPROM_WearLevel::getMaxDataLength(const int idx) {
   return eepromConfig[idx + 1].startIndexControlBytes
          - eepromConfig[idx].startIndexControlBytes
          - getControlBytesCount(idx);
 }
 
-unsigned int EepromWearLevel::length() {
+unsigned int EEPROM_WearLevel::length() {
   return amountOfIndexes;
 }
 
-uint8_t EepromWearLevel::read(const int idx) {
-  uint8_t value;
+uint8_t EEPROM_WearLevel::read(const int idx) {
+  uint8_t value = 0;
   return get(idx, value);
 }
 
-void EepromWearLevel::update(const int idx, const uint8_t val) {
+void EEPROM_WearLevel::update(const int idx, const uint8_t val) {
   put(idx, val, true);
 }
 
-void EepromWearLevel::write(const int idx, const uint8_t val) {
+void EEPROM_WearLevel::write(const int idx, const uint8_t val) {
   put(idx, val, false);
 }
 
-int EepromWearLevel::getWriteStartIndex(const int idx, const int dataLength, const byte *values, const bool update, const int controlBytesCount) {
+int EEPROM_WearLevel::getWriteStartIndex(const int idx, const int dataLength, const byte *values, const bool update, const int controlBytesCount) {
   Serial.print(F("dataLength: "));
   Serial.println(dataLength);
   if (dataLength > getMaxDataLength(idx)) {
@@ -139,7 +142,7 @@ int EepromWearLevel::getWriteStartIndex(const int idx, const int dataLength, con
   return newStartIndex;
 }
 
-void EepromWearLevel::updateControlBytes(int idx, int newStartIndex, int dataLength, const int controlBytesCount) {
+void EEPROM_WearLevel::updateControlBytes(int idx, int newStartIndex, int dataLength, const int controlBytesCount) {
   EepromConfig &config = eepromConfig[idx];
   // -1 because it is the last index
   config.lastIndexRead = newStartIndex + dataLength - 1;
@@ -172,7 +175,7 @@ void EepromWearLevel::updateControlBytes(int idx, int newStartIndex, int dataLen
   }
 }
 
-void EepromWearLevel::printBinary(int startIndex, int endIndex) {
+void EEPROM_WearLevel::printBinary(int startIndex, int endIndex) {
   for (int i = startIndex; i <= endIndex; i++) {
     const byte value = readByte(i);
     Serial.print(i);
@@ -189,7 +192,7 @@ void EepromWearLevel::printBinary(int startIndex, int endIndex) {
   Serial.println();
 }
 
-void EepromWearLevel::printStatus() {
+void EEPROM_WearLevel::printStatus() {
   Serial.println(F("EepromWearLevel status: "));
   for (int index = 0; index < amountOfIndexes; index++) {
     const int controlBytesCount = getControlBytesCount(index);
@@ -205,7 +208,7 @@ void EepromWearLevel::printStatus() {
   }
 }
 
-const int EepromWearLevel::getControlBytesCount(const int idx) {
+const int EEPROM_WearLevel::getControlBytesCount(const int idx) {
   const int length = eepromConfig[idx + 1].startIndexControlBytes - eepromConfig[idx].startIndexControlBytes;
   if ((length % 9) == 0) {
     // div exact
@@ -216,7 +219,7 @@ const int EepromWearLevel::getControlBytesCount(const int idx) {
   }
 }
 
-const int EepromWearLevel::findIndex(const EepromConfig &config, const int controlBytesCount) {
+const int EEPROM_WearLevel::findIndex(const EepromConfig &config, const int controlBytesCount) {
   const int startIndexData = config.startIndexControlBytes + controlBytesCount;
   const int controlByteIndex = findControlByteIndex(config.startIndexControlBytes, controlBytesCount);
   const byte currentByte = readByte(controlByteIndex);
@@ -252,7 +255,7 @@ const int EepromWearLevel::findIndex(const EepromConfig &config, const int contr
    points to the next write position.
    The index is inside of control bytes even if all used.
 */
-const int EepromWearLevel::findControlByteIndex(const int startIndex, const int length) {
+const int EEPROM_WearLevel::findControlByteIndex(const int startIndex, const int length) {
   const int endIndex = startIndex + length - 1;
   int lowerBound = startIndex;
   int upperBound = endIndex;
@@ -312,17 +315,17 @@ const int EepromWearLevel::findControlByteIndex(const int startIndex, const int 
   }
 }
 
-const inline byte EepromWearLevel::readByte(const int index) {
+const inline byte EEPROM_WearLevel::readByte(const int index) {
 #ifndef NO_EEPROM_WRITES
   return EEPROMClass::read(index);
 #else
-  return eeprom[index];
+  return fakeEeprom[index];
 #endif
 }
 
 
 // http://www.tronix.io/data/avratmega/eeprom/
-void EepromWearLevel::programBitToZero(int index, byte bitIndex) {
+void EEPROM_WearLevel::programBitToZero(int index, byte bitIndex) {
   byte value = 0xFF;
   value &= ~(1 << (7 - bitIndex));
   Serial.print(F("writeBite: "));
@@ -331,7 +334,7 @@ void EepromWearLevel::programBitToZero(int index, byte bitIndex) {
   programZeroBitsToZero(index, value);
 }
 
-void EepromWearLevel::programZeroBitsToZero(int index, byte byteWithZeros, int retryCount) {
+void EEPROM_WearLevel::programZeroBitsToZero(int index, byte byteWithZeros, int retryCount) {
   do {
     Serial.print(F("byteWithZeros: "));
     printBinWithLeadingZeros(byteWithZeros);
@@ -347,13 +350,13 @@ void EepromWearLevel::programZeroBitsToZero(int index, byte byteWithZeros, int r
 
 #ifdef NO_EEPROM_WRITES
 // emulate EEPROM behaviour to program only bits that are 0
-void EepromWearLevel::programZeroBitsToZero(int index, byte byteWithZeros) {
+void EEPROM_WearLevel::programZeroBitsToZero(int index, byte byteWithZeros) {
   byte mask = 1;
   int bitPosInByte = 7;
   // do while bit still in mask
   while (mask != 0) {
     if ((byteWithZeros & mask) == 0) {
-      eeprom[index] &= ~(1 << (7 - bitPosInByte));
+      fakeEeprom[index] &= ~(1 << (7 - bitPosInByte));
       Serial.println(bitPosInByte);
     }
     mask <<= 1;
@@ -361,7 +364,7 @@ void EepromWearLevel::programZeroBitsToZero(int index, byte byteWithZeros) {
   }
 }
 #else
-void EepromWearLevel::programZeroBitsToZero(int index, byte byteWithZeros) {
+void EEPROM_WearLevel::programZeroBitsToZero(int index, byte byteWithZeros) {
   // EEPROM Mode Bits.
   // EEPM1.0 = 0 0 - Mode 0 Erase & Write in one operation.
   // EEPM1.0 = 0 1 - Mode 1 Erase only.
@@ -393,13 +396,13 @@ void EepromWearLevel::programZeroBitsToZero(int index, byte byteWithZeros) {
 }
 #endif
 
-void EepromWearLevel::clearBytesToOnes(int fromIndex, int length) {
+void EEPROM_WearLevel::clearBytesToOnes(int fromIndex, int length) {
   for (int i = fromIndex; i < fromIndex + length; i++) {
     if (readByte(i) != 0xFF) {
 #ifndef NO_EEPROM_WRITES
       clearByteToOnes(i);
 #else
-      eeprom[i] = 0xFF;
+      fakeEeprom[i] = 0xFF;
 #endif
       Serial.print(F("clear byte: "));
       Serial.println(i);
@@ -407,7 +410,7 @@ void EepromWearLevel::clearBytesToOnes(int fromIndex, int length) {
   }
 }
 
-void EepromWearLevel::clearByteToOnes(int index) {
+void EEPROM_WearLevel::clearByteToOnes(int index) {
   // EEPROM Mode Bits.
   // EEPM1.0 = 0 0 - Mode 0 Erase & Write in one operation.
   // EEPM1.0 = 0 1 - Mode 1 Erase only.
@@ -435,7 +438,7 @@ void EepromWearLevel::clearByteToOnes(int index) {
   SREG = u8SREG;
 }
 
-void EepromWearLevel::printBinWithLeadingZeros(byte value) {
+void EEPROM_WearLevel::printBinWithLeadingZeros(byte value) {
   byte mask = 1 << 7;
   for (int bitPosInByte = 0; bitPosInByte < 8; bitPosInByte++) {
     Serial.print((value & mask) != 0 ? 1 : 0);
