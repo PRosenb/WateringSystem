@@ -9,7 +9,7 @@
 #define EI_NOTPORTC
 #define EI_NOTPORTD
 #include <EnableInterrupt.h> // https://github.com/GreyGnome/EnableInterrupt
-#include "EEPROM_WearLevel.h"
+#include "EEPROMWearLevel.h"
 
 #include "WaterManager.h"
 #include "SerialManager.h"

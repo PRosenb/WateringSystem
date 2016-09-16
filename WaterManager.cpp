@@ -1,7 +1,7 @@
 
 #include "WaterManager.h"
 #include "LedState.h"
-#include "EEPROM_WearLevel.h"
+#include "EEPROMWearLevel.h"
 
 WaterManager::WaterManager() {
   int waterMeterStopThreshold = DEFAULT_WATER_METER_STOP_THRESHOLD;

@@ -1,7 +1,7 @@
 
 #include "ValveManager.h"
 #include <Time.h>         // http://www.arduino.cc/playground/Code/Time
-#include "EEPROM_WearLevel.h"
+#include "EEPROMWearLevel.h"
 
 ValveManager::ValveManager(WaterMeter *waterMeter) {
   int durationZone1Sec = DEFAULT_DURATION_AUTOMATIC1_SEC;
