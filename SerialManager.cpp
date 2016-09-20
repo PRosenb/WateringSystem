@@ -15,7 +15,7 @@ SerialManager::SerialManager(byte bluetoothEnablePin) :  bluetoothEnablePin(blue
   Serial.println(freeRamValue);
 }
 
-void SerialManager::setWaterManager(WaterManager &waterManager) {
+void SerialManager::setWaterManager(WaterManager *waterManager) {
   SerialManager::waterManager = waterManager;
 }
 
@@ -208,13 +208,13 @@ void SerialManager::handleSerialInput() {
       handleGetAlarmTime(serialReadInt(1));
       break;
     case 'm':
-      waterManager.modeClicked();
+      waterManager->modeClicked();
       break;
     case 's':
-      waterManager.startAutomatic();
+      waterManager->startAutomatic();
       break;
     case 'r':
-      waterManager.printStatus();
+      waterManager->printStatus();
       break;
     case 'w':
       handleWrite();
@@ -248,7 +248,7 @@ void SerialManager::handleWrite() {
         Serial.print(zoneNr);
         Serial.print(F(" "));
         Serial.println(durationSec);
-        waterManager.setZoneDuration(zoneNr, durationSec);
+        waterManager->setZoneDuration(zoneNr, durationSec);
         break;
       }
     case 'm':
@@ -256,7 +256,7 @@ void SerialManager::handleWrite() {
       int waterMeterStopThreshold = serialReadInt(3);
       Serial.print(F("waterMeterStopThreshold: "));
       Serial.println(waterMeterStopThreshold);
-      waterManager.setWaterMeterStopThreshold(waterMeterStopThreshold);
+      waterManager->setWaterMeterStopThreshold(waterMeterStopThreshold);
       break;
   }
 }

@@ -21,7 +21,7 @@ void setup() {
   serialManager = new SerialManager(BLUETOOTH_ENABLE_PIN);
   EEPROMwl.begin(EEPROM_VERSION, EEPROM_INDEX_COUNT, EEPROM_LENGTH_TO_USE);
   waterManager = new WaterManager();
-  serialManager->setWaterManager(*waterManager);
+  serialManager->setWaterManager(waterManager);
 
   RTC.alarmInterrupt(ALARM_1, true);
   RTC.alarmInterrupt(ALARM_2, false);

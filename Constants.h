@@ -26,7 +26,7 @@
 // potential PinChangePins on Leonardo: 8, 9, 10, 11
 
 // EEPROM
-#define EEPROM_VERSION 4
+#define EEPROM_VERSION 0
 #define EEPROM_LENGTH_TO_USE 128
 #define EEPROM_INDEX_COUNT 4
 

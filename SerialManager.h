@@ -12,12 +12,12 @@ class SerialManager: public Runnable {
   public:
     SerialManager(byte bluetoothEnablePin);
     virtual ~SerialManager() {};
-    void setWaterManager(WaterManager &waterManager);
+    void setWaterManager(WaterManager *waterManager);
     void startSerial(unsigned long durationMs);
     int freeRam();
     void run();
   private:
-    WaterManager &waterManager;
+    WaterManager *waterManager;
     const byte bluetoothEnablePin;
     unsigned long durationMs;
     unsigned long serialLastActiveMillis = 0;
