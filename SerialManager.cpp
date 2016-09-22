@@ -1,6 +1,7 @@
 
 #include "SerialManager.h"
 #include <DS3232RTC.h>    // http://github.com/JChristensen/DS3232RTC
+#include "EEPROMWearLevel.h"
 
 SerialManager::SerialManager(byte bluetoothEnablePin) :  bluetoothEnablePin(bluetoothEnablePin) {
   if (bluetoothEnablePin != UNDEFINED) {
@@ -205,6 +206,10 @@ void SerialManager::handleStatus() {
   Serial.print(F("Current time: "));
   setSyncProvider(RTC.get);
   printTime(now());
+  int resetCount = 0;
+  EEPROMwl.get(EEPROM_INDEX_WATCHDOG_RESET_COUNT, resetCount);
+  Serial.print(F("WD reset count: "));
+  Serial.println(resetCount);
   waterManager->printStatus();
 }
 

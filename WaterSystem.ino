@@ -4,6 +4,7 @@
 
 #define AWAKE_INDICATION_PIN DEEP_SLEEP_SCHEDULER_AWAKE_INDICATION_PIN
 #define DEEP_SLEEP_DELAY 100
+#define SUPERVISION_CALLBACK
 #include "DeepSleepScheduler.h"
 
 #define EI_NOTPORTC
@@ -16,6 +17,14 @@
 
 SerialManager *serialManager;
 WaterManager *waterManager;
+
+class SupervisionCallback: public Runnable {
+    void run() {
+      int resetCount = 0;
+      EEPROMwl.get(EEPROM_INDEX_WATCHDOG_RESET_COUNT, resetCount);
+      EEPROMwl.put(EEPROM_INDEX_WATCHDOG_RESET_COUNT, resetCount + 1);
+    }
+};
 
 void setup() {
   serialManager = new SerialManager(BLUETOOTH_ENABLE_PIN);
@@ -38,6 +47,8 @@ void setup() {
   enableInterrupt(START_AUTOMATIC_PIN, isrStartAutomatic, FALLING);
   pinMode(MODE_PIN, INPUT_PULLUP);
   enableInterrupt(MODE_PIN, isrMode, FALLING);
+
+  scheduler.setSupervisionCallback(new SupervisionCallback());
 
   serialManager->startSerial(SERIAL_SLEEP_TIMEOUT_MS);
 }
@@ -98,7 +109,7 @@ void startAutomatic() {
   Serial.println(F("startAutomatic"));
   waterManager->startAutomatic();
   serialManager->startSerial(SERIAL_SLEEP_TIMEOUT_MS);
-  
+
   // simple debounce
   delay(200);
   scheduler.removeCallbacks(startAutomatic);
