@@ -90,7 +90,7 @@ void SerialManager::handleSetDateTime() {
   int hours = serialReadInt(2);
   char colon = Serial.available() ? Serial.read() : 0;
   int minutes = serialReadInt(2);
-  if (colon == ':' && dash1 == '-' && dash2 == '-' && tsign == 'T'
+  if (colon == ':' && dash1 == '-' && dash2 == '-' && (tsign == 'T' || tsign == ' ')
       && monthValue >= 1 && monthValue <= 12
       && dayValue >= 1 && dayValue <= 31
       && hours >= 0 && hours <= 24
