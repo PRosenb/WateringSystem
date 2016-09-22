@@ -22,6 +22,8 @@
     To use it in multiple files, define LIBCALL_DEEP_SLEEP_SCHEDULER before all include statements except one.
   All following options are to be set before the include where no LIBCALL_DEEP_SLEEP_SCHEDULER is defined.
   - #define DEEP_SLEEP_DELAY: Prevent the CPU from entering SLEEP_MODE_PWR_DOWN for the specified amount of milli seconds after finishing the previous task.
+  - #define SUPERVISION_CALLBACK: Allows to specify a callback Runnable to be called when a task runs too long.
+  - #define SUPERVISION_CALLBACK_TIMEOUT: Specify the timeout of the callback until the watchdog resets the CPU. Defaults to WDTO_1S.
   - #define AWAKE_INDICATION_PIN: Show on a LED if the CPU is active or in sleep mode. HIGH = active, LOW = sleeping.
   - #define SLEEP_TIME_XXX_CORRECTION: When the CPU wakes up from SLEEP_MODE_PWR_DOWN, it needs some cycles to get active. This is also dependent on
     the used CPU type. Using the constants SLEEP_TIME_15MS_CORRECTION to SLEEP_TIME_8S_CORRECTION you can define more exact values for your
@@ -40,6 +42,10 @@
 #include <util/atomic.h>
 
 // values changeable by the user
+#ifndef SUPERVISION_CALLBACK_TIMEOUT
+#define SUPERVISION_CALLBACK_TIMEOUT WDTO_1S
+#endif
+
 #ifndef SLEEP_TIME_15MS_CORRECTION
 #define SLEEP_TIME_15MS_CORRECTION 3
 #endif
@@ -250,6 +256,12 @@ class Scheduler {
     */
     Scheduler();
 
+#ifdef SUPERVISION_CALLBACK
+    void setSupervisionCallback(const Runnable *runnable) {
+      supervisionCallbackRunnable = runnable;
+    }
+#endif
+
     /**
         Do not call this method, it is used by the watchdog interrupt.
     */
@@ -305,6 +317,10 @@ class Scheduler {
     static volatile unsigned long millisBeforeDeepSleep;
     static volatile unsigned int wdtSleepTimeMillis;
 
+#ifdef SUPERVISION_CALLBACK
+    static volatile const Runnable *supervisionCallbackRunnable;
+#endif
+
     /**
        currently set task timeout
     */
@@ -356,6 +372,9 @@ Scheduler scheduler = Scheduler();
 volatile unsigned long Scheduler::millisInDeepSleep;
 volatile unsigned long Scheduler::millisBeforeDeepSleep;
 volatile unsigned int Scheduler::wdtSleepTimeMillis;
+#ifdef SUPERVISION_CALLBACK
+volatile const Runnable *Scheduler::supervisionCallbackRunnable;
+#endif
 
 Scheduler::Scheduler() {
 #ifdef AWAKE_INDICATION_PIN
@@ -557,6 +576,11 @@ void Scheduler::execute() {
   noInterrupts();
   if (taskTimeout != NO_SUPERVISION) {
     wdt_enable(taskTimeout);
+#ifdef SUPERVISION_CALLBACK
+    // enable interrupt
+    // first timeout will be the interrupt, second system reset
+    WDTCSR |= (1 << WDCE) | (1 << WDIE);
+#endif
   }
   interrupts();
   while (true) {
@@ -599,6 +623,11 @@ void Scheduler::execute() {
         // change back to taskTimeout
         wdt_reset();
         wdt_enable(taskTimeoutLocal);
+#ifdef SUPERVISION_CALLBACK
+        // enable interrupt
+        // first timeout will be the interrupt, second system reset
+        WDTCSR |= (1 << WDCE) | (1 << WDIE);
+#endif
       } else {
         // tasks are not suppervised, deactivate WDT
         wdt_disable();
@@ -774,8 +803,19 @@ inline unsigned long Scheduler::enableWdt(const unsigned long maxWaitTimeMillis)
 void Scheduler::isrWdt() {
   sleep_disable();
   millisInDeepSleep += wdtSleepTimeMillis;
-  wdtSleepTimeMillis = 0;
   millisInDeepSleep -= millis() - millisBeforeDeepSleep;
+#ifdef SUPERVISION_CALLBACK
+  const unsigned int wdtSleepTimeMillisBefore = wdtSleepTimeMillis;
+#endif
+  wdtSleepTimeMillis = 0;
+#ifdef SUPERVISION_CALLBACK
+  if (wdtSleepTimeMillisBefore == 0 && supervisionCallbackRunnable != NULL) {
+    wdt_reset();
+    // give the callback some time but reset if it fails
+    wdt_enable(SUPERVISION_CALLBACK_TIMEOUT);
+    supervisionCallbackRunnable->run();
+  }
+#endif
 }
 
 ISR (WDT_vect) {
