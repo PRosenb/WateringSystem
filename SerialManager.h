@@ -2,6 +2,7 @@
 #ifndef SERIAL_MANAGER_H
 #define SERIAL_MANAGER_H
 
+#include <timeLib.h>
 #define LIBCALL_DEEP_SLEEP_SCHEDULER
 #include "DeepSleepScheduler.h"
 #include "WaterManager.h"
@@ -22,12 +23,14 @@ class SerialManager: public Runnable {
     unsigned long durationMs;
     unsigned long serialLastActiveMillis = 0;
     boolean aquiredWakeLock = false;
+    time_t startupTime;
 
-    void printTime();
+    void printTime(time_t time);
     void handleSetDateTime();
     void handleSetAlarmTime();
     void handleGetAlarmTime(byte alarmNumber);
     void handleWrite();
+    void handleStatus();
     void handleSerialInput();
     // helper methods
     void readSerial(char inData[], int inDataLength);

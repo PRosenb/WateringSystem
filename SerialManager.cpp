@@ -10,9 +10,14 @@ SerialManager::SerialManager(byte bluetoothEnablePin) :  bluetoothEnablePin(blue
   Serial.begin(9600);
   // wait for serial port to connect
   while (!Serial);
+
+  // print startup message
   Serial.println();
-  Serial.print(F("------------------- startup: "));
+  Serial.print(F("------------------- startup, free RAM: "));
   Serial.println(freeRamValue);
+  setSyncProvider(RTC.get);
+  startupTime = now();
+  printTime(startupTime);
 }
 
 void SerialManager::setWaterManager(WaterManager *waterManager) {
@@ -37,7 +42,6 @@ void SerialManager::startSerial(unsigned long durationMs) {
 }
 
 void SerialManager::run() {
-  printTime();
   if (Serial.available() > 0) {
     serialLastActiveMillis = millis();
     handleSerialInput();
@@ -48,6 +52,7 @@ void SerialManager::run() {
       aquiredWakeLock = false;
       scheduler.releaseNoDeepSleepLock();
       Serial.println(F("stop serial"));
+      delay(150);
       if (bluetoothEnablePin != UNDEFINED) {
         digitalWrite(bluetoothEnablePin, LOW);
       }
@@ -57,16 +62,19 @@ void SerialManager::run() {
   }
 }
 
-void SerialManager::printTime() {
-  setSyncProvider(RTC.get);
-  Serial.print(hour(), DEC);
-  Serial.print(F(":"));
-  Serial.print(minute(), DEC);
-  Serial.print(F(":"));
-  Serial.print(second(), DEC);
+void SerialManager::printTime(time_t t) {
+  Serial.print(year(t));
+  Serial.print(F("-"));
+  printTwoDigits(month(t));
+  Serial.print(F("-"));
+  printTwoDigits(day(t));
   Serial.print(F(" "));
-  //  Serial.print(waterManager->getUsedWater());
-  Serial.print(F(" "));
+  printTwoDigits(hour(t));
+  Serial.print(F(":"));
+  printTwoDigits(minute(t));
+  Serial.print(F(":"));
+  printTwoDigits(second(t));
+  Serial.print(F(", free RAM: "));
   Serial.println(freeRam());
 }
 
@@ -191,6 +199,15 @@ void SerialManager::handleGetAlarmTime(byte alarmNumber) {
   Serial.println();
 }
 
+void SerialManager::handleStatus() {
+  Serial.print(F("Startup time: "));
+  printTime(startupTime);
+  Serial.print(F("Current time: "));
+  setSyncProvider(RTC.get);
+  printTime(now());
+  waterManager->printStatus();
+}
+
 void SerialManager::handleSerialInput() {
   char command = Serial.read();
   switch (command) {
@@ -214,7 +231,7 @@ void SerialManager::handleSerialInput() {
       waterManager->startAutomatic();
       break;
     case 'r':
-      waterManager->printStatus();
+      handleStatus();
       break;
     case 'w':
       handleWrite();

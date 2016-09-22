@@ -25,7 +25,7 @@
 /**
    uncomment to use an array instead of the real EEPROM for testing purpose
 */
-#define NO_EEPROM_WRITES
+//#define NO_EEPROM_WRITES
 /**
    uncomment to write debug logs to Serial
 */

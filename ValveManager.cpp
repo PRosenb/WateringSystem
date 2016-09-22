@@ -138,14 +138,13 @@ void ValveManager::setZoneDuration(byte zone, int duration) {
 }
 
 void ValveManager::printStatus() {
-  Serial.println(F("Duration"));
   Serial.print(F("zone1: "));
   Serial.print(stateAutomatic1->minDurationMs / 1000);
-  Serial.print(F(", zone2: "));
+  Serial.print(F("s, zone2: "));
   Serial.print(stateAutomatic2->minDurationMs / 1000);
-  Serial.print(F(", zone3: "));
+  Serial.print(F("s, zone3: "));
   Serial.print(stateAutomatic3->minDurationMs / 1000);
-  Serial.println();
+  Serial.println(F("s"));
 
   int value = -1;
   Serial.print(F("eeprom: zone1: "));
