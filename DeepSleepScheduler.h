@@ -814,6 +814,9 @@ void Scheduler::isrWdt() {
     // give the callback some time but reset if it fails
     wdt_enable(SUPERVISION_CALLBACK_TIMEOUT);
     supervisionCallbackRunnable->run();
+    // trigger restart
+    wdt_enable(WDTO_15MS);
+    while (1);
   }
 #endif
 }
