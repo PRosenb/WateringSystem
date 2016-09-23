@@ -27,8 +27,17 @@ class SupervisionCallback: public Runnable {
 };
 
 void setup() {
-  serialManager = new SerialManager(BLUETOOTH_ENABLE_PIN);
   EEPROMwl.begin(EEPROM_VERSION, EEPROM_INDEX_COUNT, EEPROM_LENGTH_TO_USE);
+  int resetCount = 0;
+  EEPROMwl.get(EEPROM_INDEX_WATCHDOG_RESET_COUNT, resetCount);
+  if (resetCount > 100) {
+    pinMode(MODE_COLOR_GREEN_PIN, OUTPUT);
+    digitalWrite(MODE_COLOR_GREEN_PIN, LOW);
+    pinMode(MODE_COLOR_RED_PIN, OUTPUT);
+    digitalWrite(MODE_COLOR_RED_PIN, LOW);
+    return;
+  }
+  serialManager = new SerialManager(BLUETOOTH_ENABLE_PIN);
   waterManager = new WaterManager();
   serialManager->setWaterManager(waterManager);
 
