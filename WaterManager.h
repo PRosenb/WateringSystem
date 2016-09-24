@@ -31,6 +31,7 @@ class WaterManager: public Runnable {
     void initModeFsm();
     ValveManager *valveManager;
     WaterMeter *waterMeter;
+    unsigned int stoppedByThreshold;
 
     // ModeFsm    
     DurationState *modeOff;

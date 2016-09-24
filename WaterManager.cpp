@@ -6,6 +6,7 @@
 WaterManager::WaterManager() {
   int waterMeterStopThreshold = DEFAULT_WATER_METER_STOP_THRESHOLD;
   waterMeterStopThreshold = EEPROMwl.get(EEPROM_INDEX_WATER_METER_THRESHOLD, waterMeterStopThreshold);
+  stoppedByThreshold = 0;
 
   waterMeter = new WaterMeter(1000);
   waterMeter->setThresholdSupervisionDelay(PIPE_FILLING_TIME_MS);
@@ -27,8 +28,9 @@ WaterManager::~WaterManager() {
 }
 
 void WaterManager::run() {
+  stoppedByThreshold = waterMeter->getLastPulseCountOverThreshold();
   Serial.print(F("ThresholdListener: "));
-  Serial.println(waterMeter->getLastPulseCountOverThreshold());
+  Serial.println(stoppedByThreshold);
   valveManager->stopAll();
   modeFsm->changeState(*modeOff);
 }
@@ -65,10 +67,16 @@ void WaterManager::setWaterMeterStopThreshold(int ticksPerSecond) {
 }
 
 void WaterManager::printStatus() {
-  Serial.print(F("WaterMeter. Used: "));
+  Serial.print(F("WaterMeter: "));
+  Serial.print(F("used: "));
   Serial.print(waterMeter->getTotalCount());
   Serial.print(F(", stop threshold: "));
-  Serial.println(waterMeter->getSamplesInInterval());
+  Serial.print(waterMeter->getSamplesInInterval());
+  if (stoppedByThreshold > 0) {
+    Serial.print(F(", stopped by threshold: "));
+    Serial.print(stoppedByThreshold);
+  }
+  Serial.println();
   valveManager->printStatus();
 }
 
@@ -81,6 +89,7 @@ void WaterManager::modeClicked() {
     if (digitalRead(MODE_COLOR_GREEN_PIN) == LOW
         || digitalRead(MODE_COLOR_RED_PIN) == LOW
         || digitalRead(MODE_COLOR_BLUE_PIN) == LOW) {
+      stoppedByThreshold = 0;
       modeFsm->immediatelyChangeToNextState();
     }
   }
