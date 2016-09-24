@@ -201,16 +201,29 @@ void SerialManager::handleGetAlarmTime(byte alarmNumber) {
 }
 
 void SerialManager::handleStatus() {
-  Serial.print(F("Startup time: "));
-  printTime(startupTime);
-  Serial.print(F("Current time: "));
-  setSyncProvider(RTC.get);
-  printTime(now());
-  int resetCount = 0;
-  EEPROMwl.get(EEPROM_INDEX_WATCHDOG_RESET_COUNT, resetCount);
-  Serial.print(F("WD reset count: "));
-  Serial.println(resetCount);
-  waterManager->printStatus();
+  const byte subCommand = Serial.available() ? Serial.read() : 0;
+  if (subCommand == 'e') {
+    char colon = Serial.available() ? Serial.read() : 0;
+    int startAddress = serialReadInt(3);
+    char comma = Serial.available() ? Serial.read() : 0;
+    int endAddress = serialReadInt(3);
+    EEPROMwl.printStatus();
+    if (endAddress > 0) {
+      EEPROMwl.printBinary(startAddress, endAddress);
+      Serial.println();
+    }
+  } else {
+    Serial.print(F("Startup time: "));
+    printTime(startupTime);
+    Serial.print(F("Current time: "));
+    setSyncProvider(RTC.get);
+    printTime(now());
+    int resetCount = 0;
+    EEPROMwl.get(EEPROM_INDEX_WATCHDOG_RESET_COUNT, resetCount);
+    Serial.print(F("WD reset count: "));
+    Serial.println(resetCount);
+    waterManager->printStatus();
+  }
 }
 
 void SerialManager::handleSerialInput() {
@@ -232,10 +245,10 @@ void SerialManager::handleSerialInput() {
     case 'm':
       waterManager->modeClicked();
       break;
-    case 's':
+    case 'i':
       waterManager->startAutomatic();
       break;
-    case 'r':
+    case 's':
       handleStatus();
       break;
     case 'w':
@@ -250,10 +263,12 @@ void SerialManager::handleSerialInput() {
       Serial.println(F("g<alarmNumber>: get alarm time"));
       Serial.println(F("d<YYYY>-<MM>-<DD>T<hh>:<mm>: set date/time"));
       Serial.println(F("m: change mode"));
-      Serial.println(F("s: start automatic"));
+      Serial.println(F("i: start automatic"));
       Serial.println(F("wz<zone>:<value 3 digits> write zone duration in seconds"));
       Serial.println(F("wm:<value 3 digits> write water meter stop threshold"));
-      Serial.println(F("r print status"));
+      Serial.println(F("s print status"));
+      Serial.println(F("se print status of EEPROM"));
+      Serial.println(F("se:<from 3 digits>,<to 3 digits> print status of EEPROM"));
   }
 }
 

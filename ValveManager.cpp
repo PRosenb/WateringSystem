@@ -156,9 +156,6 @@ void ValveManager::printStatus() {
   value = -1;
   Serial.print(EEPROMwl.get(EEPROM_INDEX_ZONE3, value));
   Serial.println();
-  EEPROMwl.printStatus();
-  EEPROMwl.printBinary(0, 128);
-  Serial.println();
 }
 
 bool ValveManager::isOn() {
