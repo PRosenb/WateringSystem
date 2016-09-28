@@ -55,7 +55,7 @@ void EEPROMWearLevel::init(const byte layoutVersion) {
 #ifndef NO_EEPROM_WRITES
   EEPROMClass::write(INDEX_VERSION, layoutVersion);
 #else
-  fakeEeprom[0] = layoutVersion;
+  fakeEeprom[INDEX_VERSION] = layoutVersion;
 #endif
 
   // -1 because the last one is a placeholder
@@ -264,6 +264,7 @@ const int EEPROMWearLevel::findIndex(const EEPROMConfig &config, const int contr
    returns the index of the control byte that contains the bit which
    points to the next write position.
    The index is inside of control bytes even if all used.
+   Does a binary search to find the index.
 */
 const int EEPROMWearLevel::findControlByteIndex(const int startIndex, const int length) {
   const int endIndex = startIndex + length - 1;
@@ -279,19 +280,22 @@ const int EEPROMWearLevel::findControlByteIndex(const int startIndex, const int 
 
     currentByte = readByte(midPoint);
     if (currentByte != 0 && currentByte != 0xFF) {
+      // searched control byte found because it is neigher 0 nor 0xFF what means
+      // that some of its bits are in use, some not
       return midPoint;
     } else {
       if (currentByte == 0) {
-        // data is in upper half
+        // searched control byte is in upper half
         lowerBound = midPoint + 1;
       } else {
-        // data is in lower half
+        // searched control byte is in lower half
         upperBound = midPoint - 1;
       }
     }
   }
 
   if (currentByte == 0) {
+    // searched control byte is above
     int controlByteIndex = midPoint;
     while (currentByte == 0 && controlByteIndex < endIndex) {
       controlByteIndex++;
@@ -299,6 +303,7 @@ const int EEPROMWearLevel::findControlByteIndex(const int startIndex, const int 
     }
     return controlByteIndex;
   } else {
+    // currentByte == 0xff so searched control byte is below
     int controlByteIndex = midPoint;
     while (currentByte == 0xFF && controlByteIndex >= startIndex) {
       controlByteIndex--;
@@ -310,7 +315,7 @@ const int EEPROMWearLevel::findControlByteIndex(const int startIndex, const int 
       // do not go to next because it is the last one
       return controlByteIndex;
     } else {
-      // go to next as current is 0
+      // go to next as current control byte is 0
       return controlByteIndex + 1;
     }
   }
