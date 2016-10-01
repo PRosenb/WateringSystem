@@ -4,6 +4,7 @@
 static EEPROMWearLevel EEPROMwl;
 
 EEPROMWearLevel::EEPROMWearLevel() {
+  amountOfIndexes = 0;
 #ifdef NO_EEPROM_WRITES
   for (int i = 0; i < FAKE_EEPROM_SIZE; i++) {
     fakeEeprom[i] = 0xFF;
@@ -73,16 +74,34 @@ void EEPROMWearLevel::init(const byte layoutVersion) {
 }
 
 int EEPROMWearLevel::getMaxDataLength(const int idx) {
+#ifndef NO_RANGE_CHECK
+  if (idx >= amountOfIndexes) {
+    logOutOfRange(idx);
+    return 0;
+  }
+#endif
   return eepromConfig[idx + 1].startIndexControlBytes
          - eepromConfig[idx].startIndexControlBytes
          - getControlBytesCount(idx);
 }
 
 int EEPROMWearLevel::getStartIndexEEPROM(const int idx) {
+#ifndef NO_RANGE_CHECK
+  if (idx >= amountOfIndexes) {
+    logOutOfRange(idx);
+    return ERROR_CODE;
+  }
+#endif
   return eepromConfig[idx].startIndexControlBytes + getControlBytesCount(idx);
 }
 
 int EEPROMWearLevel::getCurrentIndexEEPROM(const int idx, int dataLength) {
+#ifndef NO_RANGE_CHECK
+  if (idx >= amountOfIndexes) {
+    logOutOfRange(idx);
+    return ERROR_CODE;
+  }
+#endif
   // +1 because lastIndexRead is the last index of the current element
   return eepromConfig[idx].lastIndexRead + 1 - dataLength;
 }
@@ -92,6 +111,12 @@ unsigned int EEPROMWearLevel::length() {
 }
 
 uint8_t EEPROMWearLevel::read(const int idx) {
+#ifndef NO_RANGE_CHECK
+  if (idx >= amountOfIndexes) {
+    logOutOfRange(idx);
+    return 0;
+  }
+#endif
   uint8_t value = 0;
   return get(idx, value);
 }
@@ -454,5 +479,14 @@ const void EEPROMWearLevel::printBinWithLeadingZeros(byte value) {
     Serial.print((value & mask) != 0 ? 1 : 0);
     mask >>= 1;
   }
+}
+
+void EEPROMWearLevel::logOutOfRange(int idx) {
+#ifdef DEBUG_LOG
+  Serial.print(F("idx out of range: "));
+  Serial.print(idx);
+  Serial.print(F(" of "));
+  Serial.println(amountOfIndexes);
+#endif
 }
 

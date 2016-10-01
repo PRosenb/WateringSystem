@@ -23,6 +23,10 @@
 #include <EEPROM.h>
 
 /**
+   uncomment to deactivate the range check of idx.
+*/
+//#define NO_RANGE_CHECK
+/**
    uncomment to use an array instead of the real EEPROM for testing purpose
 */
 //#define NO_EEPROM_WRITES
@@ -45,6 +49,11 @@
    definition of no data, happens when no data has been written yet.
 */
 #define NO_DATA -1
+
+/**
+   returned when an error occured, e.g. out of index if RANGE_CHECK is defined
+*/
+#define ERROR_CODE -2
 
 class EEPROMWearLevel: EEPROMClass {
   public:
@@ -124,13 +133,13 @@ class EEPROMWearLevel: EEPROMClass {
        writes a new value if it is not the same as the last one
     */
     template< typename T > const T &put(const int idx, const T &t) {
-      put(idx, t, true);
+      return put(idx, t, true);
     }
     /**
        writes a new value no matter what value was written before.
     */
     template< typename T > const T &putToNext(const int idx, const T &t) {
-      put(idx, t, false);
+      return put(idx, t, false);
     }
 
     /**
@@ -228,10 +237,21 @@ class EEPROMWearLevel: EEPROMClass {
     */
     const void printBinWithLeadingZeros(byte value);
 
+    /**
+       print out of range error message to serial if DEBUG_LOG defined
+    */
+    void logOutOfRange(int idx);
+
     // --------------------------------------------------------
     // implementation of template methods
     // --------------------------------------------------------
     template< typename T > T &getImpl(const int idx, T &t) {
+#ifndef NO_RANGE_CHECK
+      if (idx >= amountOfIndexes) {
+        logOutOfRange(idx);
+        return t;
+      }
+#endif
       const int lastIndex = eepromConfig[idx].lastIndexRead;
       if (lastIndex != NO_DATA) {
         const int dataLength = sizeof(t);
@@ -258,6 +278,12 @@ class EEPROMWearLevel: EEPROMClass {
        if the previous value was different.
     */
     template< typename T > const T &put(const int idx, const T &t, const bool update) {
+#ifndef NO_RANGE_CHECK
+      if (idx >= amountOfIndexes) {
+        logOutOfRange(idx);
+        return t;
+      }
+#endif
       const int dataLength = sizeof(t);
       const byte *values = (const byte*) &t;
       const int controlBytesCount = getControlBytesCount(idx);
