@@ -14,7 +14,7 @@
     limitations under the License.
 */
 /*
-  This file is part of the EEPROM_WearLevel library for Arduino.
+  This file is part of the EEPROMWearLevel library for Arduino.
 */
 
 #ifndef EEPROM_WEAR_LEVEL_H
@@ -67,6 +67,7 @@ class EEPROMWearLevel: EEPROMClass {
         @param amountOfIndexes the amount of indexes you want to use.
     */
     void begin(const byte layoutVersion, const int amountOfIndexes);
+    
     /**
         Initialises EEPROMWearLevel. One of the begin() methods must be called
         before any other method.
@@ -78,6 +79,7 @@ class EEPROMWearLevel: EEPROMClass {
         to use parts of the EEPROM for other purpose.
     */
     void begin(const byte layoutVersion, const int amountOfIndexes, const int eepromLengthToUse);
+    
     /**
         Initialises EEPROMWearLevel. One of the begin() methods must be called
         before any other method.
@@ -88,35 +90,28 @@ class EEPROMWearLevel: EEPROMClass {
         to the entries in lenths.
     */
     void begin(const byte layoutVersion, const int lengths[]);
+    
+     /**
+       Returns the amount of indexes that can be used. This value is defined by the begin() method.
+    */
+    unsigned int length();
 
     /**
        returns the maximum size a single element can be. If the element is larger than half of
        the maximum size, no wear levelling will be possible.
     */
     int getMaxDataLength(const int idx);
-    /**
-       returns the first index used to store data for this idx.
-       This method can be called to use EEPROMWEarLevel as a ring buffer.
-    */
-    int getStartIndexEEPROM(const int idx);
-    /**
-       returns the current read index of this idx.
-        This method can be called to use EEPROMWEarLevel as a ring buffer.
-    */
-    int getCurrentIndexEEPROM(const int idx, int dataLength) ;
-    /**
-       Returns the amount of indexes that can be used. This value is defined by the begin() method.
-    */
-    unsigned int length();
 
     /**
        reads one byte from idx
     */
     uint8_t read(const int idx);
+    
     /**
-       writes one byte if it is not the same as the last one
+       writes one byte if it is not the same as the last one.
     */
     void update(const int idx, const uint8_t val);
+    
     /**
        writes one byte no matter what value was written before.
     */
@@ -129,23 +124,38 @@ class EEPROMWearLevel: EEPROMClass {
     template< typename T > T &get(const int idx, T &t) {
       return getImpl(idx, t);
     }
+    
     /**
        writes a new value if it is not the same as the last one
     */
     template< typename T > const T &put(const int idx, const T &t) {
       return put(idx, t, true);
     }
+    
     /**
        writes a new value no matter what value was written before.
     */
     template< typename T > const T &putToNext(const int idx, const T &t) {
       return put(idx, t, false);
     }
+    
+   /**
+       returns the first index used to store data for this idx.
+       This method can be called to use EEPROMWEarLevel as a ring buffer.
+    */
+    int getStartIndexEEPROM(const int idx);
+    
+    /**
+       returns the current read index of this idx.
+        This method can be called to use EEPROMWEarLevel as a ring buffer.
+    */
+    int getCurrentIndexEEPROM(const int idx, int dataLength) ;
 
     /**
        prints the EEPROMWearLevel status to Serial.
     */
     void printStatus();
+    
     /**
        prints content of the EEPROM to Serial
     */
@@ -307,7 +317,7 @@ class EEPROMWearLevel: EEPROMClass {
 
 
 /**
-   the instance of EEPROM_WearLevel
+   the instance of EEPROMWearLevel
 */
 extern EEPROMWearLevel EEPROMwl;
 

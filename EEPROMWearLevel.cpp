@@ -73,6 +73,10 @@ void EEPROMWearLevel::init(const byte layoutVersion) {
   eepromConfig[index].lastIndexRead = NO_DATA;
 }
 
+unsigned int EEPROMWearLevel::length() {
+  return amountOfIndexes;
+}
+
 int EEPROMWearLevel::getMaxDataLength(const int idx) {
 #ifndef NO_RANGE_CHECK
   if (idx >= amountOfIndexes) {
@@ -83,6 +87,25 @@ int EEPROMWearLevel::getMaxDataLength(const int idx) {
   return eepromConfig[idx + 1].startIndexControlBytes
          - eepromConfig[idx].startIndexControlBytes
          - getControlBytesCount(idx);
+}
+
+uint8_t EEPROMWearLevel::read(const int idx) {
+#ifndef NO_RANGE_CHECK
+  if (idx >= amountOfIndexes) {
+    logOutOfRange(idx);
+    return 0;
+  }
+#endif
+  uint8_t value = 0;
+  return get(idx, value);
+}
+
+void EEPROMWearLevel::update(const int idx, const uint8_t val) {
+  put(idx, val, true);
+}
+
+void EEPROMWearLevel::write(const int idx, const uint8_t val) {
+  put(idx, val, false);
 }
 
 int EEPROMWearLevel::getStartIndexEEPROM(const int idx) {
@@ -104,29 +127,6 @@ int EEPROMWearLevel::getCurrentIndexEEPROM(const int idx, int dataLength) {
 #endif
   // +1 because lastIndexRead is the last index of the current element
   return eepromConfig[idx].lastIndexRead + 1 - dataLength;
-}
-
-unsigned int EEPROMWearLevel::length() {
-  return amountOfIndexes;
-}
-
-uint8_t EEPROMWearLevel::read(const int idx) {
-#ifndef NO_RANGE_CHECK
-  if (idx >= amountOfIndexes) {
-    logOutOfRange(idx);
-    return 0;
-  }
-#endif
-  uint8_t value = 0;
-  return get(idx, value);
-}
-
-void EEPROMWearLevel::update(const int idx, const uint8_t val) {
-  put(idx, val, true);
-}
-
-void EEPROMWearLevel::write(const int idx, const uint8_t val) {
-  put(idx, val, false);
 }
 
 const int EEPROMWearLevel::getWriteStartIndex(const int idx, const int dataLength, const byte *values, const bool update, const int controlBytesCount) {
@@ -207,6 +207,22 @@ void EEPROMWearLevel::updateControlBytes(int idx, int newStartIndex, int dataLen
   }
 }
 
+void EEPROMWearLevel::printStatus() {
+  Serial.println(F("EEPROMWearLevel status: "));
+  for (int index = 0; index < amountOfIndexes; index++) {
+    const int controlBytesCount = getControlBytesCount(index);
+    Serial.print(index);
+    Serial.print(F(": "));
+    Serial.print(eepromConfig[index].startIndexControlBytes);
+    Serial.print(F("-"));
+    Serial.print(eepromConfig[index + 1].startIndexControlBytes);
+    Serial.print(F(" with "));
+    Serial.print(controlBytesCount);
+    Serial.print(F(" ctrl bytes at "));
+    Serial.println(eepromConfig[index].lastIndexRead);
+  }
+}
+
 void EEPROMWearLevel::printBinary(int startIndex, int endIndex) {
   for (int i = startIndex; i <= endIndex; i++) {
     const byte value = readByte(i);
@@ -222,22 +238,6 @@ void EEPROMWearLevel::printBinary(int startIndex, int endIndex) {
     }
   }
   Serial.println();
-}
-
-void EEPROMWearLevel::printStatus() {
-  Serial.println(F("EEPROMWearLevel status: "));
-  for (int index = 0; index < amountOfIndexes; index++) {
-    const int controlBytesCount = getControlBytesCount(index);
-    Serial.print(index);
-    Serial.print(F(": "));
-    Serial.print(eepromConfig[index].startIndexControlBytes);
-    Serial.print(F("-"));
-    Serial.print(eepromConfig[index + 1].startIndexControlBytes);
-    Serial.print(F(" with "));
-    Serial.print(controlBytesCount);
-    Serial.print(F(" ctrl bytes at "));
-    Serial.println(eepromConfig[index].lastIndexRead);
-  }
 }
 
 const int EEPROMWearLevel::getControlBytesCount(const int idx) {
