@@ -365,6 +365,7 @@ class Scheduler {
     inline void sleepIfRequired();
     inline SleepMode evaluateSleepModeAndEnableWdtIfRequired();
     inline unsigned long enableWdt(unsigned long maxWaitTimeMillis);
+    inline void enableWdtInterrupt();
 };
 
 /**
@@ -586,9 +587,7 @@ void Scheduler::execute() {
   if (taskTimeout != NO_SUPERVISION) {
     wdt_enable(taskTimeout);
 #ifdef SUPERVISION_CALLBACK
-    // enable interrupt
-    // first timeout will be the interrupt, second system reset
-    WDTCSR |= (1 << WDCE) | (1 << WDIE);
+    enableWdtInterrupt();
 #endif
   }
   interrupts();
@@ -633,9 +632,7 @@ void Scheduler::execute() {
         wdt_reset();
         wdt_enable(taskTimeoutLocal);
 #ifdef SUPERVISION_CALLBACK
-        // enable interrupt
-        // first timeout will be the interrupt, second system reset
-        WDTCSR |= (1 << WDCE) | (1 << WDIE);
+        enableWdtInterrupt();
 #endif
       } else {
         // tasks are not suppervised, deactivate WDT
@@ -740,9 +737,7 @@ Scheduler::SleepMode Scheduler::evaluateSleepModeAndEnableWdtIfRequired() {
 
       noInterrupts();
       wdtSleepTimeMillis = wdtSleepTimeMillisLocal;
-      // enable interrupt
-      // first timeout will be the interrupt, second system reset
-      WDTCSR |= (1 << WDCE) | (1 << WDIE);
+      enableWdtInterrupt();
       millisBeforeDeepSleep = millis();
       interrupts();
     }
@@ -750,7 +745,7 @@ Scheduler::SleepMode Scheduler::evaluateSleepModeAndEnableWdtIfRequired() {
     // wdt already running, so we woke up due to an other interrupt then WDT.
     // continue sleepting without enabling wdt again
     sleepMode = PWR_DOWN;
-    WDTCSR |= (1 << WDCE) | (1 << WDIE);
+    enableWdtInterrupt();
     // A special case is when the other interrupt scheduled a task between now and before the WDT interrupt occurs.
     // In this case, we prevent SLEEP_MODE_PWR_DOWN until it is scheduled.
     // If the WDT interrupt occurs before that, it is executed earlier as expected because getMillis() will be
@@ -830,6 +825,18 @@ void Scheduler::isrWdt() {
 #endif
 }
 
+/**
+  first timeout will be the interrupt, second system reset
+*/
+inline void Scheduler::enableWdtInterrupt() {
+  // http://forum.arduino.cc/index.php?topic=108870.0
+#if defined( __AVR_ATtiny25__ ) || defined( __AVR_ATtiny45__ ) || defined( __AVR_ATtiny85__ ) || defined( __AVR_ATtiny87__ ) || defined( __AVR_ATtiny167__ )
+  WDTCR |= (1 << WDCE) | (1 << WDIE);
+#else
+  WDTCSR |= (1 << WDCE) | (1 << WDIE);
+#endif
+}
+
 ISR (WDT_vect) {
   // WDIE & WDIF is cleared in hardware upon entering this ISR
   Scheduler::isrWdt();
@@ -837,4 +844,3 @@ ISR (WDT_vect) {
 
 #endif // #ifndef LIBCALL_DEEP_SLEEP_SCHEDULER
 #endif // #ifndef DEEP_SLEEP_SCHEDULER_H
-
