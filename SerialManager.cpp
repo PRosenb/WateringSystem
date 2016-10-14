@@ -207,9 +207,9 @@ void SerialManager::handleStatus() {
     int startAddress = serialReadInt(3);
     char comma = Serial.available() ? Serial.read() : 0;
     int endAddress = serialReadInt(3);
-    EEPROMwl.printStatus();
+    EEPROMwl.printStatus(Serial);
     if (endAddress > 0) {
-      EEPROMwl.printBinary(startAddress, endAddress);
+      EEPROMwl.printBinary(Serial, startAddress, endAddress);
       Serial.println();
     }
   } else {
