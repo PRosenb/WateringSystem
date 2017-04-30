@@ -21,6 +21,7 @@
   - #define LIBCALL_DEEP_SLEEP_SCHEDULER: This h file can only be included once within a project as it also contains the implementation.
     To use it in multiple files, define LIBCALL_DEEP_SLEEP_SCHEDULER before all include statements except one.
   All following options are to be set before the include where no LIBCALL_DEEP_SLEEP_SCHEDULER is defined.
+  - #define SLEEP_MODE: Specifies the sleep mode entered when doing deep sleep. Default is SLEEP_MODE_PWR_DOWN.
   - #define DEEP_SLEEP_DELAY: Prevent the CPU from entering SLEEP_MODE_PWR_DOWN for the specified amount of milli seconds after finishing the previous task.
   - #define SUPERVISION_CALLBACK: Allows to specify a callback Runnable to be called when a task runs too long. When
     the callback returns, the CPU is restarted after 15 ms by the watchdog. The callback method is called directly
@@ -44,6 +45,10 @@
 #include <util/atomic.h>
 
 // values changeable by the user
+#ifndef SLEEP_MODE
+#define SLEEP_MODE SLEEP_MODE_PWR_DOWN
+#endif
+
 #ifndef SUPERVISION_CALLBACK_TIMEOUT
 #define SUPERVISION_CALLBACK_TIMEOUT WDTO_1S
 #endif
@@ -253,7 +258,7 @@ class Scheduler {
        Sets the runnable to be called when the task supervision detects a task that runs too long.
        The run() method will be called from the watchdog interrupt what means, that
        e.g. the method delay() does not work. When run() returns, the CPU will be restarted after 15ms.
-       See descrioptiona of SUPERVISION_CALLBACK and SUPERVISION_CALLBACK_TIMEOUT.
+       See description of SUPERVISION_CALLBACK and SUPERVISION_CALLBACK_TIMEOUT.
        @param runnable: instance of Runnable where the run() method is called
     */
     void setSupervisionCallback(const Runnable *runnable) {
@@ -318,7 +323,7 @@ class Scheduler {
     enum SleepMode {
       NO_SLEEP,
       IDLE,
-      PWR_DOWN
+      SLEEP
     };
 
     // variables used in the interrupt
@@ -663,7 +668,7 @@ inline void Scheduler::sleepIfRequired() {
 #endif
        ) {
       wdt_disable();
-      sleepMode = PWR_DOWN;
+      sleepMode = SLEEP;
     } else {
       sleepMode = IDLE;
     }
@@ -673,9 +678,9 @@ inline void Scheduler::sleepIfRequired() {
     digitalWrite(AWAKE_INDICATION_PIN, LOW);
 #endif
     byte adcsraSave = 0;
-    if (sleepMode == PWR_DOWN) {
+    if (sleepMode == SLEEP) {
       noInterrupts();
-      set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+      set_sleep_mode(SLEEP_MODE);
       adcsraSave = ADCSRA;
       ADCSRA = 0;  // disable ADC
       // turn off brown-out in software
@@ -730,7 +735,7 @@ Scheduler::SleepMode Scheduler::evaluateSleepModeAndEnableWdtIfRequired() {
       // use SLEEP_MODE_IDLE for values less then SLEEP_TIME_1S
       sleepMode = IDLE;
     } else {
-      sleepMode = PWR_DOWN;
+      sleepMode = SLEEP;
       firstRegularlyScheduledUptimeAfterSleep = firstScheduledUptimeMillis;
 
       wdtSleepTimeMillisLocal = enableWdt(maxWaitTimeMillis);
@@ -744,7 +749,7 @@ Scheduler::SleepMode Scheduler::evaluateSleepModeAndEnableWdtIfRequired() {
   } else {
     // wdt already running, so we woke up due to an other interrupt then WDT.
     // continue sleepting without enabling wdt again
-    sleepMode = PWR_DOWN;
+    sleepMode = SLEEP;
     enableWdtInterrupt();
     // A special case is when the other interrupt scheduled a task between now and before the WDT interrupt occurs.
     // In this case, we prevent SLEEP_MODE_PWR_DOWN until it is scheduled.
@@ -760,7 +765,7 @@ Scheduler::SleepMode Scheduler::evaluateSleepModeAndEnableWdtIfRequired() {
       if (millis() < lastTaskFinishedMillis + DEEP_SLEEP_DELAY) {
         sleepMode = IDLE;
       } else {
-        sleepMode = PWR_DOWN;
+        sleepMode = SLEEP;
       }
 #endif
     }
