@@ -198,7 +198,7 @@ class Scheduler {
 
     /**
        Returns the scheduled time of the task that is currently running.
-       If no task is currently running, -1 is returned.
+       If no task is currently running, 0 is returned.
     */
     unsigned long getScheduleTimeOfCurrentTask() const;
 
@@ -286,6 +286,7 @@ class Scheduler {
         Task(const unsigned long scheduledUptimeMillis)
           : scheduledUptimeMillis(scheduledUptimeMillis), next(NULL) {
         }
+        virtual ~Task() {}
         virtual void execute() = 0;
         // dynamic_cast is not supported by default as it compiles with -fno-rtti
         // Therefore, we use this method to detect which Task type it is.
@@ -487,10 +488,9 @@ unsigned long Scheduler::getScheduleTimeOfCurrentTask() const {
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
     if (current != NULL) {
       return current->scheduledUptimeMillis;
-    } else {
-      return - 1;
     }
   }
+  return 0;
 }
 
 void Scheduler::removeCallbacks(void (*callback)()) {
