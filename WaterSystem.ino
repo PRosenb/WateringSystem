@@ -5,12 +5,12 @@
 #define AWAKE_INDICATION_PIN DEEP_SLEEP_SCHEDULER_AWAKE_INDICATION_PIN
 #define DEEP_SLEEP_DELAY 100
 #define SUPERVISION_CALLBACK
-#include "DeepSleepScheduler.h"
+#include <DeepSleepScheduler.h> // https://github.com/PRosenb/DeepSleepScheduler
 
 #define EI_NOTPORTC
 #define EI_NOTPORTD
 #include <EnableInterrupt.h> // https://github.com/GreyGnome/EnableInterrupt
-#include "EEPROMWearLevel.h"
+#include <EEPROMWearLevel.h> // https://github.com/PRosenb/EEPROMWearLevel
 
 #include "WaterManager.h"
 #include "SerialManager.h"

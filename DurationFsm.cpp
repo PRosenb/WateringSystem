@@ -3,7 +3,7 @@
 
 //DURATION FSM
 #define LIBCALL_DEEP_SLEEP_SCHEDULER
-#include "DeepSleepScheduler.h"
+#include <DeepSleepScheduler.h> // https://github.com/PRosenb/DeepSleepScheduler
 
 DurationFsm::DurationFsm(DurationState& current, const String name): FiniteStateMachine(current, name) {
   if (current.minDurationMs > 0 && current.nextState != NULL) {

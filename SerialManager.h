@@ -4,7 +4,7 @@
 
 #include <timeLib.h>
 #define LIBCALL_DEEP_SLEEP_SCHEDULER
-#include "DeepSleepScheduler.h"
+#include <DeepSleepScheduler.h> // https://github.com/PRosenb/DeepSleepScheduler
 #include "WaterManager.h"
 
 #define UNDEFINED -1

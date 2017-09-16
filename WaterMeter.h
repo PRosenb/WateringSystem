@@ -5,7 +5,7 @@
 #include <MsTimer2.h>     // https://github.com/PaulStoffregen/MsTimer2
 
 #define LIBCALL_DEEP_SLEEP_SCHEDULER
-#include "DeepSleepScheduler.h"
+#include <DeepSleepScheduler.h> // https://github.com/PRosenb/DeepSleepScheduler
 #include "Constants.h"
 
 #define VALUES_COUNT 10

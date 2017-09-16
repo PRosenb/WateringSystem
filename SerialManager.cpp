@@ -1,7 +1,7 @@
 
 #include "SerialManager.h"
 #include <DS3232RTC.h>    // http://github.com/JChristensen/DS3232RTC
-#include "EEPROMWearLevel.h"
+#include <EEPROMWearLevel.h> // https://github.com/PRosenb/EEPROMWearLevel
 
 SerialManager::SerialManager(byte bluetoothEnablePin) :  bluetoothEnablePin(bluetoothEnablePin) {
   if (bluetoothEnablePin != UNDEFINED) {

@@ -6,7 +6,7 @@
 #include "FiniteStateMachine.h"
 
 #define LIBCALL_DEEP_SLEEP_SCHEDULER
-#include "DeepSleepScheduler.h"
+#include <DeepSleepScheduler.h> // https://github.com/PRosenb/DeepSleepScheduler
 
 #define INFINITE_DURATION 0
 
