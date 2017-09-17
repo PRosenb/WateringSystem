@@ -22,7 +22,7 @@ class WaterManager: public Runnable {
     void startAutomaticRtc();
     void startAutomatic();
     void startManual();
-    void setZoneDuration(byte zone, int duration);
+    void setZoneDuration(byte zone, unsigned int durationSec);
     void setWaterMeterStopThreshold(int ticksPerSecond);
     unsigned int getUsedWater();
     void printStatus();

@@ -57,8 +57,8 @@ void WaterManager::initModeFsm() {
   modeFsm = new DurationFsm(*modeOff, "ModeFSM");
 }
 
-void WaterManager::setZoneDuration(byte zone, int duration) {
-  valveManager->setZoneDuration(zone, duration);
+void WaterManager::setZoneDuration(byte zone, unsigned int durationSec) {
+  valveManager->setZoneDuration(zone, durationSec);
 }
 
 void WaterManager::setWaterMeterStopThreshold(int ticksPerSecond) {

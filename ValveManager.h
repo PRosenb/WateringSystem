@@ -9,12 +9,13 @@
 
 #define UNUSED 255
 
-#define DURATION_WARN_SEC 2
-#define DURATION_WAIT_BEFORE_SEC 60
-#define DEFAULT_DURATION_AUTOMATIC1_SEC 60 * 5
-#define DEFAULT_DURATION_AUTOMATIC2_SEC 60 * 5
-#define DEFAULT_DURATION_AUTOMATIC3_SEC 60 * 1
-#define DURATION_MANUAL_SEC 60 * 5
+#define DURATION_WARN_SEC 2U
+#define DURATION_WAIT_BEFORE_SEC 60U
+#define DEFAULT_DURATION_AUTOMATIC1_SEC 60U * 5U
+#define DEFAULT_DURATION_AUTOMATIC2_SEC 60U * 5U
+#define DEFAULT_DURATION_AUTOMATIC3_SEC 60U * 1U
+#define DURATION_MANUAL_SEC 60U * 5U
+#define MAX_ZONE_DURATION 3600U
 
 class Valve {
   public:
@@ -111,7 +112,7 @@ class ValveManager {
     void startAutomatic();
     void stopAll();
     bool isOn();
-    void setZoneDuration(byte zone, int duration);
+    void setZoneDuration(byte zone, unsigned int durationSec);
     void printStatus();
   private:
     MeasuredValve *valveMain;

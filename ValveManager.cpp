@@ -4,11 +4,11 @@
 #include <EEPROMWearLevel.h> // https://github.com/PRosenb/EEPROMWearLevel
 
 ValveManager::ValveManager(WaterMeter *waterMeter) {
-  int durationZone1Sec = DEFAULT_DURATION_AUTOMATIC1_SEC;
+  unsigned int durationZone1Sec = DEFAULT_DURATION_AUTOMATIC1_SEC;
   durationZone1Sec = EEPROMwl.get(EEPROM_INDEX_ZONE1, durationZone1Sec);
-  int durationZone2Sec = DEFAULT_DURATION_AUTOMATIC2_SEC;
+  unsigned int durationZone2Sec = DEFAULT_DURATION_AUTOMATIC2_SEC;
   durationZone2Sec = EEPROMwl.get(EEPROM_INDEX_ZONE2, durationZone2Sec);
-  int durationZone3Sec = DEFAULT_DURATION_AUTOMATIC3_SEC;
+  unsigned int durationZone3Sec = DEFAULT_DURATION_AUTOMATIC3_SEC;
   durationZone3Sec = EEPROMwl.get(EEPROM_INDEX_ZONE3, durationZone3Sec);
 
   // set limit
@@ -120,26 +120,25 @@ void ValveManager::startAutomatic() {
   }
 }
 
-void ValveManager::setZoneDuration(byte zone, int duration) {
+void ValveManager::setZoneDuration(byte zone, unsigned int durationSec) {
   switch (zone) {
     case 1:
-      EEPROMwl.put(EEPROM_INDEX_ZONE1, duration);
       stateAutomatic1->minDurationMs = (unsigned long)duration * 1000;
+      EEPROMwl.put(EEPROM_INDEX_ZONE1, durationSec);
       break;
     case 2:
-      EEPROMwl.put(EEPROM_INDEX_ZONE2, duration);
       stateAutomatic2->minDurationMs = (unsigned long)duration * 1000;
+      EEPROMwl.put(EEPROM_INDEX_ZONE2, durationSec);
       break;
     case 3:
-      EEPROMwl.put(EEPROM_INDEX_ZONE3, duration);
       stateAutomatic3->minDurationMs = (unsigned long)duration * 1000;
+      EEPROMwl.put(EEPROM_INDEX_ZONE3, durationSec);
       break;
   }
 }
 
 void ValveManager::printStatus() {
   Serial.print(F("zone1: "));
-  int value = -1;
   Serial.print(stateAutomatic1->minDurationMs / 1000UL / 60UL);
   Serial.print(F(" min, zone2: "));
   Serial.print(stateAutomatic2->minDurationMs / 1000UL / 60UL);
@@ -147,6 +146,7 @@ void ValveManager::printStatus() {
   Serial.print(stateAutomatic3->minDurationMs / 1000UL / 60UL);
   Serial.println(F(" min"));
 
+  unsigned int value = -1;
   Serial.print(F("eeprom: zone1: "));
   Serial.print(EEPROMwl.get(EEPROM_INDEX_ZONE1, value));
   Serial.print(F(", zone2: "));
