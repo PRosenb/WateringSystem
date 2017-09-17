@@ -47,6 +47,8 @@ void loop() {
 // ----------------------------------------------------------------------------------
 // reset count supervision
 // ----------------------------------------------------------------------------------
+#define MAX_RESET_COUNT 100
+
 class SupervisionCallback: public Runnable {
     void run() {
       int resetCount = 0;
@@ -62,7 +64,7 @@ inline bool superviseCrashResetCount() {
   EEPROMwl.begin(EEPROM_VERSION, EEPROM_INDEX_COUNT, EEPROM_LENGTH_TO_USE);
   int resetCount = 0;
   EEPROMwl.get(EEPROM_INDEX_WATCHDOG_RESET_COUNT, resetCount);
-  if (resetCount > 100) {
+  if (resetCount > MAX_RESET_COUNT) {
     // too many crashes, prevent execution
     pinMode(MODE_COLOR_GREEN_PIN, OUTPUT);
     digitalWrite(MODE_COLOR_GREEN_PIN, LOW);
