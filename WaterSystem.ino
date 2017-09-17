@@ -47,6 +47,10 @@ void loop() {
 // ----------------------------------------------------------------------------------
 // reset count supervision
 // ----------------------------------------------------------------------------------
+/**
+   Defines the maximum numbers of resets caused by a crash. This number is not
+   reset. If the problem is fixed it is best to increase this number e.g. to 200.
+*/
 #define MAX_RESET_COUNT 100
 
 class SupervisionCallback: public Runnable {
@@ -94,7 +98,7 @@ inline void initRtc() {
   RTC.alarm(ALARM_1);
   RTC.alarm(ALARM_2);
   delay(1000);
-  
+
   pinMode(RTC_INT_PIN, INPUT_PULLUP);
   enableInterrupt(RTC_INT_PIN, isrRtc, FALLING);
 }

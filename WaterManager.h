@@ -18,14 +18,42 @@ class WaterManager: public Runnable {
   public:
     WaterManager();
     ~WaterManager();
+    /**
+       Switch to next mode. Called when the mode button is pressed.
+    */
     void modeClicked();
+    /**
+       Start automatic watering with first one second on as warning.
+       If mode is set to modeOffOnce, it is switched back to modeAutomatic.
+    */
     void startAutomaticRtc();
+    /**
+       Start automatic watering without warning second.
+       This is done on button press.
+    */
     void startAutomatic();
+    /**
+       Open valve of area1 for manual use. Will be switched off after DURATION_MANUAL_SEC.
+    */
     void startManual();
+    /**
+       Set and store the duration the given zone will be on persistently.
+       @param zone number of the zone to be set, 1, 2 or 3
+       @param durationSec duration in seconds how long the zone will be watered on every automatic run
+    */
     void setZoneDuration(byte zone, unsigned int durationSec);
+    /**
+       Set the amount of water meter ticks to stop watering if it is reached or exeeded.
+    */
     void setWaterMeterStopThreshold(int ticksPerSecond);
+    /**
+       return the total ticks count of the water meter since system started.
+    */
     unsigned int getUsedWater();
     void printStatus();
+    /**
+       Do not call from external, used internally only.
+    */
     void run();
   private:
     void initModeFsm();
@@ -33,7 +61,7 @@ class WaterManager: public Runnable {
     WaterMeter *waterMeter;
     unsigned int stoppedByThreshold;
 
-    // ModeFsm    
+    // ModeFsm
     DurationState *modeOff;
     DurationState *modeAutomatic;
     DurationState *modeOffOnce;

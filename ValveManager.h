@@ -17,6 +17,9 @@
 #define DURATION_MANUAL_SEC 60U * 5U
 #define MAX_ZONE_DURATION 3600U
 
+/**
+   Definition of a valve with its PIN. Can be switched on/off and queried on its state.
+*/
 class Valve {
   public:
     Valve(const byte pin): pin(pin) {
@@ -45,7 +48,11 @@ class Valve {
     const byte pin;
 };
 
-// only one valve can be a MeasuredValve
+/**
+   Extends a normal Valve and adds the functionality to start/stop measuring its water flow when it is switched on/off.
+   The main valve is used for this purpose.
+   Only one valve can be a MeasuredValve.
+*/
 class MeasuredValve: public Valve {
   public:
     MeasuredValve(byte pin, WaterMeter *waterMeter): waterMeter(waterMeter), Valve(pin) {
@@ -74,6 +81,9 @@ class MeasuredValve: public Valve {
     WaterMeter * const waterMeter;
 };
 
+/**
+   A superState to switch a value on/off when it enters/exits
+*/
 class ValveSuperState: public SuperState {
   public:
     ValveSuperState(Valve *valve, String name): valve(valve), SuperState(name) {
@@ -88,6 +98,9 @@ class ValveSuperState: public SuperState {
     Valve * const valve;
 };
 
+/**
+   A duration state to switch a valve on and later off again after a given delay.
+*/
 class ValveState: public DurationState {
   public:
     ValveState(Valve *valve, unsigned long durationMs, String name, SuperState * const superState): valve(valve), DurationState(durationMs, name, superState) {
@@ -105,14 +118,40 @@ class ValveState: public DurationState {
 
 class ValveManager {
   public:
+    /**
+       @param waterMeter the WaterMeter to use for the measured valve. Cannot be null.
+    */
     ValveManager(WaterMeter *waterMeter);
     ~ValveManager();
+    /**
+       switch manual watering on.
+    */
     void manualMainOn();
+    /**
+       start automated watering with a warn second before the actual watering.
+    */
     void startAutomaticWithWarn();
+    /**
+       start automated watering without a warn second.
+    */
     void startAutomatic();
+    /**
+       Stop watering, switch all valves off.
+    */
     void stopAll();
+    /**
+       returns true if any watering is currently running. Can also be in a waiting state. False if currently idle.
+    */
     bool isOn();
+    /**
+      Set and store the duration the given zone will be on persistently.
+      @param zone number of the zone to be set, 1, 2 or 3
+      @param durationSec duration in seconds how long the zone will be watered on every automatic run
+    */
     void setZoneDuration(byte zone, unsigned int durationSec);
+    /**
+      print the status of ValveManager to serial.
+    */
     void printStatus();
   private:
     MeasuredValve *valveMain;
