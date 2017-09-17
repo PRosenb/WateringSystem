@@ -31,20 +31,20 @@ ValveManager::ValveManager(WaterMeter *waterMeter) {
   superStateMainOn = new ValveSuperState(valveMain, "mainOn");
 
   stateIdle = new DurationState(0, "areasIdle", superStateMainIdle);
-  stateWarnAutomatic1 = new ValveState(valveArea1, (unsigned long) DURATION_WARN_SEC * 1000, "warn", superStateMainOn);
-  stateWaitBeforeAutomatic1 = new DurationState((unsigned long) DURATION_WAIT_BEFORE_SEC * 1000, "areasIdle", superStateMainIdle);
-  stateAutomatic1 = new ValveState(valveArea1, (unsigned long) durationZone1Sec * 1000, "area1", superStateMainOn);
+  stateWarnAutomatic1 = new ValveState(valveArea1, DURATION_WARN_SEC * 1000UL, "warn", superStateMainOn);
+  stateWaitBeforeAutomatic1 = new DurationState(DURATION_WAIT_BEFORE_SEC * 1000UL, "areasIdle", superStateMainIdle);
+  stateAutomatic1 = new ValveState(valveArea1, durationZone1Sec * 1000UL, "area1", superStateMainOn);
   // required to switch main valve off in between. Otherwise, the TaskMeter threashold is hit when filling pipe
-  stateBeforeWarnAutomatic2 = new DurationState(1000, "beforeWarnArea2", superStateMainIdle);
-  stateWarnAutomatic2 = new ValveState(valveArea2, (unsigned long) DURATION_WARN_SEC * 1000, "warnArea2", superStateMainOn);
-  stateWaitBeforeAutomatic2 = new DurationState((unsigned long) DURATION_WAIT_BEFORE_SEC * 1000, "areasIdle", superStateMainIdle);
-  stateAutomatic2 = new ValveState(valveArea2, (unsigned long) durationZone2Sec * 1000, "area2", superStateMainOn);
+  stateBeforeWarnAutomatic2 = new DurationState(1000UL, "beforeWarnArea2", superStateMainIdle);
+  stateWarnAutomatic2 = new ValveState(valveArea2, DURATION_WARN_SEC * 1000UL, "warnArea2", superStateMainOn);
+  stateWaitBeforeAutomatic2 = new DurationState(DURATION_WAIT_BEFORE_SEC * 1000UL, "areasIdle", superStateMainIdle);
+  stateAutomatic2 = new ValveState(valveArea2, durationZone2Sec * 1000UL, "area2", superStateMainOn);
   // required to switch main valve off in between. Otherwise, the TaskMeter threashold is hit when filling pipe
-  stateBeforeWarnAutomatic3 = new DurationState(1000, "beforeWarnArea3", superStateMainIdle);
-  stateWarnAutomatic3 = new ValveState(valveArea3, (unsigned long) DURATION_WARN_SEC * 1000, "warnArea3", superStateMainOn);
-  stateWaitBeforeAutomatic3 = new DurationState((unsigned long) DURATION_WAIT_BEFORE_SEC * 1000, "areasIdle", superStateMainIdle);
-  stateAutomatic3 = new ValveState(valveArea3, (unsigned long) durationZone3Sec * 1000, "area3", superStateMainOn);
-  stateManual = new ValveState(valveArea1, (unsigned long) DURATION_MANUAL_SEC * 1000, "manual", superStateMainOn);
+  stateBeforeWarnAutomatic3 = new DurationState(1000UL, "beforeWarnArea3", superStateMainIdle);
+  stateWarnAutomatic3 = new ValveState(valveArea3, DURATION_WARN_SEC * 1000UL, "warnArea3", superStateMainOn);
+  stateWaitBeforeAutomatic3 = new DurationState(DURATION_WAIT_BEFORE_SEC * 1000UL, "areasIdle", superStateMainIdle);
+  stateAutomatic3 = new ValveState(valveArea3, durationZone3Sec * 1000UL, "area3", superStateMainOn);
+  stateManual = new ValveState(valveArea1, DURATION_MANUAL_SEC * 1000UL, "manual", superStateMainOn);
 
   stateWarnAutomatic1->nextState = stateWaitBeforeAutomatic1;
   stateWaitBeforeAutomatic1->nextState = stateAutomatic1;
@@ -123,16 +123,16 @@ void ValveManager::startAutomatic() {
 void ValveManager::setZoneDuration(byte zone, unsigned int durationSec) {
   switch (zone) {
     case 1:
-      stateAutomatic1->minDurationMs = (unsigned long)duration * 1000;
       EEPROMwl.put(EEPROM_INDEX_ZONE1, durationSec);
+      stateAutomatic1->minDurationMs = durationSec * 1000UL;
       break;
     case 2:
-      stateAutomatic2->minDurationMs = (unsigned long)duration * 1000;
       EEPROMwl.put(EEPROM_INDEX_ZONE2, durationSec);
+      stateAutomatic2->minDurationMs = durationSec * 1000UL;
       break;
     case 3:
-      stateAutomatic3->minDurationMs = (unsigned long)duration * 1000;
       EEPROMwl.put(EEPROM_INDEX_ZONE3, durationSec);
+      stateAutomatic3->minDurationMs = durationSec * 1000UL;
       break;
   }
 }
