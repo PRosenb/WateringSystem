@@ -269,7 +269,7 @@ void SerialManager::handleSerialInput() {
       Serial.println(F("d<YYYY>-<MM>-<DD>T<hh>:<mm>: set date/time"));
       Serial.println(F("m: change mode"));
       Serial.println(F("i: start automatic"));
-      Serial.println(F("wz<zone>:<value 3 digits> write zone duration in seconds"));
+      Serial.println(F("wz<zone>:<value 3 digits> write zone duration in minutes"));
       Serial.println(F("wm:<value 3 digits> write water meter stop threshold"));
       Serial.println(F("s print status"));
       Serial.println(F("se print status of EEPROM"));
@@ -283,13 +283,14 @@ void SerialManager::handleWrite() {
     case 'z': {
         int zoneNr = serialReadInt(1);
         Serial.read(); // the :
-        int durationSec = serialReadInt(3);
+        int durationMin = serialReadInt(3);
         Serial.print(F("handleWrite: "));
         Serial.print(writeType);
         Serial.print(F(" "));
         Serial.print(zoneNr);
         Serial.print(F(" "));
-        Serial.println(durationSec);
+        Serial.println(durationMin);
+        unsigned int durationSec = durationMin * 60UL;
         waterManager->setZoneDuration(zoneNr, durationSec);
         break;
       }
