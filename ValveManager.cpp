@@ -27,24 +27,24 @@ ValveManager::ValveManager(WaterMeter *waterMeter) {
   valveArea2 = new Valve(VALVE3_PIN);
   valveArea3 = new Valve(VALVE4_PIN);
 
-  superStateMainIdle = new SuperState("mainIdle");
-  superStateMainOn = new ValveSuperState(valveMain, "mainOn");
+  superStateMainIdle = new SuperState(F("mainIdle"));
+  superStateMainOn = new ValveSuperState(valveMain, F("mainOn"));
 
-  stateIdle = new DurationState(0, "areasIdle", superStateMainIdle);
-  stateWarnAutomatic1 = new ValveState(valveArea1, DURATION_WARN_SEC * 1000UL, "warn", superStateMainOn);
-  stateWaitBeforeAutomatic1 = new DurationState(DURATION_WAIT_BEFORE_SEC * 1000UL, "areasIdle", superStateMainIdle);
-  stateAutomatic1 = new ValveState(valveArea1, durationZone1Sec * 1000UL, "area1", superStateMainOn);
+  stateIdle = new DurationState(0, F("areasIdle"), superStateMainIdle);
+  stateWarnAutomatic1 = new ValveState(valveArea1, DURATION_WARN_SEC * 1000UL, F("warn"), superStateMainOn);
+  stateWaitBeforeAutomatic1 = new DurationState(DURATION_WAIT_BEFORE_SEC * 1000UL, F("areasIdle"), superStateMainIdle);
+  stateAutomatic1 = new ValveState(valveArea1, durationZone1Sec * 1000UL, F("area1"), superStateMainOn);
   // required to switch main valve off in between. Otherwise, the TaskMeter threashold is hit when filling pipe
-  stateBeforeWarnAutomatic2 = new DurationState(1000UL, "beforeWarnArea2", superStateMainIdle);
-  stateWarnAutomatic2 = new ValveState(valveArea2, DURATION_WARN_SEC * 1000UL, "warnArea2", superStateMainOn);
-  stateWaitBeforeAutomatic2 = new DurationState(DURATION_WAIT_BEFORE_SEC * 1000UL, "areasIdle", superStateMainIdle);
-  stateAutomatic2 = new ValveState(valveArea2, durationZone2Sec * 1000UL, "area2", superStateMainOn);
+  stateBeforeWarnAutomatic2 = new DurationState(1000UL, F("beforeWarnArea2"), superStateMainIdle);
+  stateWarnAutomatic2 = new ValveState(valveArea2, DURATION_WARN_SEC * 1000UL, F("warnArea2"), superStateMainOn);
+  stateWaitBeforeAutomatic2 = new DurationState(DURATION_WAIT_BEFORE_SEC * 1000UL, F("areasIdle"), superStateMainIdle);
+  stateAutomatic2 = new ValveState(valveArea2, durationZone2Sec * 1000UL, F("area2"), superStateMainOn);
   // required to switch main valve off in between. Otherwise, the TaskMeter threashold is hit when filling pipe
-  stateBeforeWarnAutomatic3 = new DurationState(1000UL, "beforeWarnArea3", superStateMainIdle);
-  stateWarnAutomatic3 = new ValveState(valveArea3, DURATION_WARN_SEC * 1000UL, "warnArea3", superStateMainOn);
-  stateWaitBeforeAutomatic3 = new DurationState(DURATION_WAIT_BEFORE_SEC * 1000UL, "areasIdle", superStateMainIdle);
-  stateAutomatic3 = new ValveState(valveArea3, durationZone3Sec * 1000UL, "area3", superStateMainOn);
-  stateManual = new ValveState(valveArea1, DURATION_MANUAL_SEC * 1000UL, "manual", superStateMainOn);
+  stateBeforeWarnAutomatic3 = new DurationState(1000UL, F("beforeWarnArea3"), superStateMainIdle);
+  stateWarnAutomatic3 = new ValveState(valveArea3, DURATION_WARN_SEC * 1000UL, F("warnArea3"), superStateMainOn);
+  stateWaitBeforeAutomatic3 = new DurationState(DURATION_WAIT_BEFORE_SEC * 1000UL, F("areasIdle"), superStateMainIdle);
+  stateAutomatic3 = new ValveState(valveArea3, durationZone3Sec * 1000UL, F("area3"), superStateMainOn);
+  stateManual = new ValveState(valveArea1, DURATION_MANUAL_SEC * 1000UL, F("manual"), superStateMainOn);
 
   stateWarnAutomatic1->nextState = stateWaitBeforeAutomatic1;
   stateWaitBeforeAutomatic1->nextState = stateAutomatic1;
@@ -62,7 +62,7 @@ ValveManager::ValveManager(WaterMeter *waterMeter) {
 
   stateManual->nextState = stateIdle;
 
-  fsm = new DurationFsm(*stateIdle, "FSM");
+  fsm = new DurationFsm(*stateIdle, F("FSM"));
 }
 
 ValveManager::~ValveManager() {

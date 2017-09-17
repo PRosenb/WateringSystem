@@ -43,18 +43,18 @@ void WaterManager::initModeFsm() {
   digitalWrite(MODE_COLOR_RED_PIN, HIGH);
   digitalWrite(MODE_COLOR_BLUE_PIN, HIGH);
 
-  modeOff = new ColorLedState(255, MODE_COLOR_RED_PIN, 255, 10000, "modeOff");
-  modeOffOnce = new ColorLedState(255, MODE_COLOR_RED_PIN, MODE_COLOR_BLUE_PIN, 10000, "modeOffOnce");
-  modeAutomatic = new ColorLedState(MODE_COLOR_GREEN_PIN, 255, 255, 10000, "modeAutomatic");
+  modeOff = new ColorLedState(255, MODE_COLOR_RED_PIN, 255, 10000, F("modeOff"));
+  modeOffOnce = new ColorLedState(255, MODE_COLOR_RED_PIN, MODE_COLOR_BLUE_PIN, 10000, F("modeOffOnce"));
+  modeAutomatic = new ColorLedState(MODE_COLOR_GREEN_PIN, 255, 255, 10000, F("modeAutomatic"));
   // for simple LED test:
-  //  modeOff = new ColorLedState(255, MODE_COLOR_RED_PIN, MODE_COLOR_BLUE_PIN, 10000, "modeOff");
-  //  modeOffOnce = new ColorLedState(MODE_COLOR_GREEN_PIN, 255, MODE_COLOR_BLUE_PIN, 10000, "modeOffOnce");
-  //  modeAutomatic = new ColorLedState(MODE_COLOR_GREEN_PIN, MODE_COLOR_RED_PIN, 255, 10000, "modeAutomatic");
+  //  modeOff = new ColorLedState(255, MODE_COLOR_RED_PIN, MODE_COLOR_BLUE_PIN, 10000, F("modeOff"));
+  //  modeOffOnce = new ColorLedState(MODE_COLOR_GREEN_PIN, 255, MODE_COLOR_BLUE_PIN, 10000, F("modeOffOnce"));
+  //  modeAutomatic = new ColorLedState(MODE_COLOR_GREEN_PIN, MODE_COLOR_RED_PIN, 255, 10000, F("modeAutomatic"));
   modeOff->nextState = modeAutomatic;
   modeAutomatic->nextState = modeOffOnce;
   modeOffOnce->nextState = modeOff;
 
-  modeFsm = new DurationFsm(*modeOff, "ModeFSM");
+  modeFsm = new DurationFsm(*modeOff, F("ModeFSM"));
 }
 
 void WaterManager::setZoneDuration(byte zone, unsigned int durationSec) {
