@@ -126,7 +126,7 @@ class ValveManager {
     /**
        switch manual watering on.
     */
-    void manualMainOn();
+    void startManual();
     /**
        start automated watering with a warn second before the actual watering.
     */

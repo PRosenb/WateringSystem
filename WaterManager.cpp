@@ -110,7 +110,7 @@ void WaterManager::startAutomatic() {
 }
 
 void WaterManager::startManual() {
-  valveManager->manualMainOn();
+  valveManager->startManual();
 }
 
 unsigned int WaterManager::getUsedWater() {

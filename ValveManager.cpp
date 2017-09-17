@@ -90,7 +90,7 @@ ValveManager::~ValveManager() {
   delete fsm;
 }
 
-void ValveManager::manualMainOn() {
+void ValveManager::startManual() {
   fsm->changeState(*stateManual);
 }
 
