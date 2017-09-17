@@ -12,14 +12,14 @@ ValveManager::ValveManager(WaterMeter *waterMeter) {
   durationZone3Sec = EEPROMwl.get(EEPROM_INDEX_ZONE3, durationZone3Sec);
 
   // set limit
-  if (durationZone1Sec > 1000) {
-    durationZone1Sec = 1000;
+  if (durationZone1Sec > MAX_ZONE_DURATION) {
+    durationZone1Sec = MAX_ZONE_DURATION;
   }
-  if (durationZone2Sec > 1000) {
-    durationZone2Sec = 1000;
+  if (durationZone2Sec > MAX_ZONE_DURATION) {
+    durationZone2Sec = MAX_ZONE_DURATION;
   }
-  if (durationZone3Sec > 1000) {
-    durationZone3Sec = 1000;
+  if (durationZone3Sec > MAX_ZONE_DURATION) {
+    durationZone3Sec = MAX_ZONE_DURATION;
   }
 
   valveMain = new MeasuredValve(VALVE1_PIN, waterMeter);
