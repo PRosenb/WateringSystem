@@ -19,9 +19,9 @@ SerialManager::SerialManager(byte bluetoothEnablePin) :  bluetoothEnablePin(blue
   setSyncProvider(RTC.get);
   startupTime = now();
   if (timeStatus() != timeSet) {
-    Serial.println("RTC: Unable to sync");
+    Serial.println(F("RTC: Unable to sync"));
   } else {
-    Serial.println("RTC: Set the system time");
+    Serial.println(F("RTC: Set the system time"));
   }
   printTime(startupTime);
 }

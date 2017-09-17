@@ -74,7 +74,7 @@ inline bool superviseCrashResetCount() {
     Serial.begin(9600);
     // wait for serial port to connect
     while (!Serial);
-    Serial.println("too many resets");
+    Serial.println(F("too many resets"));
 
     return false;
   } else {
