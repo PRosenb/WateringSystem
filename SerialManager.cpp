@@ -253,6 +253,9 @@ void SerialManager::handleSerialInput() {
     case 'i':
       waterManager->startAutomatic();
       break;
+    case 'j':
+      waterManager->startAutomaticRtc();
+      break;
     case 's':
       handleStatus();
       break;
@@ -269,6 +272,7 @@ void SerialManager::handleSerialInput() {
       Serial.println(F("d<YYYY>-<MM>-<DD>T<hh>:<mm>: set date/time"));
       Serial.println(F("m: change mode"));
       Serial.println(F("i: start automatic"));
+      Serial.println(F("j: start automatic RTC"));
       Serial.println(F("wz<zone>:<value 3 digits> write zone duration in minutes"));
       Serial.println(F("wm:<value 3 digits> write water meter stop threshold"));
       Serial.println(F("s print status"));
