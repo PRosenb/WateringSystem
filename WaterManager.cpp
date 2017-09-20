@@ -12,7 +12,7 @@ WaterManager::WaterManager() {
   waterMeter->setThresholdSupervisionDelay(PIPE_FILLING_TIME_MS);
   waterMeter->setThresholdListener(waterMeterStopThreshold, this);
 
-  valveManager = new ValveManager(waterMeter);
+  valveManager = new ValveManager(waterMeter, leakCheckListener);
 
   initModeFsm();
 }
@@ -31,6 +31,12 @@ void WaterManager::run() {
   stoppedByThreshold = waterMeter->getLastPulseCountOverThreshold();
   Serial.print(F("ThresholdListener: "));
   Serial.println(stoppedByThreshold);
+  valveManager->stopAll();
+  modeFsm->changeState(*modeOff);
+}
+
+void WaterManager::leakCheckListenerCallback() {
+  Serial.println("Leak detected");
   valveManager->stopAll();
   modeFsm->changeState(*modeOff);
 }
@@ -101,6 +107,8 @@ void WaterManager::startAutomaticRtc() {
     valveManager->startAutomaticWithWarn();
   } else if (modeFsm->isInState(*modeOffOnce)) {
     modeFsm->changeState(*modeAutomatic);
+  } else {
+    Serial.println(F("startAutomaticRtc() ignored due to current mode"));
   }
   ((ColorLedState&)modeFsm->getCurrentState()).reactivateLed();
 }

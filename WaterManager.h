@@ -66,6 +66,19 @@ class WaterManager: public Runnable {
     DurationState *modeAutomatic;
     DurationState *modeOffOnce;
     DurationFsm *modeFsm;
+
+    // leak check callback
+    const Runnable * const leakCheckListener = new LeakCheckListener(*this);
+    class LeakCheckListener: public Runnable {
+      public:
+        LeakCheckListener(WaterManager &waterManager): waterManager(waterManager) {}
+        void run() {
+          waterManager.leakCheckListenerCallback();
+        }
+      private:
+        const WaterManager &waterManager;
+    };
+    void leakCheckListenerCallback();
 };
 
 #endif

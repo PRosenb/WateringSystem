@@ -3,7 +3,7 @@
 #include <Time.h>         // http://www.arduino.cc/playground/Code/Time
 #include <EEPROMWearLevel.h> // https://github.com/PRosenb/EEPROMWearLevel
 
-ValveManager::ValveManager(WaterMeter *waterMeter) {
+ValveManager::ValveManager(WaterMeter *waterMeter, const Runnable * const leakCheckListener) {
   unsigned int durationZone1Sec = DEFAULT_DURATION_AUTOMATIC1_SEC;
   durationZone1Sec = EEPROMwl.get(EEPROM_INDEX_ZONE1, durationZone1Sec);
   unsigned int durationZone2Sec = DEFAULT_DURATION_AUTOMATIC2_SEC;
@@ -32,6 +32,8 @@ ValveManager::ValveManager(WaterMeter *waterMeter) {
 
   stateIdle = new DurationState(0, F("areasIdle"), superStateMainIdle);
   stateWarnAutomatic1 = new ValveState(valveArea1, DURATION_WARN_SEC * 1000UL, F("warn"), superStateMainOn);
+  stateLeakCheckFill = new DurationState(DURATION_LEAK_CHECK_FILL_MS, F("leakCheckFill"), superStateMainOn);
+  stateLeakCheckWait = new LeakCheckState(DURATION_LEAK_CHECK_WAIT_MS, F("leakCheckWait"), superStateMainOn, leakCheckListener, waterMeter);
   stateWaitBeforeAutomatic1 = new DurationState(DURATION_WAIT_BEFORE_SEC * 1000UL, F("areasIdle"), superStateMainIdle);
   stateAutomatic1 = new ValveState(valveArea1, durationZone1Sec * 1000UL, F("area1"), superStateMainOn);
   // required to switch main valve off in between. Otherwise, the TaskMeter threashold is hit when filling pipe
@@ -46,7 +48,9 @@ ValveManager::ValveManager(WaterMeter *waterMeter) {
   stateAutomatic3 = new ValveState(valveArea3, durationZone3Sec * 1000UL, F("area3"), superStateMainOn);
   stateManual = new ValveState(valveArea1, DURATION_MANUAL_SEC * 1000UL, F("manual"), superStateMainOn);
 
-  stateWarnAutomatic1->nextState = stateWaitBeforeAutomatic1;
+  stateWarnAutomatic1->nextState = stateLeakCheckFill;
+  stateLeakCheckFill->nextState = stateLeakCheckWait;
+  stateLeakCheckWait->nextState = stateWaitBeforeAutomatic1;
   stateWaitBeforeAutomatic1->nextState = stateAutomatic1;
   stateAutomatic1->nextState = stateBeforeWarnAutomatic2;
 

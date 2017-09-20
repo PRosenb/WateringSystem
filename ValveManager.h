@@ -11,6 +11,8 @@
 
 #define DURATION_WARN_SEC 2U
 #define DURATION_WAIT_BEFORE_SEC 60U
+#define DURATION_LEAK_CHECK_FILL_MS 500U
+#define DURATION_LEAK_CHECK_WAIT_MS 500U
 #define DEFAULT_DURATION_AUTOMATIC1_SEC 60U * 5U
 #define DEFAULT_DURATION_AUTOMATIC2_SEC 60U * 5U
 #define DEFAULT_DURATION_AUTOMATIC3_SEC 60U * 1U
@@ -115,13 +117,45 @@ class ValveState: public DurationState {
     Valve * const valve;
 };
 
+/**
+   A state which checks if there are any water meter ticks while it is active.
+*/
+class LeakCheckState: public DurationState, public Runnable {
+  public:
+    LeakCheckState(unsigned long durationMs, String name, SuperState * const superState, const Runnable * const listener, WaterMeter *waterMeter):
+      listener(listener), waterMeter(waterMeter), DurationState(durationMs, name, superState) {
+    }
+    virtual void enter() {
+      startTotalCount = waterMeter->getTotalCount();
+      scheduler.scheduleDelayed(this, 100);
+    }
+    virtual void exit() {
+      scheduler.removeCallbacks(this);
+      checkLeak();
+    }
+    void run() {
+      scheduler.scheduleDelayed(this, 100);
+      checkLeak();
+    }
+  private:
+    WaterMeter * const waterMeter;
+    const Runnable * const listener;
+    unsigned int startTotalCount;
+    void checkLeak() {
+      if (startTotalCount != waterMeter->getTotalCount()) {
+        scheduler.removeCallbacks(this);
+        scheduler.schedule(listener);
+      }
+    }
+};
+
 
 class ValveManager {
   public:
     /**
        @param waterMeter the WaterMeter to use for the measured valve. Cannot be null.
     */
-    ValveManager(WaterMeter *waterMeter);
+    ValveManager(WaterMeter *waterMeter, const Runnable * const leakCheckListener);
     ~ValveManager();
     /**
        switch manual watering on.
@@ -165,6 +199,8 @@ class ValveManager {
 
     DurationState *stateIdle;
     DurationState *stateWarnAutomatic1;
+    DurationState *stateLeakCheckFill;
+    DurationState *stateLeakCheckWait;
     DurationState *stateWaitBeforeAutomatic1;
     DurationState *stateAutomatic1;
     DurationState *stateBeforeWarnAutomatic2;
