@@ -30,21 +30,21 @@ ValveManager::ValveManager(WaterMeter *waterMeter, const Runnable * const leakCh
   superStateMainIdle = new SuperState(F("mainIdle"));
   superStateMainOn = new ValveSuperState(valveMain, F("mainOn"));
 
-  stateIdle = new DurationState(0, F("areasIdle"), superStateMainIdle);
-  stateWarnAutomatic1 = new ValveState(valveArea1, DURATION_WARN_SEC * 1000UL, F("warn"), superStateMainOn);
+  stateIdle = new DurationState(0, F("idle"), superStateMainIdle);
+  stateWarnAutomatic1 = new ValveState(valveArea1, DURATION_WARN_SEC * 1000UL, F("warnArea1"), superStateMainOn);
   stateLeakCheckFill = new DurationState(DURATION_LEAK_CHECK_FILL_MS, F("leakCheckFill"), superStateMainOn);
   stateLeakCheckWait = new LeakCheckState(DURATION_LEAK_CHECK_WAIT_MS, F("leakCheckWait"), superStateMainOn, leakCheckListener, waterMeter);
-  stateWaitBeforeAutomatic1 = new DurationState(DURATION_WAIT_BEFORE_SEC * 1000UL, F("areasIdle"), superStateMainIdle);
+  stateWaitBeforeAutomatic1 = new DurationState(DURATION_WAIT_BEFORE_SEC * 1000UL, F("idleArea1"), superStateMainIdle);
   stateAutomatic1 = new ValveState(valveArea1, durationZone1Sec * 1000UL, F("area1"), superStateMainOn);
   // required to switch main valve off in between. Otherwise, the TaskMeter threashold is hit when filling pipe
   stateBeforeWarnAutomatic2 = new DurationState(1000UL, F("beforeWarnArea2"), superStateMainIdle);
   stateWarnAutomatic2 = new ValveState(valveArea2, DURATION_WARN_SEC * 1000UL, F("warnArea2"), superStateMainOn);
-  stateWaitBeforeAutomatic2 = new DurationState(DURATION_WAIT_BEFORE_SEC * 1000UL, F("areasIdle"), superStateMainIdle);
+  stateWaitBeforeAutomatic2 = new DurationState(DURATION_WAIT_BEFORE_SEC * 1000UL, F("idleArea2"), superStateMainIdle);
   stateAutomatic2 = new ValveState(valveArea2, durationZone2Sec * 1000UL, F("area2"), superStateMainOn);
   // required to switch main valve off in between. Otherwise, the TaskMeter threashold is hit when filling pipe
   stateBeforeWarnAutomatic3 = new DurationState(1000UL, F("beforeWarnArea3"), superStateMainIdle);
   stateWarnAutomatic3 = new ValveState(valveArea3, DURATION_WARN_SEC * 1000UL, F("warnArea3"), superStateMainOn);
-  stateWaitBeforeAutomatic3 = new DurationState(DURATION_WAIT_BEFORE_SEC * 1000UL, F("areasIdle"), superStateMainIdle);
+  stateWaitBeforeAutomatic3 = new DurationState(DURATION_WAIT_BEFORE_SEC * 1000UL, F("idleArea3"), superStateMainIdle);
   stateAutomatic3 = new ValveState(valveArea3, durationZone3Sec * 1000UL, F("area3"), superStateMainOn);
   stateManual = new ValveState(valveArea1, DURATION_MANUAL_SEC * 1000UL, F("manual"), superStateMainOn);
 
