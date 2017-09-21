@@ -121,7 +121,7 @@ void WaterManager::startManual() {
   valveManager->startManual();
 }
 
-unsigned int WaterManager::getUsedWater() {
+unsigned long WaterManager::getUsedWater() {
   return waterMeter->getTotalCount();
 }
 

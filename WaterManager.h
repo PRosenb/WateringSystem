@@ -49,7 +49,7 @@ class WaterManager: public Runnable {
     /**
        return the total ticks count of the water meter since system started.
     */
-    unsigned int getUsedWater();
+    unsigned long getUsedWater();
     void printStatus();
     /**
        Do not call from external, used internally only.

@@ -24,7 +24,7 @@ class WaterMeter: public Runnable {
     unsigned int getSamplesInInterval() {
       return samplesInInterval;
     }
-    inline unsigned int getTotalCount() {
+    inline unsigned long getTotalCount() {
       return totalPulseCount;
     }
     inline unsigned int getLastPulseCountOverThreshold() {
@@ -38,9 +38,9 @@ class WaterMeter: public Runnable {
 
     bool started;
     unsigned long thresholdSupervisionDelay = 0;
-    static volatile unsigned int totalPulseCount;
-    static volatile unsigned int lastPulseCount;
     static volatile unsigned int samplesInInterval;
+    static volatile unsigned long totalPulseCount;
+    static volatile unsigned long lastPulseCount;
     static volatile unsigned int lastPulseCountOverThreshold;
 };
 

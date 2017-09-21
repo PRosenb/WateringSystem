@@ -7,9 +7,9 @@
 
 #include "WaterMeter.h"
 
-volatile unsigned int WaterMeter::totalPulseCount;
-volatile unsigned int WaterMeter::lastPulseCount;
 volatile unsigned int WaterMeter::samplesInInterval;
+volatile unsigned long WaterMeter::totalPulseCount;
+volatile unsigned long WaterMeter::lastPulseCount;
 volatile unsigned int WaterMeter::lastPulseCountOverThreshold;
 volatile Runnable *WaterMeter::listener;
 

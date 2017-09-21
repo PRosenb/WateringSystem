@@ -140,7 +140,7 @@ class LeakCheckState: public DurationState, public Runnable {
   private:
     WaterMeter * const waterMeter;
     const Runnable * const listener;
-    unsigned int startTotalCount;
+    unsigned long startTotalCount;
     void checkLeak() {
       if (startTotalCount != waterMeter->getTotalCount()) {
         scheduler.removeCallbacks(this);
