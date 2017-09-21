@@ -4,7 +4,7 @@
 #include <EEPROMWearLevel.h> // https://github.com/PRosenb/EEPROMWearLevel
 
 WaterManager::WaterManager() {
-  int waterMeterStopThreshold = DEFAULT_WATER_METER_STOP_THRESHOLD;
+  unsigned int waterMeterStopThreshold = DEFAULT_WATER_METER_STOP_THRESHOLD;
   waterMeterStopThreshold = EEPROMwl.get(EEPROM_INDEX_WATER_METER_THRESHOLD, waterMeterStopThreshold);
   stoppedByThreshold = 0;
 

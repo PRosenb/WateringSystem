@@ -17,11 +17,11 @@ class WaterMeter: public Runnable {
     virtual ~WaterMeter();
     void start();
     void stop();
-    void setThresholdListener(const unsigned long samplesInInterval, Runnable *listener);
+    void setThresholdListener(const unsigned int samplesInInterval, Runnable *listener);
     inline void setThresholdSupervisionDelay(const unsigned long thresholdSupervisionDelay) {
       WaterMeter::thresholdSupervisionDelay = thresholdSupervisionDelay;
     }
-    unsigned long getSamplesInInterval() {
+    unsigned int getSamplesInInterval() {
       return samplesInInterval;
     }
     inline unsigned int getTotalCount() {
@@ -38,9 +38,9 @@ class WaterMeter: public Runnable {
 
     bool started;
     unsigned long thresholdSupervisionDelay = 0;
-    static volatile unsigned long samplesInInterval;
     static volatile unsigned int totalPulseCount;
     static volatile unsigned int lastPulseCount;
+    static volatile unsigned int samplesInInterval;
     static volatile unsigned int lastPulseCountOverThreshold;
 };
 

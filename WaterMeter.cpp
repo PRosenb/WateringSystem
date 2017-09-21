@@ -7,9 +7,9 @@
 
 #include "WaterMeter.h"
 
-volatile unsigned long WaterMeter::samplesInInterval;
 volatile unsigned int WaterMeter::totalPulseCount;
 volatile unsigned int WaterMeter::lastPulseCount;
+volatile unsigned int WaterMeter::samplesInInterval;
 volatile unsigned int WaterMeter::lastPulseCountOverThreshold;
 volatile Runnable *WaterMeter::listener;
 
@@ -56,7 +56,7 @@ void WaterMeter::run() {
   }
 }
 
-void WaterMeter::setThresholdListener(const unsigned long samplesInInterval, Runnable *listener) {
+void WaterMeter::setThresholdListener(const unsigned int samplesInInterval, Runnable *listener) {
   WaterMeter::samplesInInterval = samplesInInterval;
   WaterMeter::listener = listener;
 }
