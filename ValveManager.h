@@ -145,6 +145,8 @@ class LeakCheckState: public DurationState, public Runnable {
       if (startTotalCount != waterMeter->getTotalCount()) {
         scheduler.removeCallbacks(this);
         scheduler.schedule(listener);
+        Serial.print(F("Leak count: "));
+        Serial.println(waterMeter->getTotalCount() - startTotalCount);
       }
     }
 };
