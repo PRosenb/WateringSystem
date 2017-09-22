@@ -200,9 +200,9 @@ class ValveManager {
     ValveSuperState *superStateMainOn;
 
     DurationState *stateIdle;
-    DurationState *stateWarnAutomatic1;
     DurationState *stateLeakCheckFill;
     DurationState *stateLeakCheckWait;
+    DurationState *stateWarnAutomatic1;
     DurationState *stateWaitBeforeAutomatic1;
     DurationState *stateAutomatic1;
     DurationState *stateBeforeWarnAutomatic2;

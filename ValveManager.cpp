@@ -31,9 +31,9 @@ ValveManager::ValveManager(WaterMeter *waterMeter, const Runnable * const leakCh
   superStateMainOn = new ValveSuperState(valveMain, F("mainOn"));
 
   stateIdle = new DurationState(0, F("idle"), superStateMainIdle);
-  stateWarnAutomatic1 = new ValveState(valveArea1, DURATION_WARN_SEC * 1000UL, F("warnArea1"), superStateMainOn);
   stateLeakCheckFill = new DurationState(DURATION_LEAK_CHECK_FILL_MS, F("leakCheckFill"), superStateMainOn);
   stateLeakCheckWait = new LeakCheckState(DURATION_LEAK_CHECK_WAIT_MS, F("leakCheckWait"), superStateMainOn, leakCheckListener, waterMeter);
+  stateWarnAutomatic1 = new ValveState(valveArea1, DURATION_WARN_SEC * 1000UL, F("warnArea1"), superStateMainOn);
   stateWaitBeforeAutomatic1 = new DurationState(DURATION_WAIT_BEFORE_SEC * 1000UL, F("idleArea1"), superStateMainIdle);
   stateAutomatic1 = new ValveState(valveArea1, durationZone1Sec * 1000UL, F("area1"), superStateMainOn);
   // required to switch main valve off in between. Otherwise, the TaskMeter threashold is hit when filling pipe
@@ -48,9 +48,9 @@ ValveManager::ValveManager(WaterMeter *waterMeter, const Runnable * const leakCh
   stateAutomatic3 = new ValveState(valveArea3, durationZone3Sec * 1000UL, F("area3"), superStateMainOn);
   stateManual = new ValveState(valveArea1, DURATION_MANUAL_SEC * 1000UL, F("manual"), superStateMainOn);
 
-  stateWarnAutomatic1->nextState = stateLeakCheckFill;
   stateLeakCheckFill->nextState = stateLeakCheckWait;
-  stateLeakCheckWait->nextState = stateWaitBeforeAutomatic1;
+  stateLeakCheckWait->nextState = stateWarnAutomatic1;
+  stateWarnAutomatic1->nextState = stateWaitBeforeAutomatic1;
   stateWaitBeforeAutomatic1->nextState = stateAutomatic1;
   stateAutomatic1->nextState = stateBeforeWarnAutomatic2;
 
@@ -110,7 +110,7 @@ void ValveManager::stopAll() {
 void ValveManager::startAutomaticWithWarn() {
   // ignore if on manual
   if (!fsm->isInState(*stateManual)) {
-    fsm->changeState(*stateWarnAutomatic1);
+    fsm->changeState(*stateLeakCheckFill);
   }
 }
 
