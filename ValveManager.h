@@ -80,7 +80,7 @@ class MeasuredValve: public Valve {
       return waterMeter->getTotalCount();
     }
   private:
-    WaterMeter * const waterMeter;
+    const WaterMeter * const waterMeter;
 };
 
 /**
@@ -88,7 +88,7 @@ class MeasuredValve: public Valve {
 */
 class ValveSuperState: public SuperState {
   public:
-    ValveSuperState(Valve *valve, String name): valve(valve), SuperState(name) {
+    ValveSuperState(const Valve * const valve, String name): valve(valve), SuperState(name) {
     }
     virtual void enter() {
       valve->on();
@@ -97,7 +97,7 @@ class ValveSuperState: public SuperState {
       valve->off();
     }
   private:
-    Valve * const valve;
+    const Valve * const valve;
 };
 
 /**
@@ -114,7 +114,7 @@ class ValveState: public DurationState {
       valve->off();
     }
   private:
-    Valve * const valve;
+    const Valve * const valve;
 };
 
 /**
@@ -122,7 +122,7 @@ class ValveState: public DurationState {
 */
 class LeakCheckState: public DurationState, public Runnable {
   public:
-    LeakCheckState(unsigned long durationMs, String name, SuperState * const superState, const Runnable * const listener, WaterMeter *waterMeter):
+    LeakCheckState(unsigned long durationMs, String name, SuperState * const superState, const Runnable * const listener, const WaterMeter *waterMeter):
       listener(listener), waterMeter(waterMeter), DurationState(durationMs, name, superState) {
     }
     virtual void enter() {
@@ -138,7 +138,7 @@ class LeakCheckState: public DurationState, public Runnable {
       checkLeak();
     }
   private:
-    WaterMeter * const waterMeter;
+    const WaterMeter * const waterMeter;
     const Runnable * const listener;
     unsigned long startTotalCount;
     void checkLeak() {
