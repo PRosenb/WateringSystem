@@ -151,6 +151,38 @@ class LeakCheckState: public DurationState, public Runnable {
     }
 };
 
+/**
+   A state which checks if there are any water meter ticks while it is active.
+*/
+class MeasureStateListener {
+  public:
+    virtual void measuredResult(unsigned int tickCount) = 0;
+};
+class MeasureState: public DurationState {
+  public:
+    MeasureState(const Valve *valve, const unsigned long durationMs, const String name, SuperState * const superState, const MeasureStateListener * const listener, const WaterMeter *waterMeter):
+      valve(valve), listener(listener), waterMeter(waterMeter), DurationState(durationMs, name, superState) {
+    }
+    virtual void enter() {
+      startTotalCount = waterMeter->getTotalCount();
+      if (valve != NULL) {
+        valve->on();
+      }
+    }
+    virtual void exit() {
+      if (valve != NULL) {
+        valve->off();
+      }
+      unsigned int tickCount = waterMeter->getTotalCount() - startTotalCount;
+      listener->measuredResult(tickCount);
+    }
+  private:
+    const Valve * const valve;
+    const WaterMeter * const waterMeter;
+    const MeasureStateListener * const listener;
+    unsigned long startTotalCount;
+};
+
 
 class ValveManager {
   public:

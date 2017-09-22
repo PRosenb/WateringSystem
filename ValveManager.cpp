@@ -30,10 +30,18 @@ ValveManager::ValveManager(WaterMeter *waterMeter, const Runnable * const leakCh
   superStateMainIdle = new SuperState(F("mainIdle"));
   superStateMainOn = new ValveSuperState(valveMain, F("mainOn"));
 
+  class SensorCheckListener: public MeasureStateListener {
+      virtual void measuredResult(unsigned int tickCount) {
+        Serial.print(F("SensorCheckListener: "));
+        Serial.println(tickCount);
+      }
+  };
+  const MeasureStateListener * const sensorCheckListener = new SensorCheckListener();
+
   stateIdle = new DurationState(0, F("idle"), superStateMainIdle);
   stateLeakCheckFill = new DurationState(DURATION_LEAK_CHECK_FILL_MS, F("leakCheckFill"), superStateMainOn);
   stateLeakCheckWait = new LeakCheckState(DURATION_LEAK_CHECK_WAIT_MS, F("leakCheckWait"), superStateMainOn, leakCheckListener, waterMeter);
-  stateWarnAutomatic1 = new ValveState(valveArea1, DURATION_WARN_SEC * 1000UL, F("warnArea1"), superStateMainOn);
+  stateWarnAutomatic1 = new MeasureState(valveArea1, DURATION_WARN_SEC * 1000UL, F("warnArea1"), superStateMainOn, sensorCheckListener, waterMeter);
   stateWaitBeforeAutomatic1 = new DurationState(DURATION_WAIT_BEFORE_SEC * 1000UL, F("idleArea1"), superStateMainIdle);
   stateAutomatic1 = new ValveState(valveArea1, durationZone1Sec * 1000UL, F("area1"), superStateMainOn);
   // required to switch main valve off in between. Otherwise, the TaskMeter threashold is hit when filling pipe
