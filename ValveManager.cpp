@@ -3,7 +3,9 @@
 #include <Time.h>         // http://www.arduino.cc/playground/Code/Time
 #include <EEPROMWearLevel.h> // https://github.com/PRosenb/EEPROMWearLevel
 
-ValveManager::ValveManager(WaterMeter *waterMeter, const Runnable * const leakCheckListener) {
+ValveManager::ValveManager(WaterMeter *waterMeter,
+                           const MeasureStateListener * const sensorCheckListener,
+                           const Runnable * const leakCheckListener) {
   unsigned int durationZone1Sec = DEFAULT_DURATION_AUTOMATIC1_SEC;
   durationZone1Sec = EEPROMwl.get(EEPROM_INDEX_ZONE1, durationZone1Sec);
   unsigned int durationZone2Sec = DEFAULT_DURATION_AUTOMATIC2_SEC;
@@ -29,14 +31,6 @@ ValveManager::ValveManager(WaterMeter *waterMeter, const Runnable * const leakCh
 
   superStateMainIdle = new SuperState(F("mainIdle"));
   superStateMainOn = new ValveSuperState(valveMain, F("mainOn"));
-
-  class SensorCheckListener: public MeasureStateListener {
-      virtual void measuredResult(unsigned int tickCount) {
-        Serial.print(F("SensorCheckListener: "));
-        Serial.println(tickCount);
-      }
-  };
-  const MeasureStateListener * const sensorCheckListener = new SensorCheckListener();
 
   stateIdle = new DurationState(0, F("idle"), superStateMainIdle);
   stateLeakCheckFill = new DurationState(DURATION_LEAK_CHECK_FILL_MS, F("leakCheckFill"), superStateMainOn);

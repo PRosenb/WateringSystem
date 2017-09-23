@@ -188,8 +188,12 @@ class ValveManager {
   public:
     /**
        @param waterMeter the WaterMeter to use for the measured valve. Cannot be null.
+       @param sensorCheckListener callback to report how many ticks the sensor has reported during a period when water should be flowing
+       @param leakCheckListener callback executed when a leak is detected (if activated)
     */
-    ValveManager(WaterMeter *waterMeter, const Runnable * const leakCheckListener);
+    ValveManager(WaterMeter *waterMeter,
+                 const MeasureStateListener * const sensorCheckListener,
+                 const Runnable * const leakCheckListener);
     ~ValveManager();
     /**
        switch manual watering on.
