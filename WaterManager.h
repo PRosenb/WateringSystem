@@ -81,17 +81,17 @@ class WaterManager: public Runnable {
     void leakCheckListenerCallback();
 
     // sensor check callback
-    const MeasureStateListener * const sensorCheckListener = new SensorCheckListener(*this);
-    class SensorCheckListener: public MeasureStateListener {
+    const MeasureStateListener * const waterMeterCheckListener = new WaterMeterCheckListener(*this);
+    class WaterMeterCheckListener: public MeasureStateListener {
       public:
-        SensorCheckListener(WaterManager &waterManager): waterManager(waterManager) {}
+        WaterMeterCheckListener(WaterManager &waterManager): waterManager(waterManager) {}
         virtual void measuredResult(unsigned int tickCount) {
-          waterManager.sensorCheckCallback(tickCount);
+          waterManager.waterMeterCheckCallback(tickCount);
         }
       private:
         const WaterManager &waterManager;
     };
-    void sensorCheckCallback(unsigned int tickCount);
+    void waterMeterCheckCallback(unsigned int tickCount);
 };
 
 #endif

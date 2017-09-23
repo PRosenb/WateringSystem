@@ -12,7 +12,7 @@ WaterManager::WaterManager() {
   waterMeter->setThresholdSupervisionDelay(PIPE_FILLING_TIME_MS);
   waterMeter->setThresholdListener(waterMeterStopThreshold, this);
 
-  valveManager = new ValveManager(waterMeter, sensorCheckListener, leakCheckListener);
+  valveManager = new ValveManager(waterMeter, waterMeterCheckListener, leakCheckListener);
 
   initModeFsm();
 }
@@ -41,7 +41,7 @@ void WaterManager::leakCheckListenerCallback() {
   modeFsm->changeState(*modeOff);
 }
 
-void WaterManager::sensorCheckCallback(unsigned int tickCount) {
+void WaterManager::waterMeterCheckCallback(unsigned int tickCount) {
   Serial.print(F("sensorCheckCallback: "));
   Serial.println(tickCount);
 #ifdef CHECK_WATER_METER_AVAILABLE

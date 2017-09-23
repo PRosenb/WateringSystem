@@ -192,7 +192,7 @@ class ValveManager {
        @param leakCheckListener callback executed when a leak is detected (if activated)
     */
     ValveManager(WaterMeter *waterMeter,
-                 const MeasureStateListener * const sensorCheckListener,
+                 const MeasureStateListener * const waterMeterCheckListener,
                  const Runnable * const leakCheckListener);
     ~ValveManager();
     /**
