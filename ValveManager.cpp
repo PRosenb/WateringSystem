@@ -118,7 +118,11 @@ void ValveManager::stopAll() {
 void ValveManager::startAutomaticWithWarn() {
   // ignore if on manual
   if (!fsm->isInState(*stateManual)) {
+#ifdef LEAK_CHECK
     fsm->changeState(*stateLeakCheckFill);
+#else
+    fsm->changeState(*stateWarnAutomatic1);
+#endif
   }
 }
 
