@@ -44,6 +44,12 @@ void WaterManager::leakCheckListenerCallback() {
 void WaterManager::sensorCheckCallback(unsigned int tickCount) {
   Serial.print(F("sensorCheckCallback: "));
   Serial.println(tickCount);
+#ifdef CHECK_WATER_METER_AVAILABLE
+  if (tickCount == 0) {
+    Serial.println("Water meter not connected");
+    modeFsm->changeState(*modeOff);
+  }
+#endif
 }
 
 void WaterManager::initModeFsm() {
