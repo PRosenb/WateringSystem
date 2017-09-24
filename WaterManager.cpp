@@ -47,6 +47,7 @@ void WaterManager::waterMeterCheckCallback(unsigned int tickCount) {
 #ifdef CHECK_WATER_METER_AVAILABLE
   if (tickCount == 0) {
     Serial.println(F("Water meter not connected"));
+    valveManager->stopAll();
     modeFsm->changeState(*modeOff);
   }
 #endif

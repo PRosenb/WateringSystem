@@ -158,7 +158,7 @@ class MeasureStateListener {
   public:
     virtual void measuredResult(unsigned int tickCount) = 0;
 };
-class MeasureState: public DurationState {
+class MeasureState: public DurationState, public Runnable {
   public:
     MeasureState(const Valve *valve, const unsigned long durationMs, const String name, SuperState * const superState, const MeasureStateListener * const listener, const WaterMeter *waterMeter):
       valve(valve), listener(listener), waterMeter(waterMeter), DurationState(durationMs, name, superState) {
@@ -173,7 +173,11 @@ class MeasureState: public DurationState {
       if (valve != NULL) {
         valve->off();
       }
-      unsigned int tickCount = waterMeter->getTotalCount() - startTotalCount;
+      tickCount = waterMeter->getTotalCount() - startTotalCount;
+      // need to use scheduler to allow manipulation of the state machine
+      scheduler.schedule(this);
+    }
+    void run() {
       listener->measuredResult(tickCount);
     }
   private:
@@ -181,6 +185,7 @@ class MeasureState: public DurationState {
     const WaterMeter * const waterMeter;
     const MeasureStateListener * const listener;
     unsigned long startTotalCount;
+    unsigned int tickCount;
 };
 
 
