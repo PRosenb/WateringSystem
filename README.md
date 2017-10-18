@@ -3,6 +3,9 @@ https://github.com/PRosenb/WateringSystem
 
 Arduino based watering system for up to three sprinklers connected to your water tap.
 
+## Manual ##
+See step by step description [Automatic Watering System](https://create.arduino.cc/projecthub/PRosenb/automatic-watering-system-160d90) at Arduino Project Hub.
+
 ## Features ##
 - Automated watering
 - Connected to your garden tap
