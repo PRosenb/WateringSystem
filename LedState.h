@@ -7,11 +7,11 @@
 class ColorLedState: public DurationState, public Runnable {
   public:
     // the pins to set to LOW on enter, 255 for unused colors
-    ColorLedState(byte greenPin, byte redPin, byte bluePin, unsigned long ledOnDurationMs, String name)
-      : DurationState(INFINITE_DURATION, name), greenPin(greenPin), redPin(redPin), bluePin(bluePin), ledOnDurationMs(ledOnDurationMs) {
+    ColorLedState(byte greenValue, byte redValue, byte blueValue, unsigned long ledOnDurationMs, String name)
+      : DurationState(INFINITE_DURATION, name), greenValue(greenValue), redValue(redValue), blueValue(blueValue), ledOnDurationMs(ledOnDurationMs) {
     }
-    ColorLedState(byte greenPin, byte redPin, byte bluePin, unsigned long ledOnDurationMs, String name, SuperState * const superState)
-      : DurationState(INFINITE_DURATION, name, superState), greenPin(greenPin), redPin(redPin), bluePin(bluePin), ledOnDurationMs(ledOnDurationMs) {
+    ColorLedState(byte greenValue, byte redValue, byte blueValue, unsigned long ledOnDurationMs, String name, SuperState * const superState)
+      : DurationState(INFINITE_DURATION, name, superState), greenValue(greenValue), redValue(redValue), blueValue(blueValue), ledOnDurationMs(ledOnDurationMs) {
     }
     virtual void enter() {
       reactivateLed();
@@ -21,29 +21,29 @@ class ColorLedState: public DurationState, public Runnable {
       scheduler.removeCallbacks(this);
     }
     void reactivateLed() {
-      if (greenPin != 255) {
-        digitalWrite(greenPin, LOW);
-      }
-      if (redPin != 255) {
-        digitalWrite(redPin, LOW);
-      }
-      if (bluePin != 255) {
-        digitalWrite(bluePin, LOW);
-      }
+#ifndef COLOR_LED_INVERTED
+      analogWrite(COLOR_LED_GREEN_PIN, greenValue);
+      analogWrite(COLOR_LED_RED_PIN, redValue);
+      analogWrite(COLOR_LED_BLUE_PIN, blueValue);
+#else
+      analogWrite(COLOR_LED_GREEN_PIN, 255 - greenValue);
+      analogWrite(COLOR_LED_RED_PIN, 255 - redValue);
+      analogWrite(COLOR_LED_BLUE_PIN, 255 - blueValue);
+#endif
       if (ledOnDurationMs != INFINITE_DURATION) {
         scheduler.scheduleDelayed(this, ledOnDurationMs);
       }
     }
     void deactivateLed() {
-      if (greenPin != 255) {
-        digitalWrite(greenPin, HIGH);
-      }
-      if (redPin != 255) {
-        digitalWrite(redPin, HIGH);
-      }
-      if (bluePin != 255) {
-        digitalWrite(bluePin, HIGH);
-      }
+#ifndef COLOR_LED_INVERTED
+      analogWrite(COLOR_LED_GREEN_PIN, 0);
+      analogWrite(COLOR_LED_RED_PIN, 0);
+      analogWrite(COLOR_LED_BLUE_PIN, 0);
+#else
+      analogWrite(COLOR_LED_GREEN_PIN, 255);
+      analogWrite(COLOR_LED_RED_PIN, 255);
+      analogWrite(COLOR_LED_BLUE_PIN, 255);
+#endif
     }
     void run() {
       deactivateLed();
@@ -52,7 +52,7 @@ class ColorLedState: public DurationState, public Runnable {
       return ledOnDurationMs == INFINITE_DURATION || scheduler.isScheduled(this);
     }
   private:
-    const byte greenPin, redPin, bluePin;
+    const byte greenValue, redValue, blueValue;
     const unsigned long ledOnDurationMs;
 };
 

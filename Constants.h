@@ -28,6 +28,11 @@
 #define MODE_COLOR_GREEN_PIN A0
 #define MODE_COLOR_RED_PIN A1
 #define MODE_COLOR_BLUE_PIN A2
+
+// uncomment if your color LED has a common + PIN
+// comment out if your color LED has a common - PIN
+//#define COLOR_LED_INVERTED
+
 // unused A3, A4, A5
 
 // potential PinChangePins on Leonardo: 8, 9, 10, 11
