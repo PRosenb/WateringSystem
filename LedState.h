@@ -48,6 +48,9 @@ class ColorLedState: public DurationState, public Runnable {
     void run() {
       deactivateLed();
     }
+    bool isActive() {
+      return ledOnDurationMs == INFINITE_DURATION || scheduler.isScheduled(this);
+    }
   private:
     const byte greenPin, redPin, bluePin;
     const unsigned long ledOnDurationMs;
