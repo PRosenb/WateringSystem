@@ -25,9 +25,9 @@
 
 #define DEEP_SLEEP_SCHEDULER_AWAKE_INDICATION_PIN 13
 
-#define MODE_COLOR_GREEN_PIN A0
-#define MODE_COLOR_RED_PIN A1
-#define MODE_COLOR_BLUE_PIN A2
+#define COLOR_LED_GREEN_PIN A0
+#define COLOR_LED_RED_PIN A1
+#define COLOR_LED_BLUE_PIN A2
 
 // uncomment if your color LED has a common + PIN
 // comment out if your color LED has a common - PIN

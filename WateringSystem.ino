@@ -70,10 +70,12 @@ inline bool superviseCrashResetCount() {
   EEPROMwl.get(EEPROM_INDEX_WATCHDOG_RESET_COUNT, resetCount);
   if (resetCount > MAX_RESET_COUNT) {
     // too many crashes, prevent execution
-    pinMode(MODE_COLOR_GREEN_PIN, OUTPUT);
-    digitalWrite(MODE_COLOR_GREEN_PIN, LOW);
-    pinMode(MODE_COLOR_RED_PIN, OUTPUT);
-    digitalWrite(MODE_COLOR_RED_PIN, LOW);
+    pinMode(COLOR_LED_GREEN_PIN, OUTPUT);
+    digitalWrite(COLOR_LED_GREEN_PIN, LOW);
+    pinMode(COLOR_LED_RED_PIN, OUTPUT);
+    digitalWrite(COLOR_LED_RED_PIN, HIGH);
+    pinMode(COLOR_LED_BLUE_PIN, OUTPUT);
+    digitalWrite(COLOR_LED_BLUE_PIN, LOW);
 
     Serial.begin(9600);
     // wait for serial port to connect

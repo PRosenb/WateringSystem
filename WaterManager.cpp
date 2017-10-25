@@ -54,12 +54,9 @@ void WaterManager::waterMeterCheckCallback(unsigned int tickCount) {
 }
 
 void WaterManager::initModeFsm() {
-  pinMode(MODE_COLOR_GREEN_PIN, OUTPUT);
-  pinMode(MODE_COLOR_RED_PIN, OUTPUT);
-  pinMode(MODE_COLOR_BLUE_PIN, OUTPUT);
-  digitalWrite(MODE_COLOR_GREEN_PIN, HIGH);
-  digitalWrite(MODE_COLOR_RED_PIN, HIGH);
-  digitalWrite(MODE_COLOR_BLUE_PIN, HIGH);
+  pinMode(COLOR_LED_GREEN_PIN, OUTPUT);
+  pinMode(COLOR_LED_RED_PIN, OUTPUT);
+  pinMode(COLOR_LED_BLUE_PIN, OUTPUT);
 
   modeOff = new ColorLedState(0, 255, 0, 10000, F("modeOff"));
   modeOffOnce = new ColorLedState(0, 255, 255, 10000, F("modeOffOnce"));
