@@ -189,58 +189,62 @@ void SerialManager::handleGetAlarmTime(byte alarmNumber) {
   Serial.print(F("Alarm"));
   Serial.print(alarmNumber);
   Serial.print(F(": "));
-  tmElements_t tm;
-  ALARM_TYPES_t alarmType = RTC.readAlarm(alarmNumber, tm);
-  printTwoDigits(tm.Hour);
-  Serial.print(F(":"));
-  printTwoDigits(tm.Minute);
-  Serial.print(F(":"));
-  printTwoDigits(tm.Second);
-  Serial.print(F(", day: "));
-  Serial.print(tm.Day);
-  Serial.print(F(", wday: "));
-  Serial.print(tm.Wday);
-  Serial.print(F(", alarmType: "));
-  switch (alarmType) {
-    case ALM1_EVERY_SECOND:
-      Serial.print(F("ALM1_EVERY_SECOND"));
-      break;
-    case ALM1_MATCH_SECONDS:
-      Serial.print(F("ALM1_MATCH_SECONDS"));
-      break;
-    case ALM1_MATCH_MINUTES:
-      Serial.print(F("ALM1_MATCH_MINUTES"));
-      break;
-    case ALM1_MATCH_HOURS:
-      Serial.print(F("ALM1_MATCH_HOURS"));
-      break;
-    case ALM1_MATCH_DATE:
-      Serial.print(F("ALM1_MATCH_DATE"));
-      break;
-    case ALM1_MATCH_DAY:
-      Serial.print(F("ALM1_MATCH_DAY"));
-      break;
-    case ALM2_EVERY_MINUTE:
-      Serial.print(F("ALM2_EVERY_MINUTE"));
-      break;
-    case ALM2_MATCH_MINUTES:
-      Serial.print(F("ALM2_MATCH_MINUTES"));
-      break;
-    case ALM2_MATCH_HOURS:
-      Serial.print(F("ALM2_MATCH_HOURS"));
-      break;
-    case ALM2_MATCH_DATE:
-      Serial.print(F("ALM2_MATCH_DATE"));
-      break;
-    case ALM2_MATCH_DAY:
-      Serial.print(F("ALM2_MATCH_DAY"));
-      break;
+  if (RTC.isAlarmInterrupt(alarmNumber)) {
+    tmElements_t tm;
+    ALARM_TYPES_t alarmType = RTC.readAlarm(alarmNumber, tm);
+    printTwoDigits(tm.Hour);
+    Serial.print(F(":"));
+    printTwoDigits(tm.Minute);
+    Serial.print(F(":"));
+    printTwoDigits(tm.Second);
+    Serial.print(F(", day: "));
+    Serial.print(tm.Day);
+    Serial.print(F(", wday: "));
+    Serial.print(tm.Wday);
+    Serial.print(F(", alarmType: "));
+    switch (alarmType) {
+      case ALM1_EVERY_SECOND:
+        Serial.print(F("ALM1_EVERY_SECOND"));
+        break;
+      case ALM1_MATCH_SECONDS:
+        Serial.print(F("ALM1_MATCH_SECONDS"));
+        break;
+      case ALM1_MATCH_MINUTES:
+        Serial.print(F("ALM1_MATCH_MINUTES"));
+        break;
+      case ALM1_MATCH_HOURS:
+        Serial.print(F("ALM1_MATCH_HOURS"));
+        break;
+      case ALM1_MATCH_DATE:
+        Serial.print(F("ALM1_MATCH_DATE"));
+        break;
+      case ALM1_MATCH_DAY:
+        Serial.print(F("ALM1_MATCH_DAY"));
+        break;
+      case ALM2_EVERY_MINUTE:
+        Serial.print(F("ALM2_EVERY_MINUTE"));
+        break;
+      case ALM2_MATCH_MINUTES:
+        Serial.print(F("ALM2_MATCH_MINUTES"));
+        break;
+      case ALM2_MATCH_HOURS:
+        Serial.print(F("ALM2_MATCH_HOURS"));
+        break;
+      case ALM2_MATCH_DATE:
+        Serial.print(F("ALM2_MATCH_DATE"));
+        break;
+      case ALM2_MATCH_DAY:
+        Serial.print(F("ALM2_MATCH_DAY"));
+        break;
+    }
+    Serial.print(F(", cmd: a"));
+    printTwoDigits(tm.Hour);
+    Serial.print(F(":"));
+    printTwoDigits(tm.Minute);
+    Serial.println();
+  } else {
+    Serial.println(F("off"));
   }
-  Serial.print(F(", cmd: a"));
-  printTwoDigits(tm.Hour);
-  Serial.print(F(":"));
-  printTwoDigits(tm.Minute);
-  Serial.println();
 }
 
 void SerialManager::handleStatus() {
