@@ -94,8 +94,6 @@ inline bool superviseCrashResetCount() {
 // RTC initialisation
 // ----------------------------------------------------------------------------------
 inline void initRtc() {
-  RTC.alarmInterrupt(ALARM_1, true);
-  RTC.alarmInterrupt(ALARM_2, false);
   // reset alarms if active
   RTC.alarm(ALARM_1);
   RTC.alarm(ALARM_2);
@@ -135,7 +133,7 @@ void rtcScheduled() {
     scheduler.schedule(startAutomaticRtc);
   }
   if (RTC.alarm(ALARM_2)) {
-    // not used
+    scheduler.schedule(startAutomaticRtc);
   }
 }
 

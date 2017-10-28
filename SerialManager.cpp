@@ -128,19 +128,57 @@ void SerialManager::handleSetDateTime() {
 }
 
 void SerialManager::handleSetAlarmTime() {
-  int hours = serialReadInt(2);
-  char colon = Serial.available() ? Serial.read() : 0;
-  int minutes = serialReadInt(2);
-  if (colon == ':' && hours >= 0 && hours <= 24 && minutes >= 0 && minutes <= 60) {
-    //setAlarm(ALARM_TYPES_t alarmType, byte seconds, byte minutes, byte hours, byte daydate);
-    RTC.setAlarm(ALM1_MATCH_HOURS, 0, minutes, hours, 0);
+  int alarmNr = serialReadInt(1);
+  Serial.read(); // the :
 
-    Serial.print(F("set start time to "));
-    Serial.print(hours);
-    Serial.print(F(":"));
-    Serial.println(minutes);
+  // + 1 to allow one space for the Null termination
+  char inData[3 + 1];
+  readSerial(inData, 3 + 1);
+  if (strcmp(inData, "off") == 0) {
+    switch (alarmNr) {
+      case 1: {
+          RTC.alarmInterrupt(ALARM_1, false);
+          Serial.println(F("deactivate alarm 1"));
+          break;
+        }
+      case 2: {
+          RTC.alarmInterrupt(ALARM_2, false);
+          Serial.println(F("deactivate alarm 2"));
+          break;
+        }
+      default: {
+          Serial.println(F("wrong alarm number"));
+          break;
+        }
+    }
   } else {
-    Serial.println(F("set start time failed, wrong format, expect s<hh>:<mm>, e.g. a14:45"));
+    inData[2] = '\0'; // Null terminate the string
+    int hours = atoi(inData);
+    int minutes = serialReadInt(2);
+    if (hours >= 0 && hours <= 24 && minutes >= 0 && minutes <= 60 && (alarmNr == 1 || alarmNr == 2)) {
+      //setAlarm(ALARM_TYPES_t alarmType, byte seconds, byte minutes, byte hours, byte daydate);
+      switch (alarmNr) {
+        case 1: {
+            RTC.setAlarm(ALM1_MATCH_HOURS, 0, minutes, hours, 0);
+            RTC.alarmInterrupt(ALARM_1, true);
+            break;
+          }
+        case 2: {
+            RTC.setAlarm(ALM2_MATCH_HOURS, 0, minutes, hours, 0);
+            RTC.alarmInterrupt(ALARM_2, true);
+            break;
+          }
+      }
+
+      Serial.print(F("set start time "));
+      Serial.print(alarmNr);
+      Serial.print(F(" to "));
+      Serial.print(hours);
+      Serial.print(F(":"));
+      Serial.println(minutes);
+    } else {
+      Serial.println(F("set start time failed, wrong format, expect s<hh>:<mm>, e.g. a14:45"));
+    }
   }
 }
 
@@ -245,7 +283,8 @@ void SerialManager::handleSerialInput() {
       Serial.println(F("alarm every minute"));
       break;
     case 'g':
-      handleGetAlarmTime(serialReadInt(1));
+      handleGetAlarmTime(1);
+      handleGetAlarmTime(2);
       break;
     case 'm':
       waterManager->modeClicked();
@@ -266,9 +305,12 @@ void SerialManager::handleSerialInput() {
       Serial.print(F("Unknown command: "));
       Serial.println(command);
       Serial.println(F("Supported commands:"));
-      Serial.println(F("a<hh>:<mm>: set alarm time"));
+      Serial.println(F("a1:<hh>:<mm>: set alarm 1 time"));
+      Serial.println(F("a1:off: deactivate alarm 1"));
+      Serial.println(F("a2:<hh>:<mm>: set alarm 2 time"));
+      Serial.println(F("a2:off: deactivate alarm2"));
       Serial.println(F("t set alarm every minute (for testing)"));
-      Serial.println(F("g<alarmNumber>: get alarm time"));
+      Serial.println(F("g: get alarm times"));
       Serial.println(F("d<YYYY>-<MM>-<DD>T<hh>:<mm>: set date/time"));
       Serial.println(F("m: change mode"));
       Serial.println(F("i: start automatic"));
