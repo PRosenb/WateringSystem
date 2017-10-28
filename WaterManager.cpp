@@ -58,9 +58,9 @@ void WaterManager::initModeFsm() {
   pinMode(COLOR_LED_RED_PIN, OUTPUT);
   pinMode(COLOR_LED_BLUE_PIN, OUTPUT);
 
-  modeOff = new ColorLedState(0, 255, 0, 10000, F("modeOff"));
-  modeOffOnce = new ColorLedState(0, 255, 255, 10000, F("modeOffOnce"));
-  modeAutomatic = new ColorLedState(255, 0, 0, 10000, F("modeAutomatic"));
+  modeOff = new ColorLedState(0, 255, 0, INFINITE_DURATION, 10000, F("modeOff"));
+  modeOffOnce = new ColorLedState(0, 255, 255, INFINITE_DURATION, 10000, F("modeOffOnce"));
+  modeAutomatic = new ColorLedState(255, 0, 0, INFINITE_DURATION, 10000, F("modeAutomatic"));
   // for simple LED test:
   //  modeOff = new ColorLedState(255, MODE_COLOR_RED_PIN, MODE_COLOR_BLUE_PIN, 10000, F("modeOff"));
   //  modeOffOnce = new ColorLedState(MODE_COLOR_GREEN_PIN, 255, MODE_COLOR_BLUE_PIN, 10000, F("modeOffOnce"));

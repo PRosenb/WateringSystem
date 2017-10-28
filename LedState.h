@@ -6,12 +6,17 @@
 
 class ColorLedState: public DurationState, public Runnable {
   public:
-    // the pins to set to LOW on enter, 255 for unused colors
-    ColorLedState(byte greenValue, byte redValue, byte blueValue, unsigned long ledOnDurationMs, String name)
-      : DurationState(INFINITE_DURATION, name), greenValue(greenValue), redValue(redValue), blueValue(blueValue), ledOnDurationMs(ledOnDurationMs) {
+    ColorLedState(byte greenValue, byte redValue, byte blueValue, unsigned long minDurationMs, String name)
+      : DurationState(minDurationMs, name), greenValue(greenValue), redValue(redValue), blueValue(blueValue), ledOnDurationMs(ledOnDurationMs) {
     }
-    ColorLedState(byte greenValue, byte redValue, byte blueValue, unsigned long ledOnDurationMs, String name, SuperState * const superState)
-      : DurationState(INFINITE_DURATION, name, superState), greenValue(greenValue), redValue(redValue), blueValue(blueValue), ledOnDurationMs(ledOnDurationMs) {
+    ColorLedState(byte greenValue, byte redValue, byte blueValue, unsigned long minDurationMs, unsigned long ledOnDurationMs, String name)
+      : DurationState(minDurationMs, name), greenValue(greenValue), redValue(redValue), blueValue(blueValue), ledOnDurationMs(ledOnDurationMs) {
+    }
+    ColorLedState(byte greenValue, byte redValue, byte blueValue, unsigned long minDurationMs, String name, SuperState * const superState)
+      : DurationState(minDurationMs, name, superState), greenValue(greenValue), redValue(redValue), blueValue(blueValue), ledOnDurationMs(ledOnDurationMs) {
+    }
+    ColorLedState(byte greenValue, byte redValue, byte blueValue, unsigned long minDurationMs, unsigned long ledOnDurationMs, String name, SuperState * const superState)
+      : DurationState(minDurationMs, name, superState), greenValue(greenValue), redValue(redValue), blueValue(blueValue), ledOnDurationMs(ledOnDurationMs) {
     }
     virtual void enter() {
       reactivateLed();
