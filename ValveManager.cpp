@@ -48,7 +48,6 @@ ValveManager::ValveManager(WaterMeter *waterMeter,
   stateWarnAutomatic3 = new ValveState(valveArea3, DURATION_WARN_SEC * 1000UL, F("warnArea3"), superStateMainOn);
   stateWaitBeforeAutomatic3 = new DurationState(DURATION_WAIT_BEFORE_SEC * 1000UL, F("idleArea3"), superStateMainIdle);
   stateAutomatic3 = new ValveState(valveArea3, durationZone3Sec * 1000UL, F("area3"), superStateMainOn);
-  stateManual = new ValveState(valveArea1, DURATION_MANUAL_SEC * 1000UL, F("manual"), superStateMainOn);
 
   stateLeakCheckFill->nextState = stateLeakCheckWait;
   stateLeakCheckWait->nextState = stateWarnAutomatic1;
@@ -65,8 +64,6 @@ ValveManager::ValveManager(WaterMeter *waterMeter,
   stateWarnAutomatic3->nextState = stateWaitBeforeAutomatic3;
   stateWaitBeforeAutomatic3->nextState = stateAutomatic3;
   stateAutomatic3->nextState = stateIdle;
-
-  stateManual->nextState = stateIdle;
 
   fsm = new DurationFsm(*stateIdle, F("FSM"));
 }
@@ -92,12 +89,7 @@ ValveManager::~ValveManager() {
   delete stateWarnAutomatic3;
   delete stateWaitBeforeAutomatic3;
   delete stateAutomatic3;
-  delete stateManual;
   delete fsm;
-}
-
-void ValveManager::startManual() {
-  fsm->changeState(*stateManual);
 }
 
 void ValveManager::stopAll() {
@@ -110,14 +102,11 @@ void ValveManager::stopAll() {
 }
 
 void ValveManager::startAutomaticWithWarn() {
-  // ignore if on manual
-  if (!fsm->isInState(*stateManual)) {
 #ifdef LEAK_CHECK
-    fsm->changeState(*stateLeakCheckFill);
+  fsm->changeState(*stateLeakCheckFill);
 #else
-    fsm->changeState(*stateWarnAutomatic1);
+  fsm->changeState(*stateWarnAutomatic1);
 #endif
-  }
 }
 
 void ValveManager::startAutomatic() {

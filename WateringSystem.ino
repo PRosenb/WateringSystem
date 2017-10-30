@@ -30,8 +30,6 @@ void setup() {
 
   initRtc();
 
-  //  pinMode(START_MANUAL_PIN, INPUT_PULLUP);
-  //  enableInterrupt(START_MANUAL_PIN, isrStartManual, FALLING);
   pinMode(START_AUTOMATIC_PIN, INPUT_PULLUP);
   enableInterrupt(START_AUTOMATIC_PIN, isrStartAutomatic, FALLING);
   pinMode(MODE_PIN, INPUT_PULLUP);
@@ -139,16 +137,6 @@ void rtcScheduled() {
 
 void isrRtc() {
   scheduler.schedule(rtcScheduled);
-}
-
-void startManual() {
-  Serial.println(F("startManual"));
-  waterManager->startManual();
-  serialManager->startSerial(SERIAL_SLEEP_TIMEOUT_MS);
-}
-
-void isrStartManual() {
-  scheduler.schedule(startManual);
 }
 
 void startAutomatic() {

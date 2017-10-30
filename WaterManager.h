@@ -33,10 +33,6 @@ class WaterManager: public Runnable {
     */
     void startAutomatic();
     /**
-       Open valve of area1 for manual use. Will be switched off after DURATION_MANUAL_SEC.
-    */
-    void startManual();
-    /**
        Set and store the duration the given zone will be on persistently.
        @param zone number of the zone to be set, 1, 2 or 3
        @param durationSec duration in seconds how long the zone will be watered on every automatic run

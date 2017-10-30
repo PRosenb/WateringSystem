@@ -16,7 +16,6 @@
 #define DEFAULT_DURATION_AUTOMATIC1_SEC 60U * 5U
 #define DEFAULT_DURATION_AUTOMATIC2_SEC 60U * 5U
 #define DEFAULT_DURATION_AUTOMATIC3_SEC 60U * 1U
-#define DURATION_MANUAL_SEC 60U * 5U
 #define MAX_ZONE_DURATION 3600U
 
 /**
@@ -201,10 +200,6 @@ class ValveManager {
                  const Runnable * const leakCheckListener);
     ~ValveManager();
     /**
-       switch manual watering on.
-    */
-    void startManual();
-    /**
        start automated watering with a warn second before the actual watering.
     */
     void startAutomaticWithWarn();
@@ -254,7 +249,6 @@ class ValveManager {
     DurationState *stateWarnAutomatic3;
     DurationState *stateWaitBeforeAutomatic3;
     DurationState *stateAutomatic3;
-    DurationState *stateManual;
 };
 
 #endif

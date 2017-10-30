@@ -123,10 +123,6 @@ void WaterManager::startAutomatic() {
   valveManager->startAutomatic();
 }
 
-void WaterManager::startManual() {
-  valveManager->startManual();
-}
-
 unsigned long WaterManager::getUsedWater() {
   return waterMeter->getTotalCount();
 }
