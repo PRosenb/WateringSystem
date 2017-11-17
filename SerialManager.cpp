@@ -238,6 +238,8 @@ void SerialManager::handleGetAlarmTime(byte alarmNumber) {
         break;
     }
     Serial.print(F(", cmd: a"));
+    Serial.print(alarmNumber);
+    Serial.print(F(":"));
     printTwoDigits(tm.Hour);
     Serial.print(F(":"));
     printTwoDigits(tm.Minute);
