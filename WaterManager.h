@@ -12,7 +12,6 @@
 #define PIPE_FILLING_TIME_MS 11000
 // free flow around 68 per second
 #define DEFAULT_WATER_METER_STOP_THRESHOLD 68U
-#define SERIAL_SLEEP_TIMEOUT_MS 120000
 
 class WaterManager: public Runnable {
   public:

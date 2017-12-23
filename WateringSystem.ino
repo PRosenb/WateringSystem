@@ -35,7 +35,7 @@ void setup() {
   pinMode(MODE_PIN, INPUT_PULLUP);
   enableInterrupt(MODE_PIN, isrMode, FALLING);
 
-  serialManager->startSerial(SERIAL_SLEEP_TIMEOUT_MS);
+  serialManager->startSerial();
 }
 
 void loop() {
@@ -106,7 +106,7 @@ inline void initRtc() {
 // ----------------------------------------------------------------------------------
 void modeScheduled() {
   waterManager->modeClicked();
-  serialManager->startSerial(SERIAL_SLEEP_TIMEOUT_MS);
+  serialManager->startSerial();
 
   // simple debounce
   delay(200);
@@ -122,7 +122,7 @@ void isrMode() {
 void startAutomaticRtc() {
   Serial.println(F("startAutomaticRtc"));
   waterManager->startAutomaticRtc();
-  serialManager->startSerial(SERIAL_SLEEP_TIMEOUT_MS);
+  serialManager->startSerial();
 }
 
 void rtcScheduled() {
@@ -142,7 +142,7 @@ void isrRtc() {
 void startAutomatic() {
   Serial.println(F("startAutomatic"));
   waterManager->startAutomatic();
-  serialManager->startSerial(SERIAL_SLEEP_TIMEOUT_MS);
+  serialManager->startSerial();
 
   // simple debounce
   delay(200);

@@ -7,6 +7,7 @@
 #include <DeepSleepScheduler.h> // https://github.com/PRosenb/DeepSleepScheduler
 #include "WaterManager.h"
 
+#define SERIAL_SLEEP_TIMEOUT_MS_DEFAULT 120000
 #define UNDEFINED -1
 
 class SerialManager: public Runnable {
@@ -23,9 +24,8 @@ class SerialManager: public Runnable {
     void setWaterManager(WaterManager *waterManager);
     /**
        start serial communication.
-       @param durationMs duration in ms until serial communication is disabled when not used.
     */
-    void startSerial(unsigned long durationMs);
+    void startSerial();
     /**
        returns the amount of free ram in bytes.
     */
@@ -37,7 +37,6 @@ class SerialManager: public Runnable {
   private:
     WaterManager *waterManager;
     const byte bluetoothEnablePin;
-    unsigned long durationMs;
     unsigned long serialLastActiveMillis = 0;
     boolean aquiredWakeLock = false;
     time_t startupTime;

@@ -30,8 +30,7 @@ void SerialManager::setWaterManager(WaterManager *waterManager) {
   SerialManager::waterManager = waterManager;
 }
 
-void SerialManager::startSerial(unsigned long durationMs) {
-  SerialManager::durationMs = durationMs;
+void SerialManager::startSerial() {
   if (bluetoothEnablePin != UNDEFINED) {
     digitalWrite(bluetoothEnablePin, HIGH);
   }
@@ -53,7 +52,9 @@ void SerialManager::run() {
     handleSerialInput();
   }
 
-  if (millis() - serialLastActiveMillis > durationMs) {
+  unsigned long serialSleepTimeoutMs = SERIAL_SLEEP_TIMEOUT_MS_DEFAULT;
+  EEPROMwl.get(EEPROM_INDEX_SERIAL_SLEEP_TIMEOUT_MS, serialSleepTimeoutMs);
+  if (millis() - serialLastActiveMillis > serialSleepTimeoutMs) {
     if (aquiredWakeLock) {
       aquiredWakeLock = false;
       scheduler.releaseNoDeepSleepLock();
@@ -271,6 +272,11 @@ void SerialManager::handleStatus() {
     EEPROMwl.get(EEPROM_INDEX_WATCHDOG_RESET_COUNT, resetCount);
     Serial.print(F("WD reset count: "));
     Serial.println(resetCount);
+    unsigned long serialSleepTimeoutMs = SERIAL_SLEEP_TIMEOUT_MS_DEFAULT;
+    EEPROMwl.get(EEPROM_INDEX_SERIAL_SLEEP_TIMEOUT_MS, serialSleepTimeoutMs);
+    Serial.print(F("Serial sleep timeout: "));
+    Serial.print(serialSleepTimeoutMs / 1000 / 60);
+    Serial.println(F(" min"));
     waterManager->printStatus();
   }
 }
@@ -323,6 +329,7 @@ void SerialManager::handleSerialInput() {
       Serial.println(F("j: start automatic RTC"));
       Serial.println(F("wz<zone>:<value 3 digits> write zone duration in minutes"));
       Serial.println(F("wm:<value 3 digits> write water meter stop threshold"));
+      Serial.println(F("ws:<value 3 digits> write serial sleep timeout in minutes"));
       Serial.println(F("s print status"));
       Serial.println(F("se print status of EEPROM"));
       Serial.println(F("se:<from 3 digits>,<to 3 digits> print status of EEPROM"));
@@ -346,13 +353,23 @@ void SerialManager::handleWrite() {
         waterManager->setZoneDuration(zoneNr, durationSec);
         break;
       }
-    case 'm':
-      Serial.read(); // the :
-      int waterMeterStopThreshold = serialReadInt(3);
-      Serial.print(F("waterMeterStopThreshold: "));
-      Serial.println(waterMeterStopThreshold);
-      waterManager->setWaterMeterStopThreshold(waterMeterStopThreshold);
-      break;
+    case 's': {
+        Serial.read(); // the :
+        int serialSleepTimeoutMin = serialReadInt(3);
+        Serial.print(F("serialSleepTimeoutMin: "));
+        Serial.println(serialSleepTimeoutMin);
+        unsigned long serialSleepTimeoutMs = serialSleepTimeoutMin * 60 * 1000L;
+        EEPROMwl.put(EEPROM_INDEX_SERIAL_SLEEP_TIMEOUT_MS, serialSleepTimeoutMs);
+        break;
+      }
+    case 'm': {
+        Serial.read(); // the :
+        int waterMeterStopThreshold = serialReadInt(3);
+        Serial.print(F("waterMeterStopThreshold: "));
+        Serial.println(waterMeterStopThreshold);
+        waterManager->setWaterMeterStopThreshold(waterMeterStopThreshold);
+        break;
+      }
   }
 }
 
