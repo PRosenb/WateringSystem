@@ -38,7 +38,7 @@ void SerialManager::startSerial() {
   serialLastActiveMillis = millis();
   if (!aquiredWakeLock) {
     aquiredWakeLock = true;
-    scheduler.acquireNoDeepSleepLock();
+    scheduler.acquireNoSleepLock();
   }
 
   if (!scheduler.isScheduled(this) ) {
@@ -57,7 +57,7 @@ void SerialManager::run() {
   if (millis() - serialLastActiveMillis > serialSleepTimeoutMs) {
     if (aquiredWakeLock) {
       aquiredWakeLock = false;
-      scheduler.releaseNoDeepSleepLock();
+      scheduler.releaseNoSleepLock();
       Serial.println(F("stop serial"));
       delay(150);
       if (bluetoothEnablePin != UNDEFINED) {

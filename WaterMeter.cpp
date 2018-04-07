@@ -27,7 +27,7 @@ WaterMeter::~WaterMeter() {
 void WaterMeter::start() {
   if (!started) {
     started = true;
-    scheduler.acquireNoDeepSleepLock();
+    scheduler.acquireNoSleepLock();
 
     enableInterrupt(WATER_METER_PIN, WaterMeter::isrWaterMeterPulses, FALLING);
     if (thresholdSupervisionDelay == 0) {
@@ -44,7 +44,7 @@ void WaterMeter::stop() {
     started = false;
     MsTimer2::stop();
     disableInterrupt(WATER_METER_PIN);
-    scheduler.releaseNoDeepSleepLock();
+    scheduler.releaseNoSleepLock();
     scheduler.removeCallbacks(this);
   }
 }
