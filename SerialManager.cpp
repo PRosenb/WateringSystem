@@ -183,6 +183,7 @@ void SerialManager::handleSetAlarmTime() {
   }
 }
 
+#ifdef RTC_SUPPORTS_READ_ALARM
 void SerialManager::handleGetAlarmTime(byte alarmNumber) {
   if (alarmNumber == 0) {
     alarmNumber = 1;
@@ -249,6 +250,7 @@ void SerialManager::handleGetAlarmTime(byte alarmNumber) {
     Serial.println(F("off"));
   }
 }
+#endif // RTC_SUPPORTS_READ_ALARM
 
 void SerialManager::handleStatus() {
   const byte subCommand = Serial.available() ? Serial.read() : 0;
@@ -294,10 +296,12 @@ void SerialManager::handleSerialInput() {
       RTC.setAlarm(ALM1_MATCH_SECONDS, 0, 0, 0, 0);
       Serial.println(F("alarm every minute"));
       break;
+#ifdef RTC_SUPPORTS_READ_ALARM
     case 'g':
       handleGetAlarmTime(1);
       handleGetAlarmTime(2);
       break;
+#endif // RTC_SUPPORTS_READ_ALARM
     case 'm':
       waterManager->modeClicked();
       break;
@@ -322,7 +326,9 @@ void SerialManager::handleSerialInput() {
       Serial.println(F("a2:<hh>:<mm>: set alarm 2 time"));
       Serial.println(F("a2:off: deactivate alarm2"));
       Serial.println(F("t set alarm every minute (for testing)"));
+#ifdef RTC_SUPPORTS_READ_ALARM
       Serial.println(F("g: get alarm times"));
+#endif // RTC_SUPPORTS_READ_ALARM
       Serial.println(F("d<YYYY>-<MM>-<DD>T<hh>:<mm>: set date/time"));
       Serial.println(F("m: change mode"));
       Serial.println(F("i: start automatic"));

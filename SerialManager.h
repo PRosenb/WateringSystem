@@ -47,10 +47,12 @@ class SerialManager: public Runnable {
        sets the alarm1 time.
     */
     void handleSetAlarmTime();
+#ifdef RTC_SUPPORTS_READ_ALARM
     /**
        @param alarmNumber identifier of the alarm to print, can be 1 or 2.
     */
     void handleGetAlarmTime(byte alarmNumber);
+#endif // RTC_SUPPORTS_READ_ALARM
     void handleWrite();
     void handleStatus();
     void handleSerialInput();
