@@ -42,7 +42,7 @@ class Valve {
       if (pin != UNUSED) {
         return digitalRead(pin) == HIGH;
       } else {
-        false;
+        return false;
       }
     }
   private:
