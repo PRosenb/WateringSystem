@@ -8,7 +8,7 @@
 #include "WaterManager.h"
 
 #define SERIAL_SLEEP_TIMEOUT_MS_DEFAULT 120000
-#define UNDEFINED -1
+#define UNDEFINED 255
 
 class SerialManager: public Runnable {
   public:

@@ -12,7 +12,7 @@ DurationFsm::DurationFsm(DurationState& current, const String name): FiniteState
 }
 
 DurationState& DurationFsm::immediatelyChangeToNextState() {
-  DurationState currentState = getCurrentState();
+  DurationState &currentState = getCurrentState();
   if (currentState.nextState != NULL) {
     DurationState *nextState = currentState.nextState;
     changeState(*nextState);

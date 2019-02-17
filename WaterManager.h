@@ -63,7 +63,7 @@ class WaterManager: public Runnable {
     DurationFsm *modeFsm;
 
     // leak check callback
-    const Runnable * const leakCheckListener = new LeakCheckListener(*this);
+    Runnable * const leakCheckListener = new LeakCheckListener(*this);
     class LeakCheckListener: public Runnable {
       public:
         LeakCheckListener(WaterManager &waterManager): waterManager(waterManager) {}
@@ -71,12 +71,12 @@ class WaterManager: public Runnable {
           waterManager.leakCheckListenerCallback();
         }
       private:
-        const WaterManager &waterManager;
+        WaterManager &waterManager;
     };
     void leakCheckListenerCallback();
 
     // sensor check callback
-    const MeasureStateListener * const waterMeterCheckListener = new WaterMeterCheckListener(*this);
+    MeasureStateListener * const waterMeterCheckListener = new WaterMeterCheckListener(*this);
     class WaterMeterCheckListener: public MeasureStateListener {
       public:
         WaterMeterCheckListener(WaterManager &waterManager): waterManager(waterManager) {}
@@ -84,7 +84,7 @@ class WaterManager: public Runnable {
           waterManager.waterMeterCheckCallback(tickCount);
         }
       private:
-        const WaterManager &waterManager;
+        WaterManager &waterManager;
     };
     void waterMeterCheckCallback(unsigned int tickCount);
 };

@@ -28,6 +28,7 @@ class Valve {
         pinMode(pin, OUTPUT);
       }
     }
+    virtual ~Valve() {}
     virtual void on() {
       if (pin != UNUSED) {
         digitalWrite(pin, HIGH);
@@ -56,7 +57,7 @@ class Valve {
 */
 class MeasuredValve: public Valve {
   public:
-    MeasuredValve(byte pin, WaterMeter *waterMeter): waterMeter(waterMeter), Valve(pin) {
+    MeasuredValve(byte pin, WaterMeter *waterMeter): Valve(pin), waterMeter(waterMeter) {
     }
     virtual ~MeasuredValve() {
       delete waterMeter;
@@ -79,7 +80,7 @@ class MeasuredValve: public Valve {
       return waterMeter->getTotalCount();
     }
   private:
-    const WaterMeter * const waterMeter;
+    WaterMeter * const waterMeter;
 };
 
 /**
@@ -87,7 +88,7 @@ class MeasuredValve: public Valve {
 */
 class ValveSuperState: public SuperState {
   public:
-    ValveSuperState(const Valve * const valve, String name): valve(valve), SuperState(name) {
+    ValveSuperState(Valve * const valve, String name): SuperState(name), valve(valve) {
     }
     virtual void enter() {
       valve->on();
@@ -96,7 +97,7 @@ class ValveSuperState: public SuperState {
       valve->off();
     }
   private:
-    const Valve * const valve;
+    Valve * const valve;
 };
 
 /**
@@ -104,7 +105,7 @@ class ValveSuperState: public SuperState {
 */
 class ValveState: public DurationState {
   public:
-    ValveState(Valve *valve, unsigned long durationMs, String name, SuperState * const superState): valve(valve), DurationState(durationMs, name, superState) {
+    ValveState(Valve *valve, unsigned long durationMs, String name, SuperState * const superState): DurationState(durationMs, name, superState), valve(valve) {
     }
     virtual void enter() {
       valve->on();
@@ -113,7 +114,7 @@ class ValveState: public DurationState {
       valve->off();
     }
   private:
-    const Valve * const valve;
+    Valve * const valve;
 };
 
 /**
@@ -121,8 +122,8 @@ class ValveState: public DurationState {
 */
 class LeakCheckState: public DurationState, public Runnable {
   public:
-    LeakCheckState(unsigned long durationMs, String name, SuperState * const superState, const Runnable * const listener, const WaterMeter *waterMeter):
-      listener(listener), waterMeter(waterMeter), DurationState(durationMs, name, superState) {
+    LeakCheckState(unsigned long durationMs, String name, SuperState * const superState, Runnable * const listener, WaterMeter *waterMeter):
+      DurationState(durationMs, name, superState), waterMeter(waterMeter), listener(listener)  {
     }
     virtual void enter() {
       startTotalCount = waterMeter->getTotalCount();
@@ -137,8 +138,8 @@ class LeakCheckState: public DurationState, public Runnable {
       checkLeak();
     }
   private:
-    const WaterMeter * const waterMeter;
-    const Runnable * const listener;
+    WaterMeter * const waterMeter;
+    Runnable * const listener;
     unsigned long startTotalCount;
     void checkLeak() {
       if (startTotalCount != waterMeter->getTotalCount()) {
@@ -159,8 +160,8 @@ class MeasureStateListener {
 };
 class MeasureState: public DurationState, public Runnable {
   public:
-    MeasureState(const Valve *valve, const unsigned long durationMs, const String name, SuperState * const superState, const MeasureStateListener * const listener, const WaterMeter *waterMeter):
-      valve(valve), listener(listener), waterMeter(waterMeter), DurationState(durationMs, name, superState) {
+    MeasureState(Valve *valve, const unsigned long durationMs, const String name, SuperState * const superState, MeasureStateListener * const listener, WaterMeter *waterMeter):
+      DurationState(durationMs, name, superState), valve(valve), waterMeter(waterMeter), listener(listener) {
     }
     virtual void enter() {
       startTotalCount = waterMeter->getTotalCount();
@@ -180,9 +181,9 @@ class MeasureState: public DurationState, public Runnable {
       listener->measuredResult(tickCount);
     }
   private:
-    const Valve * const valve;
-    const WaterMeter * const waterMeter;
-    const MeasureStateListener * const listener;
+    Valve * const valve;
+    WaterMeter * const waterMeter;
+    MeasureStateListener * const listener;
     unsigned long startTotalCount;
     unsigned int tickCount;
 };
@@ -196,8 +197,8 @@ class ValveManager {
        @param leakCheckListener callback executed when a leak is detected (if activated)
     */
     ValveManager(WaterMeter *waterMeter,
-                 const MeasureStateListener * const waterMeterCheckListener,
-                 const Runnable * const leakCheckListener);
+                 MeasureStateListener * const waterMeterCheckListener,
+                 Runnable * const leakCheckListener);
     ~ValveManager();
     /**
        start automated watering with a warn second before the actual watering.

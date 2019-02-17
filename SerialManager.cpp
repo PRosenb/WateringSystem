@@ -255,9 +255,9 @@ void SerialManager::handleGetAlarmTime(byte alarmNumber) {
 void SerialManager::handleStatus() {
   const byte subCommand = Serial.available() ? Serial.read() : 0;
   if (subCommand == 'e') {
-    char colon = Serial.available() ? Serial.read() : 0;
+    Serial.available() ? Serial.read() : 0; // char colon
     int startAddress = serialReadInt(3);
-    char comma = Serial.available() ? Serial.read() : 0;
+    Serial.available() ? Serial.read() : 0; // char comma
     int endAddress = serialReadInt(3);
     EEPROMwl.printStatus(Serial);
     if (endAddress > 0) {

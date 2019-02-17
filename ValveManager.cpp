@@ -4,8 +4,8 @@
 #include <EEPROMWearLevel.h> // https://github.com/PRosenb/EEPROMWearLevel
 
 ValveManager::ValveManager(WaterMeter *waterMeter,
-                           const MeasureStateListener * const waterMeterCheckListener,
-                           const Runnable * const leakCheckListener) {
+                           MeasureStateListener * const waterMeterCheckListener,
+                           Runnable * const leakCheckListener) {
   unsigned int durationZone1Sec = DEFAULT_DURATION_AUTOMATIC1_SEC;
   durationZone1Sec = EEPROMwl.get(EEPROM_INDEX_ZONE1, durationZone1Sec);
   unsigned int durationZone2Sec = DEFAULT_DURATION_AUTOMATIC2_SEC;
